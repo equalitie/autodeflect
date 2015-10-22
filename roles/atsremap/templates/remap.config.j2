@@ -1,0 +1,30 @@
+# {{ no_edit_template }}
+regex_map	http://^(www\.)?{{item.key | regex_replace('\.', '\\.')}}$/		http://{%- if "nocacheconfig" in remap[item.key] == "true" -%}{{remap[item.key]["origin"]}}/{%- else -%}{{remap[item.key]["hidden"]}}.hidden.
+{%- if "nocookie" in remap[item.key] and remap[item.key]["nocookie"] -%}
+nocookie.{{dnets[remap[item.key]["network"]]}}/
+{%- else -%}
+{{remap[item.key]["cache_time"]}}m.{{dnets[remap[item.key]["network"]]}}/
+{% endif %}
+{% endif %}
+
+{% if remap[item.key]["https"] %}
+regex_map	https://^(www\.)?{{item.key | regex_replace('\.', '\\.')}}$/		https://{%- if "nocacheconfig" in remap[item.key] == "true" -%}{{remap[item.key]["origin"]}}/{%- else -%}{{remap[item.key]["hidden"]}}.hidden.
+{%- if "nocookie" in remap[item.key] and remap[item.key]["nocookie"] -%}
+nocookie.{{dnets[remap[item.key]["network"]]}}/
+{%- else -%}
+{{remap[item.key]["cache_time"]}}m.{{dnets[remap[item.key]["network"]]}}/
+{% endif %}
+{% endif %}
+{% endif %}
+
+{%- if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] -%}
+{% for prefix in remap[item.key]["additional_domain_prefix"]%}
+map	http://{{prefix}}.{{item.key}}/		http://{%- if "nocacheconfig" in remap[item.key] == "true" -%}{{remap[item.key]["origin"]}}/{%- else -%}{{remap[item.key]["hidden"]}}.hidden.
+{%- if "nocookie" in remap[item.key] and remap[item.key]["nocookie"] -%}
+nocookie.{{dnets[remap[item.key]["network"]]}}/
+{%- else -%}
+{{remap[item.key]["cache_time"]}}m.{{dnets[remap[item.key]["network"]]}}/
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}

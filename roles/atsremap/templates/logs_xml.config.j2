@@ -1,0 +1,63 @@
+<!------------------------------------------------------------------------
+ {{ no_edit_template }}
+------------------------------------------------------------------------->
+
+<LogFormat>
+  <Name = "squid_seconds_only_timestamp"/>
+  <Format = "%<cqts> %<ttms> %<chi> %<crc>/%<pssc> %<psql> %<cqhm> %<cquc> %<caun> %<phr>/%<pqsn> %<psct>"/>
+</LogFormat>
+
+<LogFormat>
+    <Name = "deflect_log"/>
+    <Format = "%<chi> %<caun> [%<cqtn>] \"%<cqhm> /%<cqup> %<cqhv>\" %<cqus> %<{Host}cqh> %<pssc> %<pscl> \"%<{User-Agent}cqh>\" %<crc> %<psct> %<pqsn> %<ttms> %<cquc>"/>
+</LogFormat>
+
+{% for site, attributes in remap | dictsort %}
+{% if attributes["disable_logging"] %}
+<LogFilter>
+  <Name = "reject_{{site}}"/>
+  <Condition = "{Host}cqh MATCH {{site}}"/>
+  <Action = "REJECT"/>
+</LogFilter>
+
+<LogFilter>
+  <Name = "accept_{{site}}"/>
+  <Condition = "{Host}cqh MATCH {{site}}"/>
+  <Action = "ACCEPT"/>
+</LogFilter>
+
+<LogObject>
+   <Format = "deflect_log"/>
+   <Filename = "delete_{{site}}.log"/>
+   <Filters ="accept_{{site}}"/>
+   <Mode = "ascii"/>
+   <RollingEnabled = "1"/>
+   <RollingIntervalSec = "86400"/>
+   <RollingOffsetHr = "0"/>
+</LogObject>
+
+{% endif %}
+{% endfor %}
+
+
+<LogObject>
+   <Format = "deflect_log"/>
+   <Filename = "delete"/>
+   <Mode = "ascii"/>
+   <RollingEnabled = "1"/>
+   <RollingIntervalSec = "86400"/>
+   <RollingOffsetHr = "0"/>
+</LogObject>
+
+<!---------------
+This file is deleted frequently by cron.
+----------------->
+<LogObject>
+   <Format = "deflect_log"/>
+   <Filename = "deflect"/>
+   <Filters ="{% for site, attributes in remap | dictsort %}{% if attributes["disable_logging"] %}reject_{{site}}{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}"/>
+   <Mode = "ascii"/>
+   <RollingEnabled = "1"/>
+   <RollingIntervalSec = "86400"/>
+   <RollingOffsetHr = "0"/>
+</LogObject>

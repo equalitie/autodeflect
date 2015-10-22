@@ -1,0 +1,15 @@
+---
+
+- name: Logging disabling
+  template: src=logs_xml.config.j2 dest={{ats_output}}/logs_xml.config owner=root group=root
+  tags: ats
+
+- name: remap per-site config
+  template: src=remap.config.j2 dest={{ats_output}}remap.d/{{ item.key }}.config owner=root group=root
+  with_dict: remap
+  tags: ats
+
+- name: remap master config
+  template: src=remap.{{ item.key }}.masterconf.j2 dest={{ats_output}}/remap.config owner=root group=root
+  with_dict: dnets
+  tags: ats

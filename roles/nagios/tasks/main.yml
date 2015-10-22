@@ -1,0 +1,6 @@
+---
+
+- name: Create Nagios deflect_origins hosts and group
+  template: src=deflect_origin_servicedefs.cfg.j2 dest={{nagios_output}}/deflect_origin_servicedefs.cfg owner=root group=nagios
+  tags: nagios
+  notify: reload nagios

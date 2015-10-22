@@ -1,0 +1,20 @@
+---
+remap:
+  site.example.com:
+    additional_domain_prefix:
+      - "mobile"
+
+  # Longer cache zone
+  #my.video.host.example.com: 
+  #  cache_time: 720
+
+  #nocache.example.com: 
+  #  cache_time: 0 
+
+  # If a site has nothing at /, Nagios should check this object
+  #nothingatroot.example.com:
+  #  origin_object: "/unusual_sub_object"
+
+  #sitethatneedsnocache.example.com:
+  #  nocacheconfig: true
+

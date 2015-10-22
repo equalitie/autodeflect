@@ -1,0 +1,11 @@
+{% for site, siteattrs in remap | dictsort %}
+define service{
+	host_name			Deflect_Origins
+	servicegroups			DeflectOrigins
+	service_description		{{site}}
+	check_command			check_deflect_origin!{{site}}{% if "origin_object" in remap[site] %} -u "{{remap[site]["origin_object"]}}"{% endif %}!{{siteattrs["origin"]}}
+	use				generic-service
+	normal_check_interval		10
+}
+
+{% endfor %}

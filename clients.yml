@@ -1,0 +1,64 @@
+# The "remap" dictionary is the central configuration store of client
+# data in autodeflect. This data can be manually generated, machine
+# generated or some combination of the two. Deflect uses a web
+# interface for this data (https://dashboard.deflect.ca - open sourced
+# code coming soon!). 
+
+# It's important that you sanitise this information extensively before
+# allowing it into the clients.yml file. If you're allowing multi-line
+# strings or similar into your configs, services may be disrupted.
+
+remap: 
+  site.example.com:
+    # Password used to retrieve information from awstats which is
+    # stored in the web interface cache. Doesn't get used by the user
+    # so can be randomly generated and long if used in combination
+    # with Dashboard. If not, make this a strong password to supply to
+    # users.
+    awstats_password: CHANGEME
+    # Password used to access the site's admin section. Can be empty
+    banjax_password: CHANGEME
+    # Path to be protected via Banjax auth page. If left empty no
+    # banjax rules will be written.
+    banjax_path: wp-admin
+    # How long to cache content by default
+    cache_time: 10
+    # Should we scrub logs for this site? If true, the logs will be
+    # written to a temporary file that is routinely removed. Logs will
+    # not be shipped offsite for centralisation.
+    disable_logging: false
+    dns_records:
+      # It's best to quote @s in this context. 
+      '@':
+      - type: A
+        value: 192.168.2.1
+      - type: MX
+        value: [10, mail1.externalmail.example.com.]
+      - type: TXT
+        value: 'v=spf1 include:myspfstuff -all'
+      mail:
+      - type: MX
+        value: [20, mail1.externalmail.example.com.]
+      www:
+      - type: CNAME
+        value: site.example.com.
+      mobile:
+      - type: CNAME
+        value: site.example.com.      
+    email: user@example.com
+    # hidden domain used to refer to origin in remaps on edge
+    # nodes. This will be obsolete in the next release of
+    # Autodeflect. The string should be random and long.
+    hidden: CHANGEME
+    # Use HTTPS? Autodeflect assumes that human invervention will be
+    # used to decrypt and install the SSL certificates for sites.
+    https: true
+    # The network to install the site on. Should be one of the dnets
+    # in site.yml.
+    network: mydnet
+    # IP address of the webserver actually serving the
+    # content. Ideally shouldn't be in the existing DNS records.
+    origin: 10.0.0.2
+
+  #site.example.edu:
+  # etc...

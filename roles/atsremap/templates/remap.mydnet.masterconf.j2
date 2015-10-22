@@ -1,0 +1,11 @@
+# {{ no_edit_template }}
+
+# Tool for testing origin and proxy behavior
+map	http://httpbin.{{ dnets[item.key] }}/	http://httpbin.org/
+map	https://httpbin.{{ dnets[item.key] }}/	https://httpbin.org/
+
+{% for site in remap | sort %}
+.include	remap.d/{{site}}.config
+{% endfor %}
+
+###################################################################

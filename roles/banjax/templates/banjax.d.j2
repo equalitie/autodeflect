@@ -1,0 +1,11 @@
+challenges:
+  - name: "{{item.key}}_auth"
+    domains :
+      - "{{item.key}}"
+      - "www.{{item.key}}"
+    challenge_type : "auth"
+    challenge : "auth.html"
+    password_hash : "{{remap[item.key]["banjax_password"]}}"
+    magic_word : "{{remap[item.key]["banjax_path"]}}"
+    validity_period : 360000
+    no_of_fails_to_ban : 10

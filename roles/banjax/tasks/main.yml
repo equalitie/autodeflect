@@ -1,0 +1,19 @@
+---
+- name: Banjax configuration file
+  template: src=banjax.conf.j2 dest={{ats_output}}/banjax.conf
+
+- name: Create banjax.d dir
+  file: dest={{ats_output}}/banjax.d state=directory
+
+- name: Banjax configuration file (new version)
+  template: src=banjax.d.j2 dest={{ats_output}}/banjax.d/{{item.key}}.conf
+  when: remap[item.key]["banjax_path"]
+  with_dict: remap
+
+- name: Banjax configuration file
+  template: src=banjax.conf.new.j2 dest={{ats_output}}/banjax.conf.new
+
+# Useful for detecting breakage when using old-style banjax
+- script: scripts/libconfig_check.py {{ats_output}}/banjax.conf
+
+
