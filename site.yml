@@ -34,7 +34,11 @@
     # reverse proxying
     - {role: atsremap, tags: [ats]}
     # Write out user auth configurations for the banjax protection
-    # system
+    # system. Additional configuration to enable challengers, captchas
+    # and other protections can be enabled in the template files
+    # within this role. This role writes out two styles of
+    # configuration file - see the role's documentation for more
+    # details.
     - {role: banjax, tags: banjax}
     # Nagios configurations for monitoring origins. 
     - {role: nagios, tags: nagios}
@@ -48,4 +52,7 @@
   tags:
     - awstats
   roles:
+    # awstats is used for building basic analytics about site
+    # traffic. A per-user profile is created based on the data in
+    # clients.yml.
     - awstats
