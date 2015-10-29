@@ -2,13 +2,13 @@ autodeflect
 ========
 
 Autodeflect is an automation system for DIY installations of the
-[Deflect](https://deflect.ca) anti-DDoS system.
+[Deflect](https://deflect.ca) anti-DDoS CDN system.
 
-Deflect is a lightweight, low-cost anti-DDoS content distribution
-network using reverse proxies to absorb and mitigate DDoS attacks on
-websites. The infrastructure is comprised of many parts, with [Apache
-Traffic Server](https://trafficserver.apache.org/) being a central
-component used for caching resources and serving them. 
+Deflect is a lightweight but heavy-duty anti-DDoS content distribution
+network that uses low-cost reverse proxies to absorb and mitigate DDoS
+attacks on webservers. The infrastructure is comprised of many parts,
+with [Apache Traffic Server](https://trafficserver.apache.org/) being a
+central component used for caching resources and serving them. 
 
 Autodeflect is a system for writing out the dynamic components of a
 Deflect configuration. This comprises:
