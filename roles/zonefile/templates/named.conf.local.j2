@@ -3,7 +3,7 @@
 {% if dnets[dnet] is defined and dnets[dnet] %}
 # in {{dnet}} dnet
 zone "{{dnets[dnet]}}" {
-      type mater;
+      type master;
       file "{{dnets[dnet]}}.zone";
       also-notify { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
 };
