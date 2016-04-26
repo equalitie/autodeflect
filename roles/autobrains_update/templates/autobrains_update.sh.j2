@@ -45,6 +45,7 @@ SKIP_UPDATE=0
 NOTIFY_CONTENT=''
 REMOVED_FILES=0
 REMAP_TOUCHED=0
+NEWCLIENTS_YML=0
 MAINT=false
 MAINT_BYPASS=false
 if [ -n "$SUDO_USER" ] ; then
@@ -138,6 +139,7 @@ function fetch_clients_yml() {
     rm {{playbook_dir}}/clients.yml
     ln -s clients.yml-revisions/clients.yml-${DATE} clients.yml
   fi
+  export NEWCLIENTS_YML=1
 }
 
 function install_file {
@@ -173,6 +175,8 @@ FILE=${OLD_FILE##*/}
 }
 
 function remap_diff_loop {
+  echo "DNET is $DNET"
+  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   for i in {{ats_output}}$DNET/remap.d/*.config; do
     local test=$(match_bypass_file "$(basename $i)")
     if [ $test -gt 0 ]; then 
@@ -196,6 +200,8 @@ done
 }
 
 function banjax_diff_loop {
+  echo "DNET is $DNET"
+  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   for i in {{banjax_output}}$DNET/banjax.d/*.bconf; do
     local test=$(match_bypass_file "$(basename $i)")
     if [ $test -gt 0 ]; then 
@@ -219,6 +225,7 @@ done
 }
 
 function zone_diff_loop {
+  echo "$DNET is $DNET"
   for i in {{bind_output}}$DNET/*.zone; do
     local test=$(match_bypass_file "$(basename $i)")
     if [ $test -gt 0 ]; then 
@@ -240,6 +247,8 @@ done
 }
 
 function banjax_new_diff {
+  echo "DNET is $DNET"
+  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   local test=$(match_bypass_file banjax.conf)
     if [ $test -gt 0 ]; then
       echo "Bypassing file banjax.conf"
@@ -258,6 +267,8 @@ function banjax_new_diff {
 }
 
 function logs_xml_diff {
+  echo "DNET is $DNET"
+  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   local test=$(match_bypass_file logs_xml.config)
     if [ $test -gt 0 ]; then
       echo "Bypassing file logs_xml.config"
@@ -270,12 +281,14 @@ function logs_xml_diff {
     echo "ERROR: There was something wrong with the diff command"
   elif [ $RT -eq 1 ]
   then 
-    yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/logs_xml.config ${ATS_DIR}/conf/logs_xml.config" 
+    yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/logs_xml.config $ATS_DIR/conf/logs_xml.config" 
     echo -e $ECHO_SEPARATOR
   fi
 }
 
 function remap_diff {
+  echo "DNET is $DNET"
+  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   local test=$(match_bypass_file remap.config)
     if [ $test -gt 0 ]; then
       echo "Bypassing file remap.config"
@@ -295,6 +308,8 @@ function remap_diff {
 }
 
 function cache_diff {
+  echo "DNET is $DNET"
+  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   local test=$(match_bypass_file cache.config)
     if [ $test -gt 0 ]; then
       echo "Bypassing file cache.config"
@@ -377,6 +392,8 @@ function finish() {
 }
 
 function dot_generated() {
+  echo "DNET is $DNET"
+  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   echo -e "creating .generated file for remap.d"
   date +%s > $ATS_DIR/conf/remap.d/.generated
 }
@@ -473,7 +490,9 @@ yorn "Check canary IPs for deflect1" "/usr/local/deflect/scripts/canaries_check.
 rm ${LOCK_PREFIX-}$UNAME
 cd $CUR_DIR
 
-cp {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used
+if [ $NEWCLIENTS_YML -eq 1 ]; then
+  cp {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used
+fi
 
 echo -e "\n\tFinished.\n\n\tUpdate dashadmin and redmine if needed.\n\n\tdeploy.sh -A $DNET -p ats -H ALL\n\tstill needs to happen if files updated\n\tor installed.\n\tDon't forget to deploy to a non-live edge before using -H ALL\n\n\tIf nothing changed, consider running "deploy.sh -A $DNET -p conftouch -H ALL"\n\tto prevent nagios warning about confsync.\n\tNote: edge_manage will pick up zone changes automatically."
 echo -e "\n\tBelow is a current list of non-live edges in $DNET dnet\n"
