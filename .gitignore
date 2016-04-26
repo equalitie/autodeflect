@@ -6,7 +6,7 @@ hosts.yml
 config/
 bind/
 ats/
-^banjax/
+/banjax
 autobrains_update.sh
 .lock_autobrains-*
 .maint_lock-*
