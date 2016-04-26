@@ -1,0 +1,5 @@
+autobrains
+========
+
+Requires:
+* python-passlib

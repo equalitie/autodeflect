@@ -1,0 +1,12 @@
+; {{ no_edit_template }}
+{% include "config/networkzone." + item.key ignore missing %} 
+; END non-dashboard config
+{% for site, siteattrs in remap | dictsort %}
+{% if item.value is defined and item.value %}
+; Origin records for {{ site }}
+$GENERATE 0-30 {{siteattrs["hidden"]}}.origin.$m IN A   {{siteattrs["origin"]}}
+$GENERATE 30-2880/10 {{siteattrs["hidden"]}}.origin.$m IN A     {{siteattrs["origin"]}}
+{{siteattrs["hidden"]}}.cachecontrol IN A    {{siteattrs["origin"]}}
+
+{% endif %}
+{% endfor %}

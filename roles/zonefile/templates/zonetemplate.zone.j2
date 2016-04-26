@@ -1,0 +1,36 @@
+; {{ no_edit_template }}
+{% for domain, entries in remap[item.key]["dns_records"] | dictsort %}
+{% for entry in entries %}
+{% if domain == item.key or domain == "@" %}
+{% if entry["type"] == "NS" or entry["type"] == "A" %}
+; skipped record of type {{entry["type"]}} and value {{entry["value"]}}
+{% elif entry["type"] == "TXT" %}
+{{domain}}     IN      {{entry["type"]}}       {{entry["value"]}}
+{% elif entry["type"] == "MX" %}
+{{domain}}	IN	{{entry["type"]}}       {{entry["value"][0]}}   {{entry["value"][1]}}
+{% else %}
+@		IN	{{entry["type"]}}       {{entry["value"]}}
+{% endif %}
+{% else %}
+{% if entry["type"] == "MX" %}
+{{domain}}	IN	{{entry["type"]}}	{{entry["value"][0]}}	{{entry["value"][1]}}
+{% elif entry["type"] == "SRV" %}
+{{domain}}	IN	{{entry["type"]}}	{{entry["value"][0]}}	{{entry["value"][1]}}	{{entry["value"][2]}}	{{entry["value"][3]}}
+{% elif domain == "www" and (entry["type"] == "A" or entry["type"] == "CNAME") %}
+www		IN	 CNAME  {{item.key}}.
+{% elif entry["type"] == "TXT" %}
+{{domain}}	IN      {{entry["type"]}}	{{entry["value"]}}
+{% else %}
+{{domain}}	IN	{{entry["type"]}}	{{entry["value"]}}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% if "www" not in remap[item.key]["dns_records"] -%}
+www   	    	IN 	CNAME	{{item.key}}.
+{% endif -%}
+{% if "NS_extra" in remap[item.key] and remap[item.key]["NS_extra"] %}
+{% for record in remap[item.key]["NS_extra"]%}
+{{record}}
+{% endfor %}
+{% endif %}

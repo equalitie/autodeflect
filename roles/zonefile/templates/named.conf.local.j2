@@ -1,0 +1,21 @@
+# {{ no_edit_template }}
+{% for dnet in dnets %}
+{% if dnets[dnet] is defined and dnets[dnet] %}
+# in {{dnet}} dnet
+zone "{{dnets[dnet]}}" {
+      type mater;
+      file "{{dnets[dnet]}}.zone";
+      also-notify { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
+};
+{% endif %}
+{% endfor %}
+{% for site, attributes in remap | dictsort %}
+{% if "dns_records" in attributes -%} 
+# in {{attributes.network}} dnet
+zone "{{site}}" {
+      type master;
+      file "{{site}}.zone";
+      also-notify { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
+};
+{% endif %}
+{% endfor %}

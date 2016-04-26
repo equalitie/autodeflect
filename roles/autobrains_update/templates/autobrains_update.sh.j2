@@ -1,0 +1,482 @@
+#!/bin/bash
+# {{no_edit_template}}
+# {{no_edit_template}}
+# {{no_edit_template}}
+## Remove this file to re-create if you update template
+## ansible-playbook site.yml -l controller setup
+# {{no_edit_template}}
+# {{no_edit_template}}
+# {{no_edit_template}}
+## CONFIG
+## This will be the loop CONF
+
+{% set dnetspace = joiner(" ") %}
+DNETS='{% for dnet in dnets %}{{dnetspace()}}{{dnet}}{% endfor %}'
+DNET='deflect1'
+ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+
+########
+
+EMAIL_NOTIFY='{{autobrains_config["email_notify"]}}'
+EMAIL_KEY_ID='{{autobrains_config["email_key_id"]}}'
+LOGDIR='{{autobrains_config["log_dir"]}}'
+
+CUR_DIR="$(pwd)"
+LOCK_PREFIX=".lock_autobrains-"
+MAINTENANCE_LOCK='.maint_lock-'
+AW_LASTRUN_FILE=".aw_lastrun"
+
+{% set bpspace = joiner(" ") %}
+{% if autobrains_bypasses is defined and autobrains_bypasses %}
+BYPASS_FILES="{% for bypass in autobrains_bypasses %}{{bpspace()}}{{bypass}}{% endfor %}" 
+{% endif %}
+
+MOTD=$(cat <<EOF
+
+ 
+EOF
+)
+
+##########
+## SETUP 
+ECHO_SEPARATOR='\n\n#################################\n\t##\t##\n#################################\n\n'
+DATE=$(date +%Y%m%d%H%M%S)
+SKIP_UPDATE=0
+NOTIFY_CONTENT=''
+REMOVED_FILES=0
+REMAP_TOUCHED=0
+MAINT=false
+MAINT_BYPASS=false
+if [ -n "$SUDO_USER" ] ; then
+  UNAME=$SUDO_USER ; else
+  UNAME=$(id -nu)
+fi
+
+############
+## FUNCTIONS
+
+# set the encrypted mailer routine
+function notify() {
+NOTE_FILE=$1
+  gpg --homedir /root/.gnupg/ -e -a -r $EMAIL_KEY_ID | mailx -s "$UNAME updated w/ autobrains @ $DATE" ${EMAIL_NOTIFY} 
+}
+
+function notify_store() {
+NOTE_FILE=$1
+local NOTIFY_CONTENT="$UNAME updated $NOTE_FILE @ $DATE $(cat)" 
+
+echo "$NOTIFY_CONTENT" >> ${LOCK_PREFIX}${UNAME}
+}
+
+function lock() {
+ls -1 ${LOCK_PREFIX-}* > /dev/null 2>&1
+RT=$?
+if [ $RT -eq 0 ]; then 
+  echo "\"$(ls -x ${LOCK_PREFIX-}* | sed s/${LOCK_PREFIX-}//g)\" is currently running this script. If not remove $(ls -x ${LOCK_PREFIX-}*)"
+  exit
+else
+ touch ${LOCK_PREFIX-}$UNAME || echo -e "Could not write $(pwd)/${LOCK_PREFIX-}$UNAME\n\n"
+fi
+}
+
+function maint_lock() {
+if [ "$MAINT_BYPASS" = true ]; then
+  if [ "$MAINT" = true ]; then
+    echo "Can not set maintenance mode while trying to bypass. Exiting."
+    exit
+  else
+    echo "Using maintenance bypass ....."
+    return
+  fi
+fi
+ls -1 ${MAINTENANCE_LOCK-}* > /dev/null 2>&1
+RT=$?
+if [ $RT -eq 0 ]; then
+  echo -e "\"$(ls -x ${MAINTENANCE_LOCK-}* | sed s/${MAINTENANCE_LOCK-}//g)\" has this script in maintenance mode.\nRemove lock file "$(ls -x ${MAINTENANCE_LOCK-}*)" when done.\nUse $0 -b or $0 --bypass to bypass and run anyway."
+  exit
+fi
+
+if [ "$MAINT" = true ]; then
+  touch ${MAINTENANCE_LOCK-}$UNAME || echo -e "Could not write $(pwd)/${MAINTENANCE_LOCK-}$UNAME\n\n"
+  echo "Maintenance mode is now enabled. Use $0 -b or $0 --bypass"
+  exit
+fi
+}
+
+function yorn() {
+while true; do
+  read -p "$1 (y/n)? " yn
+  case $yn in
+    [Yy]* ) $2; break;;
+    [Nn]* ) break;;
+        * ) echo "Please answer y or n.";;
+    esac
+done
+echo
+}
+
+function awstatsorn() {
+while true; do
+  read -p "$1 (awstats/n)? " yn
+  case $yn in
+    [awstats]* ) $2; date > {{playbook_dir}}/$AW_LASTRUN_FILE ; break;;
+    [Nn]* ) break;;
+        * ) echo "Please answer awstats or n.";;
+    esac
+done
+echo
+}
+
+function fetch_clients_yml() {
+  curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" {{autobrains_config["dash_proxy"]}}{{autobrains_config["clients_yml_url"]}} > {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} 2> /dev/null
+    echo -e $ECHO_SEPARATOR
+  if diff {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} >/dev/null 2>&1 ; then
+    echo "No differences found in clients.yml since last completed autobrains run"
+  else
+    echo "Differences in clients.yml since last completed autobrains run:"
+    diff -U 15 {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE}
+    rm {{playbook_dir}}/clients.yml
+    ln -s clients.yml-revisions/clients.yml-${DATE} clients.yml
+  fi
+}
+
+function install_file {
+# File from Ansible
+NEW_FILE=$1
+# File in .../deflect/
+OLD_FILE=$2
+
+# Directory in .../deflect/
+DIR=${OLD_FILE%/*}
+# File name, same as basename
+FILE=${OLD_FILE##*/}
+
+[ -d ${DIR}/old ] || mkdir ${DIR}/old || ( echo "error creating old directory -quitting" && exit )
+ if [ -f ${OLD_FILE} ] 
+  then
+   echo "Anything you would like to say about this update?"
+   read explanation
+   test -z "$explanation" && echo "no explanation? naughty!"
+   cp ${OLD_FILE} ${DIR}/old/${FILE}-${DATE}-${UNAME}
+   cp ${NEW_FILE} ${OLD_FILE}
+   [ -f ${DIR}/old/${FILE}-latest ] && rm ${DIR}/old/${FILE}-latest
+   ( /bin/echo -e "$explanation\n${OLD_FILE}\n" ; diff -u ${DIR}/old/${FILE}-${DATE}-${UNAME} ${OLD_FILE} ) | tee ${LOGDIR}/${FILE}.${DATE} | notify_store ${OLD_FILE}
+    cp ${DIR}/${FILE} ${DIR}/old/${FILE}-latest
+  else
+    cp ${NEW_FILE} ${OLD_FILE}
+    cp ${DIR}/${FILE} ${DIR}/old/${FILE}-latest
+    echo "Anything you would like to say about this update?"
+    read explanation
+    test -z "$explanation" && echo "no explanation? naughty!"
+    ( /bin/echo -e "$explanation\n${OLD_FILE}\n" ; echo "installed ${OLD_FILE}" ) | tee ${LOGDIR}/${FILE}.${DATE} | notify_store ${OLD_FILE}
+  fi
+}
+
+function remap_diff_loop {
+  for i in {{ats_output}}$DNET/remap.d/*.config; do
+    local test=$(match_bypass_file "$(basename $i)")
+    if [ $test -gt 0 ]; then 
+      echo -e "Bypassing file $(basename $i)" 
+      continue
+    fi
+    DIFF_FILES="$ATS_DIR/conf/remap.d/$(basename $i) $i"
+    diff -Ntu $DIFF_FILES
+    RT=$?
+    if [ $RT -eq 2 ]
+    then
+      echo "ERROR: There was something wrong with the diff command"
+    elif [ $RT -eq 1 ]
+    then
+      yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/remap.d/$(basename $i)" 
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED=1
+      echo -e $ECHO_SEPARATOR 
+  fi
+    
+done 
+}
+
+function banjax_diff_loop {
+  for i in {{banjax_output}}$DNET/banjax.d/*.bconf; do
+    local test=$(match_bypass_file "$(basename $i)")
+    if [ $test -gt 0 ]; then 
+      echo -e "Bypassing file $(basename $i)" 
+      continue
+    fi
+    DIFF_FILES="$ATS_DIR/conf/banjax/banjax.d/$(basename $i) $i"
+    diff -Ntu $DIFF_FILES
+    RT=$?
+    if [ $RT -eq 2 ]
+    then
+      echo "ERROR: There was something wrong with the diff command"
+    elif [ $RT -eq 1 ]
+    then
+      yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/banjax/banjax.d/$(basename $i)" 
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED=1
+      echo -e $ECHO_SEPARATOR 
+  fi
+    
+done 
+}
+
+function zone_diff_loop {
+  for i in {{bind_output}}$DNET/*.zone; do
+    local test=$(match_bypass_file "$(basename $i)")
+    if [ $test -gt 0 ]; then 
+      echo -e "Bypassing file $(basename $i)" 
+      continue
+    fi
+    DIFF_FILES="{{autobrains_config["zone_files"]}}/$DNET/$(basename $i) $i"
+    diff -Ntu $DIFF_FILES
+    RT=$?
+    if [ $RT -eq 2 ]
+    then
+      echo "ERROR: There was something wrong with the diff command"
+    elif [ $RT -eq 1 ]
+    then
+      yorn "Do you want to install this file" "install_file $i {{autobrains_config["zone_files"]}}/$DNET/$(basename $i)"
+      echo -e $ECHO_SEPARATOR
+    fi 
+done
+}
+
+function banjax_new_diff {
+  local test=$(match_bypass_file banjax.conf)
+    if [ $test -gt 0 ]; then
+      echo "Bypassing file banjax.conf"
+      return 
+    fi
+  diff -Ntu $ATS_DIR/conf/banjax/banjax.conf {{banjax_output}}$DNET/banjax.conf
+  RT=$?
+  if [ $RT -eq 2 ]
+  then
+    echo "ERROR: There was something wrong with the diff command"
+  elif [ $RT -eq 1 ]
+  then
+    yorn "Do you want to install this file" "install_file {{banjax_output}}$DNET/banjax.conf $ATS_DIR/conf/banjax/banjax.conf"
+    echo -e $ECHO_SEPARATOR
+  fi
+}
+
+function logs_xml_diff {
+  local test=$(match_bypass_file logs_xml.config)
+    if [ $test -gt 0 ]; then
+      echo "Bypassing file logs_xml.config"
+      return 
+    fi
+  diff -Ntu $ATS_DIR/conf/logs_xml.config {{ats_output}}$DNET/logs_xml.config
+  RT=$?
+  if [ $RT -eq 2 ]
+  then
+    echo "ERROR: There was something wrong with the diff command"
+  elif [ $RT -eq 1 ]
+  then 
+    yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/logs_xml.config ${ATS_DIR}/conf/logs_xml.config" 
+    echo -e $ECHO_SEPARATOR
+  fi
+}
+
+function remap_diff {
+  local test=$(match_bypass_file remap.config)
+    if [ $test -gt 0 ]; then
+      echo "Bypassing file remap.config"
+      return 
+    fi
+  diff -Ntu $ATS_DIR/conf/remap.config {{ats_output}}$DNET/remap.config
+  RT=$?
+  if [ $RT -eq 2 ]
+  then
+    echo "ERROR: There was something wrong with the diff command"
+  elif [ $RT -eq 1 ]
+  then  
+    yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/remap.config $ATS_DIR/conf/remap.config"
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED=1
+    echo -e $ECHO_SEPARATOR
+  fi 
+}
+
+function cache_diff {
+  local test=$(match_bypass_file cache.config)
+    if [ $test -gt 0 ]; then
+      echo "Bypassing file cache.config"
+      return 
+    fi
+  diff -Ntu $ATS_DIR/conf/cache.config {{ats_output}}$DNET/cache.config
+  RT=$?
+  if [ $RT -eq 2 ]
+  then
+    echo "ERROR: There was something wrong with the diff command"
+  elif [ $RT -eq 1 ]
+  then  
+    yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/cache.config $ATS_DIR/conf/cache.config"
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED=1
+    echo -e $ECHO_SEPARATOR
+  fi 
+}
+
+function bind_local_templated_diff {
+  local test=$(match_bypass_file named.conf.local.templated)
+    if [ $test -gt 0 ]; then
+      echo "Bypassing file named.conf.local.templated"
+      return 
+    fi
+  diff -Ntu {{autobrains_config["loc_bind_confs"]}}/named.conf.local.templated {{bind_output}}bind/named.conf.local.templated
+  RT=$?
+  if [ $RT -eq 2 ]
+  then
+    echo "ERROR: There was something wrong with the diff command"
+  elif [ $RT -eq 1 ]
+  then
+    yorn "Do you want to install this file" "install_file {{bind_output}}bind/named.conf.local.templated {{autobrains_config["loc_bind_confs"]}}/named.conf.local.templated"
+    echo -e $ECHO_SEPARATOR
+  fi
+}
+  
+function all_diff {
+  banjax_new_diff
+  logs_xml_diff
+  remap_diff
+  remap_diff_loop
+  banjax_diff_loop
+  cache_diff
+#  dnet_zone_diff
+  zone_diff_loop
+  bind_local_templated_diff
+}
+
+function list_bypass_files {
+for aa in $BYPASS_FILES; do
+  echo $aa
+done
+}
+
+function match_bypass_file {
+local a=$1
+local return=0
+for i in $BYPASS_FILES; do
+ if [ "${i}" = "${a}" ]; then
+   local return=1
+ fi
+done
+echo $return
+} 
+
+function ctrl_c() {
+  echo -e "\n** CTRL-C **\nCleaning up." 
+  [ ! -s "${LOCK_PREFIX-}$UNAME" ] || cat "${LOCK_PREFIX-}$UNAME" | notify
+  rm ${LOCK_PREFIX-}$UNAME
+  cd $CUR_DIR
+  echo -e "\n\n\tFinished.\n\n"
+  exit 
+}
+
+function finish() {
+  [ ! -s "${LOCK_PREFIX-}$UNAME" ] || cat "${LOCK_PREFIX-}$UNAME" | notify
+  rm ${LOCK_PREFIX-}$UNAME  2>/dev/null
+  cd $CUR_DIR
+  exit
+}
+
+function dot_generated() {
+  echo -e "creating .generated file for remap.d"
+  date +%s > $ATS_DIR/conf/remap.d/.generated
+}
+
+function cat_blacklist() {
+  echo "The following sites are Blacklisted and are not included in clients.yml until further notice:"
+  curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" {{autobrains_config["dash_proxy"]}}{{autobrains_config["dash_blacklist_url"]}}
+  echo -e "\nEnd of Blacklist."
+}
+
+function controller_update() {
+  rm -r {{ats_output}} {{banjax_output}} {{bind_output}}
+  ansible-playbook {{playbook_dir}}/site.yml -l controller
+}
+
+
+
+#########
+### MAIN
+
+# Get us in the right directory
+if [ "$(pwd)" != "{{playbook_dir}}" ]; then
+  echo -e "Changing to {{playbook_dir}}\n"
+  cd {{playbook_dir}} 2> /dev/null
+  RT=$?
+  if [ $RT -eq 1 ]; then
+    echo "ERROR: Could not change to directory {{playbook_dir}}. Exiting"
+    exit
+  fi
+fi
+
+# Create a lock file that also contains content for notify email when exiting
+lock
+
+# Trap ctrl-c or exit so we unlock and clean up
+trap ctrl_c INT
+trap finish EXIT
+
+while test $# -gt 0; do
+case "$1" in
+  -m|--maint)
+  MAINT=true
+  shift
+  ;;
+  -b|--bypass)
+  MAINT_BYPASS=true
+  shift
+  ;;
+  *)
+  # unknown option
+  echo "Unknown option $1"
+  STOP=true 
+  shift
+  ;;
+esac
+done
+
+if [ "$STOP" = true ]; then
+  exit
+fi
+
+maint_lock
+
+REMOVED_FILES=1
+
+echo "$MOTD"
+
+yorn "Do you want playbook options" "export SKIP_UPDATE=1"
+if [ $SKIP_UPDATE -gt 0 ]; then
+  yorn "Download latest clients.yml" "fetch_clients_yml"
+  cat_blacklist
+#  yorn "Clean output directories" "rm -vr {{ats_output}} {{banjax_output}} {{bind_output}}"
+#  [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMOVED_FILES=1
+#  if [ $REMOVED_FILES -gt 0 ]; then
+#    echo -e "\nWarning: Files deleted from output dir. You must run playbook for (controller) regenerate\n"
+#  fi
+  yorn "Update (controller) config" "controller_update"
+  echo 
+  AW_LASTRAN=$(cat {{playbook_dir}}/$AW_LASTRUN_FILE)
+  echo "Awstats was last updated: $AW_LASTRAN"
+  awstatsorn "Run playbook for (awstats). Only do if setup/migration is complete (live-remote)" "ansible-playbook {{playbook_dir}}/site.yml -l awstats"
+fi
+
+yorn "Check for config changes on (controller)" "all_diff"
+
+yorn "Check zonefiles" "/usr/local/deflect/scripts/named-deflect-zonecheck"
+
+yorn "Check canary IPs for deflect1" "/usr/local/deflect/scripts/canaries_check.sh"
+
+[ $REMAP_TOUCHED -gt 0 ] && dot_generated
+
+[ ! -s "${LOCK_PREFIX-}$UNAME" ] || cat "${LOCK_PREFIX-}$UNAME" | notify
+
+rm ${LOCK_PREFIX-}$UNAME
+cd $CUR_DIR
+
+cp {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used
+
+echo -e "\n\tFinished.\n\n\tUpdate dashadmin and redmine if needed.\n\n\tdeploy.sh -A $DNET -p ats -H ALL\n\tstill needs to happen if files updated\n\tor installed.\n\tDon't forget to deploy to a non-live edge before using -H ALL\n\n\tIf nothing changed, consider running "deploy.sh -A $DNET -p conftouch -H ALL"\n\tto prevent nagios warning about confsync.\n\tNote: edge_manage will pick up zone changes automatically."
+echo -e "\n\tBelow is a current list of non-live edges in $DNET dnet\n"
+edge_query --dnet $DNET -v | sed -e "s/[[:space:]]\+/ /g" | grep " out " | cut -d " " -f 4 | sed 's/\.deflect\.ca//g' | tr '\r\n' ' '
+echo
+exit

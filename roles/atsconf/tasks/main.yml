@@ -1,0 +1,52 @@
+---
+- name: Setup ats output base directory
+  file: path={{ats_output}} state=directory mode=0755
+  tags:
+    - ats 
+    - setup
+
+- name: Setup ats dnet output directories
+  file: path={{ats_output}}{{item.key}} state=directory mode=0755
+  with_dict: dnets
+  tags:
+    - ats 
+    - setup
+
+- name: Setup ats dnet remap.d directories
+  file: path={{ats_output}}{{item.key}}/remap.d state=directory mode=0755
+  with_dict: dnets
+  tags:
+    - ats
+    - setup
+
+- name: Setup ats dnet ssl directories
+  file: path={{ats_output}}{{item.key}}/ssl state=directory mode=0755
+  with_dict: dnets
+  tags:
+    - ats
+    - setup
+
+- name: Logging disabling
+  template: src=logs_xml.config.j2 dest={{ats_output}}/{{item.key}}/logs_xml.config
+  with_dict: dnets
+  tags: ats
+
+- name: remap master config
+  template: src=remap.dnets.masterconf.j2 dest={{ats_output}}/{{item.key}}/remap.config
+  with_dict: dnets
+  tags: ats
+
+- name: remap.d per-site config
+  template: src=remap.d.config.j2 dest={{ats_output}}{{remap[item.key].network}}/remap.d/{{ item.key }}.config
+  with_dict: remap
+  tags: ats
+
+- name: cache.config 
+  template: src=cache.config.j2 dest={{ats_output}}/{{item.key}}/cache.config
+  with_dict: dnets
+  tags: ats
+
+- name: ssl cert config file FIXME - DO NOT USE YET
+  template: src=ssl_multicert.config.j2 dest={{ats_output}}/{{item.key}}/ssl_multicert.config
+  with_dict: dnets
+  tags: ats

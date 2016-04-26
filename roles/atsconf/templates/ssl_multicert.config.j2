@@ -1,0 +1,14 @@
+# {{ no_edit_template }}
+# FIXME - DO NOT USE THIS FILE YET
+{% for site, values in remap | dictsort %}
+{% if values["https"] is defined and values["https"] -%} 
+{% if item.key == values["network"] %}
+
+# {{site}} 
+ssl_cert_name={{site}}.cert.crt ssl_key_name={{site}}.key ssl_ca_name={{site}}.chain.crt
+{% endif %}
+{% endif %}
+{% endfor %}
+
+# START include config/ssl_multicert.config.{{item.key}} 
+{% include "config/ssl_multicert.config." + item.key ignore missing %}

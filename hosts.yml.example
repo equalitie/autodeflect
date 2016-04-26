@@ -1,0 +1,7 @@
+[dashboard]
+
+[awstats]
+
+[controller]
+localhost	ansible_connection=local
+
