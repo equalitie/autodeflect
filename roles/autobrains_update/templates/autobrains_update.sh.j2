@@ -494,9 +494,11 @@ if [ $NEWCLIENTS_YML -eq 1 ]; then
   cp {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used
 fi
 
-echo -e "\n\tFinished.\n\n\tUpdate dashadmin and redmine if needed.\n\n\tdeploy.sh -A DNET -p ats -H ALL\n\tstill needs to happen if files updated\n\tor installed.\n\tDon't forget to deploy to a non-live edge before using -H ALL\n\n\tIf nothing changed, consider running "deploy.sh -A DNET -p conftouch -H ALL"\n\tto prevent nagios warning about confsync.\n\tNote: edge_manage will pick up zone changes automatically."
+echo -e "\n\tFinished.\n\tUpdate dashadmin and redmine if needed.\n\tDon't forget to deploy to a non-live edge before using -H ALL\n\n\tIf nothing changed, consider running deploy.sh with option -p conftouch \n\tto prevent nagios warning about confsync.\n\tNote: edge_manage will pick up zone changes automatically."
+## FIXME -- This will break badly if a dnet is defined with a value that is not default_dnet
+for DNET in $DNETS; do
 echo -e "\n\tBelow is a current list of non-live edges in $DNET dnet\n"
-## FIXME .. loop DNET
-edge_query --dnet $DNET -v | sed -e "s/[[:space:]]\+/ /g" | grep " out " | cut -d " " -f 4 | sed 's/\.deflect\.ca//g' | tr '\r\n' ' '
+edge_query --dnet $DNET -v | sed -e "s/[[:space:]]\+/ /g" | grep " out " | cut -d " " -f 4 | sed 's/\.{{dnets[default_dnet] | regex_replace('\.', '\\.')}}//g' | tr '\r\n' ' '
+done
 echo
 exit
