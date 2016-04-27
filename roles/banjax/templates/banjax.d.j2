@@ -61,3 +61,6 @@ regex_banner:
 
 {% endfor -%}
 {%- endif -%}
+
+# include config/banjax.d/{{item.key}}.bconf
+{% include "config/banjax.d/" + item.key + ".bconf" ignore missing %}
