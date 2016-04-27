@@ -12,3 +12,6 @@ ssl_cert_name={{site}}.cert.crt ssl_key_name={{site}}.key ssl_ca_name={{site}}.c
 
 # START include config/ssl_multicert.config.{{item.key}} 
 {% include "config/ssl_multicert.config." + item.key ignore missing %}
+
+# START include config/ssl_multicert.config.all
+{% include "config/ssl_multicert.config.all" ignore missing %}
