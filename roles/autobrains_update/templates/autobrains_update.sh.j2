@@ -13,7 +13,7 @@
 {% set dnetspace = joiner(" ") %}
 DNETS='{% for dnet in dnets %}{{dnetspace()}}{{dnet}}{% endfor %}'
 DNET='deflect1'
-ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+#ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
 
 ########
 
@@ -347,6 +347,8 @@ function bind_local_templated_diff {
 }
   
 function all_diff {
+for each DNET in $DNETS; do
+  echo "DNET $DNET"
   banjax_new_diff
   logs_xml_diff
   remap_diff
@@ -355,7 +357,9 @@ function all_diff {
   cache_diff
 #  dnet_zone_diff
   zone_diff_loop
+done
   bind_local_templated_diff
+
 }
 
 function list_bypass_files {
@@ -494,8 +498,9 @@ if [ $NEWCLIENTS_YML -eq 1 ]; then
   cp {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used
 fi
 
-echo -e "\n\tFinished.\n\n\tUpdate dashadmin and redmine if needed.\n\n\tdeploy.sh -A $DNET -p ats -H ALL\n\tstill needs to happen if files updated\n\tor installed.\n\tDon't forget to deploy to a non-live edge before using -H ALL\n\n\tIf nothing changed, consider running "deploy.sh -A $DNET -p conftouch -H ALL"\n\tto prevent nagios warning about confsync.\n\tNote: edge_manage will pick up zone changes automatically."
+echo -e "\n\tFinished.\n\n\tUpdate dashadmin and redmine if needed.\n\n\tdeploy.sh -A DNET -p ats -H ALL\n\tstill needs to happen if files updated\n\tor installed.\n\tDon't forget to deploy to a non-live edge before using -H ALL\n\n\tIf nothing changed, consider running "deploy.sh -A DNET -p conftouch -H ALL"\n\tto prevent nagios warning about confsync.\n\tNote: edge_manage will pick up zone changes automatically."
 echo -e "\n\tBelow is a current list of non-live edges in $DNET dnet\n"
+## FIXME .. loop DNET
 edge_query --dnet $DNET -v | sed -e "s/[[:space:]]\+/ /g" | grep " out " | cut -d " " -f 4 | sed 's/\.deflect\.ca//g' | tr '\r\n' ' '
 echo
 exit
