@@ -7,15 +7,10 @@
 # {{no_edit_template}}
 # {{no_edit_template}}
 # {{no_edit_template}}
-## CONFIG
-## This will be the loop CONF
 
+## This will be the loop variable DNETS 
 {% set dnetspace = joiner(" ") %}
 DNETS='{% for dnet in dnets %}{{dnetspace()}}{{dnet}}{% endfor %}'
-##DNET='deflect1'
-#ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
-
-########
 
 EMAIL_NOTIFY='{{autobrains_config["email_notify"]}}'
 EMAIL_KEY_ID='{{autobrains_config["email_key_id"]}}'
@@ -32,7 +27,6 @@ BYPASS_FILES="{% for bypass in autobrains_bypasses %}{{bpspace()}}{{bypass}}{% e
 {% endif %}
 
 MOTD=$(cat <<EOF
-
  
 EOF
 )
@@ -175,7 +169,6 @@ FILE=${OLD_FILE##*/}
 }
 
 function remap_diff_loop {
-  echo "DNET is $DNET"
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   for i in {{ats_output}}$DNET/remap.d/*.config; do
     local test=$(match_bypass_file "$(basename $i)")
@@ -200,9 +193,13 @@ done
 }
 
 function banjax_diff_loop {
-  echo "DNET is $DNET"
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   for i in {{banjax_output}}$DNET/banjax.d/*.bconf; do
+    ls $i 2> /dev/null
+    RT=$?
+    if [ "$RT" -gt 0 ]; then
+      continue
+    fi
     local test=$(match_bypass_file "$(basename $i)")
     if [ $test -gt 0 ]; then 
       echo -e "Bypassing file $(basename $i)" 
@@ -225,8 +222,12 @@ done
 }
 
 function zone_diff_loop {
-  echo "$DNET is $DNET"
   for i in {{bind_output}}$DNET/*.zone; do
+    ls $i 2> /dev/null
+    RT=$?
+    if [ "$RT" -gt 0 ]; then
+      continue
+    fi
     local test=$(match_bypass_file "$(basename $i)")
     if [ $test -gt 0 ]; then 
       echo -e "Bypassing file $(basename $i)" 
@@ -247,7 +248,6 @@ done
 }
 
 function banjax_new_diff {
-  echo "DNET is $DNET"
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   local test=$(match_bypass_file banjax.conf)
     if [ $test -gt 0 ]; then
@@ -267,7 +267,6 @@ function banjax_new_diff {
 }
 
 function logs_xml_diff {
-  echo "DNET is $DNET"
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   local test=$(match_bypass_file logs_xml.config)
     if [ $test -gt 0 ]; then
@@ -287,7 +286,6 @@ function logs_xml_diff {
 }
 
 function remap_diff {
-  echo "DNET is $DNET"
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   local test=$(match_bypass_file remap.config)
     if [ $test -gt 0 ]; then
@@ -348,18 +346,16 @@ function bind_local_templated_diff {
   
 function all_diff {
 for DNET in $DNETS; do
-  echo "DNET $DNET"
+  echo "In dnet: $DNET"
   banjax_new_diff
   logs_xml_diff
   remap_diff
   remap_diff_loop
   banjax_diff_loop
   cache_diff
-#  dnet_zone_diff
   zone_diff_loop
 done
   bind_local_templated_diff
-
 }
 
 function list_bypass_files {
