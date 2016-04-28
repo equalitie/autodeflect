@@ -2,7 +2,7 @@
 # {{no_edit_template}}
 # {{no_edit_template}}
 # {{no_edit_template}}
-## Remove this file to re-create if you update template
+## Remove this script to rebuild
 ## ansible-playbook site.yml -l controller --tags init
 # {{no_edit_template}}
 # {{no_edit_template}}
@@ -349,7 +349,7 @@ function bind_local_templated_diff {
   
 function all_diff {
 for DNET in $DNETS; do
-  echo "In dnet: $DNET"
+  echo "dnet: $DNET"
   banjax_new_diff
   logs_xml_diff
   remap_diff
@@ -401,9 +401,9 @@ function dot_generated() {
 }
 
 function cat_blacklist() {
-  echo "The following sites are Blacklisted and are not included in clients.yml until further notice:"
+  echo "The following are blacklisted on {{autobrains_config["dashadmin_host"]}} and not included."
   curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" {{autobrains_config["dash_proxy"]}}{{autobrains_config["dash_blacklist_url"]}}
-  echo -e "\nEnd of Blacklist."
+  echo -e "\nEnd of blacklist."
 }
 
 function controller_update() {
