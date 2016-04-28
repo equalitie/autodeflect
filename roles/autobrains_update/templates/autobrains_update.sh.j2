@@ -171,7 +171,7 @@ FILE=${OLD_FILE##*/}
 function remap_diff_loop {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   for i in {{ats_output}}$DNET/remap.d/*.config; do
-    ls $i 2> /dev/null
+    ls $i > /dev/null 2>&1
     RT=$?
     if [ "$RT" -gt 0 ]; then
       continue
@@ -200,7 +200,7 @@ done
 function banjax_diff_loop {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   for i in {{banjax_output}}$DNET/banjax.d/*.bconf; do
-    ls $i 2> /dev/null
+    ls $i > /dev/null 2>&1 
     RT=$?
     if [ "$RT" -gt 0 ]; then
       continue
@@ -228,7 +228,7 @@ done
 
 function zone_diff_loop {
   for i in {{bind_output}}$DNET/*.zone; do
-    ls $i 2> /dev/null
+    ls $i > /dev/null 2>&1 
     RT=$?
     if [ "$RT" -gt 0 ]; then
       continue
