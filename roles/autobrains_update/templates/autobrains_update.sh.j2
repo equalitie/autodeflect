@@ -171,6 +171,11 @@ FILE=${OLD_FILE##*/}
 function remap_diff_loop {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   for i in {{ats_output}}$DNET/remap.d/*.config; do
+    ls $i 2> /dev/null
+    RT=$?
+    if [ "$RT" -gt 0 ]; then
+      continue
+    fi
     local test=$(match_bypass_file "$(basename $i)")
     if [ $test -gt 0 ]; then 
       echo -e "Bypassing file $(basename $i)" 
@@ -306,7 +311,6 @@ function remap_diff {
 }
 
 function cache_diff {
-  echo "DNET is $DNET"
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   local test=$(match_bypass_file cache.config)
     if [ $test -gt 0 ]; then
@@ -392,7 +396,6 @@ function finish() {
 }
 
 function dot_generated() {
-  echo "DNET is $DNET"
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   echo -e "creating .generated file for remap.d"
   date +%s > $ATS_DIR/conf/remap.d/.generated
