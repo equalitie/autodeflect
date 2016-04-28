@@ -3,7 +3,7 @@
 # {{no_edit_template}}
 # {{no_edit_template}}
 ## Remove this file to re-create if you update template
-## ansible-playbook site.yml -l controller setup
+## ansible-playbook site.yml -l controller --tags init
 # {{no_edit_template}}
 # {{no_edit_template}}
 # {{no_edit_template}}
@@ -496,11 +496,14 @@ fi
 
 yorn "Check for config changes on (controller)" "all_diff"
 
-yorn "Check zonefiles" "/usr/local/deflect/scripts/named-deflect-zonecheck"
+# yorn "Check zonefiles" "/usr/local/deflect/scripts/named-deflect-zonecheck"
 
-yorn "Check canary IPs for deflect1" "/usr/local/deflect/scripts/canaries_check.sh"
+# yorn "Check canary IPs for deflect1" "/usr/local/deflect/scripts/canaries_check.sh"
 
-[ $REMAP_TOUCHED -gt 0 ] && dot_generated
+[ $REMAP_TOUCHED -gt 0 ] && (
+for DNET in $DNETS; do
+  dot_generated
+done)
 
 [ ! -s "${LOCK_PREFIX-}$UNAME" ] || cat "${LOCK_PREFIX-}$UNAME" | notify
 
