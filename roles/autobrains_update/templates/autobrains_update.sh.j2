@@ -405,11 +405,25 @@ function cat_blacklist() {
 }
 
 function controller_update() {
-  rm -r {{ats_output}} {{banjax_output}} {{bind_output}}
-  ansible-playbook {{playbook_dir}}/site.yml -l controller
+  rm -rf {{ats_output}} {{banjax_output}} {{bind_output}} 
+  ansible-playbook {{playbook_dir}}/site.yml -l controller > /dev/null &
+  spin $!
 }
 
-
+function spin() {
+# Expects PID to be sent
+local pid=$1
+local delay=0.1
+tput civis
+while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+  for s in / - \\ \|; do
+    printf "\r[ $s ] - Running";
+    sleep $delay;
+  done;
+done
+tput cnorm
+printf "\r\t\t\r"
+}
 
 #########
 ### MAIN
