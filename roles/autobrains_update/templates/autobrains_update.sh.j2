@@ -33,7 +33,7 @@ EOF
 
 ##########
 ## SETUP 
-ECHO_SEPARATOR='\n\n#################################\n\t##\t##\n#################################\n\n'
+ECHO_SEPARATOR='\n#################################\n\t##\t##\n#################################\n'
 DATE=$(date +%Y%m%d%H%M%S)
 SKIP_UPDATE=0
 NOTIFY_CONTENT=''
@@ -41,6 +41,8 @@ REMAP_TOUCHED=0
 NEWCLIENTS_YML=0
 MAINT=false
 MAINT_BYPASS=false
+MOST=false
+THEREST=false
 if [ -n "$SUDO_USER" ] ; then
   UNAME=$SUDO_USER ; else
   UNAME=$(id -nu)
@@ -48,6 +50,17 @@ fi
 
 ############
 ## FUNCTIONS
+
+function autobrains_help() {
+HELP=$(cat <<EOF
+Help
+
+EOF
+)
+
+echo "$HELP"
+}
+
 
 # set the encrypted mailer routine
 function notify() {
@@ -86,7 +99,7 @@ fi
 ls -1 ${MAINTENANCE_LOCK-}* > /dev/null 2>&1
 RT=$?
 if [ $RT -eq 0 ]; then
-  echo -e "\"$(ls -x ${MAINTENANCE_LOCK-}* | sed s/${MAINTENANCE_LOCK-}//g)\" has this script in maintenance mode.\nRemove lock file "$(ls -x ${MAINTENANCE_LOCK-}*)" when done.\nUse $0 -b or $0 --bypass to bypass and run anyway."
+  echo -e "$(ls -x ${MAINTENANCE_LOCK-}* | sed s/${MAINTENANCE_LOCK-}//g) put in maintenance mode.\nRemove file "$(ls -x ${MAINTENANCE_LOCK-}*)" when done.\nUse $0 -b or $0 --bypass to bypass and run anyway."
   exit
 fi
 
@@ -125,9 +138,9 @@ function fetch_clients_yml() {
   curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" {{autobrains_config["dash_proxy"]}}{{autobrains_config["clients_yml_url"]}} > {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} 2> /dev/null
     echo -e $ECHO_SEPARATOR
   if diff {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} >/dev/null 2>&1 ; then
-    echo "No differences found in clients.yml since last completed autobrains run"
+    echo "No differences found from dashboard since last completed run."
   else
-    echo "Differences in clients.yml since last completed autobrains run:"
+    echo "Differences found from dashboard since last completed autobrains run:"
     diff -U 15 {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE}
     rm {{playbook_dir}}/clients.yml
     ln -s clients.yml-revisions/clients.yml-${DATE} clients.yml
@@ -424,7 +437,7 @@ while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
   done;
 done
 tput cnorm
-printf "\r\t\t\r"
+printf "\r                              \r"
 }
 
 #########
@@ -450,6 +463,20 @@ trap finish EXIT
 
 while test $# -gt 0; do
 case "$1" in
+  -h|--help)
+  autobrains_help
+  STOP=true
+  shift
+  ;;
+  --all)
+  MOST=true
+  THEREST=true
+  shift
+  ;;
+  --most)
+  MOST=true
+  shift
+  ;;
   -m|--maint)
   MAINT=true
   shift
@@ -475,18 +502,39 @@ maint_lock
 
 echo "$MOTD"
 
-yorn "Run config rebuild options" "export SKIP_UPDATE=1"
-if [ $SKIP_UPDATE -gt 0 ]; then
-  yorn "Download latest clients.yml" "fetch_clients_yml"
-  cat_blacklist
-  yorn "Update (controller) config" "controller_update"
-  echo 
-  AW_LASTRAN=$(cat {{playbook_dir}}/$AW_LASTRUN_FILE)
-  echo "Awstats was last updated: $AW_LASTRAN"
-  awstatsorn "Update (awstats) config" "ansible-playbook {{playbook_dir}}/site.yml -l awstats"
+if $MOST ; then
+  export SKIP_UPDATE=1
+else
+  yorn "Run config rebuild options" "export SKIP_UPDATE=1"
 fi
 
-yorn "Check config changes (controller)" "all_diff"
+if [ $SKIP_UPDATE -gt 0 ]; then
+  if $MOST ; then
+    fetch_clients_yml
+  else
+    yorn "Download latest dashboard config" "fetch_clients_yml"
+    cat_blacklist
+  fi
+  if $MOST ; then
+    controller_update
+  else
+    yorn "Update (controller) config" "controller_update"
+    echo
+  fi
+  if [ $MOST = false ] ; then
+    AW_LASTRAN=$(cat {{playbook_dir}}/$AW_LASTRUN_FILE)
+    echo "Awstats was last updated: $AW_LASTRAN"
+    awstatsorn "Update (awstats) config" "ansible-playbook {{playbook_dir}}/site.yml -l awstats"
+  elif [ $THEREST = true ] ; then
+    ansible-playbook {{playbook_dir}}/site.yml -l awstats
+  fi
+fi
+
+if $MOST ; then
+  all_diff
+else
+  yorn "Check config changes (controller)" "all_diff"
+fi
 
 [ $REMAP_TOUCHED -gt 0 ] && (
 for DNET in $DNETS; do
