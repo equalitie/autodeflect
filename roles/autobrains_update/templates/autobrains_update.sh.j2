@@ -42,6 +42,8 @@ NEWCLIENTS_YML=0
 MAINT=false
 MAINT_BYPASS=false
 MOST=false
+NO=false
+YES=false
 THEREST=false
 if [ -n "$SUDO_USER" ] ; then
   UNAME=$SUDO_USER ; else
@@ -111,26 +113,38 @@ fi
 }
 
 function yorn() {
-while true; do
-  read -p "$1 (y/n)? " yn
-  case $yn in
-    [Yy]* ) $2; break;;
-    [Nn]* ) break;;
-        * ) echo "Please answer y or n.";;
-    esac
-done
+if $YES ; then
+  $2
+elif $NO ; then
+  return
+else
+  while true; do
+    read -p "$1 (y/n)? " yn
+    case $yn in
+      [Yy]* ) $2; break;;
+      [Nn]* ) break;;
+          * ) echo "Please answer y or n.";;
+      esac
+  done
+fi
 echo
 }
 
 function awstatsorn() {
-while true; do
-  read -p "$1 (awstats/n)? " yn
-  case $yn in
-    [awstats]* ) $2; date > {{playbook_dir}}/$AW_LASTRUN_FILE ; break;;
-    [Nn]* ) break;;
-        * ) echo "Please answer awstats or n.";;
+if $YES ; then
+  $2
+elif $NO ; then
+  return
+else
+  while true; do
+    read -p "$1 (awstats/n)? " yn
+    case $yn in
+      [awstats]* ) $2; date > {{playbook_dir}}/$AW_LASTRUN_FILE ; break;;
+      [Nn]* ) break;;
+         * ) echo "Please answer awstats or n.";;
     esac
-done
+  done
+fi
 echo
 }
 
@@ -160,24 +174,33 @@ DIR=${OLD_FILE%/*}
 FILE=${OLD_FILE##*/}
 
 [ -d ${DIR}/old ] || mkdir ${DIR}/old || ( echo "error creating old directory -quitting" && exit )
- if [ -f ${OLD_FILE} ] 
-  then
-   echo "Anything you would like to say about this update?"
-   read explanation
-   test -z "$explanation" && echo "no explanation? naughty!"
-   cp ${OLD_FILE} ${DIR}/old/${FILE}-${DATE}-${UNAME}
-   cp ${NEW_FILE} ${OLD_FILE}
-   [ -f ${DIR}/old/${FILE}-latest ] && rm ${DIR}/old/${FILE}-latest
-   ( /bin/echo -e "$explanation\n${OLD_FILE}\n" ; diff -u ${DIR}/old/${FILE}-${DATE}-${UNAME} ${OLD_FILE} ) | tee ${LOGDIR}/${FILE}.${DATE} | notify_store ${OLD_FILE}
-    cp ${DIR}/${FILE} ${DIR}/old/${FILE}-latest
-  else
-    cp ${NEW_FILE} ${OLD_FILE}
-    cp ${DIR}/${FILE} ${DIR}/old/${FILE}-latest
+if [ -f ${OLD_FILE} ] ; then
+  if [ $YES = false ] ; then
     echo "Anything you would like to say about this update?"
     read explanation
     test -z "$explanation" && echo "no explanation? naughty!"
-    ( /bin/echo -e "$explanation\n${OLD_FILE}\n" ; echo "installed ${OLD_FILE}" ) | tee ${LOGDIR}/${FILE}.${DATE} | notify_store ${OLD_FILE}
+  else
+    explanation="Automode" 
   fi
+
+  cp ${OLD_FILE} ${DIR}/old/${FILE}-${DATE}-${UNAME}
+  cp ${NEW_FILE} ${OLD_FILE}
+  [ -f ${DIR}/old/${FILE}-latest ] && rm ${DIR}/old/${FILE}-latest
+  ( /bin/echo -e "$explanation\n${OLD_FILE}\n" ; diff -u ${DIR}/old/${FILE}-${DATE}-${UNAME} ${OLD_FILE} ) | tee ${LOGDIR}/${FILE}.${DATE} | notify_store ${OLD_FILE}
+  cp ${DIR}/${FILE} ${DIR}/old/${FILE}-latest
+else
+  cp ${NEW_FILE} ${OLD_FILE}
+  cp ${DIR}/${FILE} ${DIR}/old/${FILE}-latest
+  if [ $YES = false ] ; then
+    echo "Anything you would like to say about this update?"
+    read explanation
+    test -z "$explanation" && echo "no explanation? naughty!"
+  else
+    explanation="Automode"  
+  fi
+
+  ( /bin/echo -e "$explanation\n${OLD_FILE}\n" ; echo "installed ${OLD_FILE}" ) | tee ${LOGDIR}/${FILE}.${DATE} | notify_store ${OLD_FILE}
+fi
 }
 
 function remap_diff_loop {
@@ -396,6 +419,7 @@ function ctrl_c() {
   [ ! -s "${LOCK_PREFIX-}$UNAME" ] || cat "${LOCK_PREFIX-}$UNAME" | notify
   rm ${LOCK_PREFIX-}$UNAME
   cd $CUR_DIR
+  tput cnorm
   echo -e "\n\n\tFinished.\n\n"
   exit 
 }
@@ -475,6 +499,24 @@ case "$1" in
   ;;
   --most)
   MOST=true
+  shift
+  ;;
+  -y|--yes)
+  if $NO ; then
+    echo "Illegal option -y|--yes and -n|--no"
+    exit
+  else
+    YES=true
+  fi
+  shift
+  ;;
+  -n|--no)
+  if $YES ; then
+    echo "Illegal options. -y|--yes and -n|--no can not be used together"
+    exit
+  else
+    NO=true
+  fi
   shift
   ;;
   -m|--maint)
