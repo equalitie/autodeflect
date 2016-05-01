@@ -44,7 +44,9 @@ MAINT_BYPASS=false
 MOST=false
 NO=false
 YES=false
+FORCE=false
 THEREST=false
+STOP=false
 if [ -n "$SUDO_USER" ] ; then
   UNAME=$SUDO_USER ; else
   UNAME=$(id -nu)
@@ -55,7 +57,16 @@ fi
 
 function autobrains_help() {
 HELP=$(cat <<EOF
-Help
+Help FIXME
+
+-h|--help
+-m|--maint
+-b|--bypass
+-y|--yes
+-n|--n
+--most
+--all
+--force
 
 EOF
 )
@@ -527,6 +538,10 @@ case "$1" in
   MAINT_BYPASS=true
   shift
   ;;
+  --force)
+  FORCE=true
+  shift
+  ;;
   *)
   # unknown option
   echo "Unknown option $1"
@@ -536,7 +551,12 @@ case "$1" in
 esac
 done
 
-if [ "$STOP" = true ]; then
+if [ "$STOP" = true ] ; then
+  exit
+fi
+
+if [ "$YES" = true && "$FORCE" = false ] ; then
+  echo "Option -y|--yes must be used with caution. Include --force option if you are sure"
   exit
 fi
 
