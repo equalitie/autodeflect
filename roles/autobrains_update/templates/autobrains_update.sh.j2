@@ -2,7 +2,8 @@
 # {{no_edit_template}}
 # {{no_edit_template}}
 # {{no_edit_template}}
-## Remove this script to rebuild
+# Remove this script to rebuild
+## rm autobrains_update.sh
 ## ansible-playbook site.yml -l controller --tags init
 # {{no_edit_template}}
 # {{no_edit_template}}
@@ -57,21 +58,39 @@ fi
 
 function autobrains_help() {
 HELP=$(cat <<EOF
-Help FIXME
+	-h|--help	Display this help and exit.
+	-m|--maint	Put $0 in maintenance mode.
+			so it will need -b|--bypass
+			to run.
+	-b|--bypass	Used to run when in maintenance
+			mode.
+	-y|--yes	Alway answer yes to prompts.
+	-n|--n		Always answer no to prompts.
+	--most		Run most local tasks. Mainly
+			runs everything needed to update
+			configuration to be pushed to
+			the edges.
+	--all		Runs all tasks.
+	--force		Needed to get by some dangerous
+			options. You will be prompted to
+			include this option to force anyway.
 
--h|--help
--m|--maint
--b|--bypass
--y|--yes
--n|--n
---most
---all
---force
+Some useful options:
 
+$0 --most -n
+			This will update configuration but
+			not install. You can then later run
+			$0 and answer n for running for
+			running rebuild options but y on
+			checking for configurations updates.
+$0 --most -y --force
+			Run most local configuration and install.
+			This is dangerous but will be the future
+			for a automated update.
 EOF
 )
 
-echo "$HELP"
+echo "$HELP" | less -EXR
 }
 
 
