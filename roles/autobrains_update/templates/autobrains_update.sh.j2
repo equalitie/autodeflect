@@ -551,11 +551,11 @@ case "$1" in
 esac
 done
 
-if [ "$STOP" = true ] ; then
+if "$STOP" ; then
   exit
 fi
 
-if [ "$YES" = true && "$FORCE" = false ] ; then
+if [ "$YES" = true ] && [ "$FORCE" = false ] ; then
   echo "Option -y|--yes must be used with caution. Include --force option if you are sure"
   exit
 fi
