@@ -7,6 +7,7 @@ remap:
     bypass_remap: true
     remove_http_map: true
     cache_time: 0
+    cachecontrol: true
     confremap: true
     banjax_sha_inv: true
     additional_domain_prefix:

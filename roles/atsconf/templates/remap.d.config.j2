@@ -4,7 +4,9 @@
 # END include config/remap.d/{{item.key}}.config
 {% if remap[item.key]["bypass_remap"] is not defined or remap[item.key]["bypass_remap"] == false %}
 {% if remap[item.key]["remove_http_map"] is not defined or remap[item.key]["remove_http_map"] == false %}
-regex_map http://^(www\.)?{{item.key | regex_replace('\.', '\\.')}}$/ http://{{remap[item.key]["hidden"]}}.origin.{{remap[item.key]["cache_time"]}}m.
+regex_map http://^(www\.)?{{item.key | regex_replace('\.', '\\.')}}$/ http://{{remap[item.key]["hidden"]}}.origin.
+{%- if remap[item.key]["cachecontrol"] is not defined or remap[item.key]["cachecontrol"] == false %}{{remap[item.key]["cache_time"]}}m.
+{%- else %}cachecontrol.{% endif %}
 {%- if dnets[remap[item.key]["network"]] is defined and dnets[remap[item.key]["network"]] %}
 {{dnets[remap[item.key]["network"]]}}
 {%- else %}
@@ -20,15 +22,16 @@ regex_map http://^(www\.)?{{item.key | regex_replace('\.', '\\.')}}$/ http://{{r
 {% endif %}
 
 {% if remap[item.key]["https"] %}
-regex_map https://^(www\.)?{{item.key | regex_replace('\.', '\\.')}}$/ https://{{remap[item.key]["hidden"]}}.origin.{{remap[item.key]["cache_time"]}}m.
+regex_map https://^(www\.)?{{item.key | regex_replace('\.', '\\.')}}$/ https://{{remap[item.key]["hidden"]}}.origin.
+{%- if remap[item.key]["cachecontrol"] is not defined or remap[item.key]["cachecontrol"] == false %}{{remap[item.key]["cache_time"]}}m.
+{%- else %}cachecontrol.{% endif %}
 {%- if dnets[remap[item.key]["network"]] is defined and dnets[remap[item.key]["network"]] %}
 {{dnets[remap[item.key]["network"]]}}
 {%- else %}
 {{dnets[default_dnet]}}
 {%- endif %}
 {%- if remap[item.key]["origin_https_port"] is defined %}:{{remap[item.key]["origin_https_port"]}}/
-{%- else %}
-/
+{%- else %}/
 {%- endif %}
 {% if remap[item.key]["confremap"] is defined and remap[item.key]["confremap"] %} @plugin=conf_remap.so @pparam=/usr/local/trafficserver/conf/conf.d/{{item.key}}.config
 {% else %}
@@ -39,20 +42,23 @@ regex_map https://^(www\.)?{{item.key | regex_replace('\.', '\\.')}}$/ https://{
 
 {% for prefix in remap[item.key]["additional_domain_prefix"] %}
 {% if remap[item.key]["remove_http_map"] is not defined or remap[item.key]["remove_http_map"] == false %}
-map http://{{prefix}}.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{remap[item.key]["cache_time"]}}m.
+map http://{{prefix}}.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.
+{%- if remap[item.key]["cachecontrol"] is not defined or remap[item.key]["cachecontrol"] == false %}{{remap[item.key]["cache_time"]}}m.
+{%- else %}cachecontrol.{% endif %}
 {%- if dnets[remap[item.key]["network"]] is defined and dnets[remap[item.key]["network"]] %}
 {{dnets[remap[item.key]["network"]]}}
 {%- else %}
 {{dnets[default_dnet]}}
 {%- endif %}
 {%- if remap[item.key]["origin_http_port"] is defined %}:{{remap[item.key]["origin_http_port"]}}/
-{%- else %}
-/
+{%- else %}/
 {% endif %}
 {% endif %}
 
 {% if remap[item.key]["https"] %}
-map https://{{prefix}}.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{remap[item.key]["cache_time"]}}m.
+map https://{{prefix}}.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.
+{%- if remap[item.key]["cachecontrol"] is not defined or remap[item.key]["cachecontrol"] == false %}{{remap[item.key]["cache_time"]}}m.
+{%- else %}cachecontrol.{% endif %}
 {%- if dnets[remap[item.key]["network"]] is defined and dnets[remap[item.key]["network"]] %}
 {{dnets[remap[item.key]["network"]]}}
 {%- else %}

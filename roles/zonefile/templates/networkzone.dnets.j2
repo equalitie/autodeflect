@@ -6,7 +6,7 @@
 ; Origin records for {{ site }}
 $GENERATE 0-30 {{siteattrs["hidden"]}}.origin.$m IN A   {{siteattrs["origin"]}}
 $GENERATE 30-2880/10 {{siteattrs["hidden"]}}.origin.$m IN A     {{siteattrs["origin"]}}
-{{siteattrs["hidden"]}}.cachecontrol IN A    {{siteattrs["origin"]}}
+{{siteattrs["hidden"]}}.origin.cachecontrol IN A    {{siteattrs["origin"]}}
 
 {% endif %}
 {% endfor %}
