@@ -2,9 +2,9 @@
 # {{no_edit_template}}
 # {{no_edit_template}}
 # {{no_edit_template}}
-# Remove this script to rebuild
-## rm autobrains_update.sh
-## ansible-playbook site.yml -l controller --tags init
+# {{no_edit_template}}
+# {{no_edit_template}}
+# {{no_edit_template}}
 # {{no_edit_template}}
 # {{no_edit_template}}
 # {{no_edit_template}}
@@ -50,6 +50,7 @@ THEREST=false
 STOP=false
 DEBUG=false
 NOSPIN=false
+INITAU=false
 
 if [ -n "$SUDO_USER" ] ; then
   UNAME=$SUDO_USER ; else
@@ -81,6 +82,9 @@ HELP=$(cat <<EOF
 -s|--nospin	Do not use spinner while waiting
 		for action to finish.
 
+-i|--init	Rebuild this file and exit. Any
+		temporary changes will be lost.
+
 --most		Run most local tasks. Mainly
 		runs everything needed to update
 		configuration to be pushed to
@@ -100,6 +104,7 @@ $0 --most -n
 			$0 and answer n for running for
 			running rebuild options but y on
 			checking for configurations updates.
+
 $0 --most -y --force
 			Run most local configuration and install.
 			This is dangerous but will be the future
@@ -509,6 +514,11 @@ function awstats_update() {
   fi
 }
 
+function initau() {
+  rm $0
+  ansible-playbook {{playbook_dir}}/site.yml -l controller --tags init
+}
+
 function spin() {
 # Expects PID to be sent
 local pid=$1
@@ -610,6 +620,10 @@ case "$1" in
   MAINT_BYPASS=true
   shift
   ;;
+  -i|--init)
+  INITAU=true
+  shift
+  ;;
   --force)
   FORCE=true
   shift
@@ -623,7 +637,13 @@ case "$1" in
 esac
 done
 
-if "$STOP" ; then
+if [ "$STOP" = true ] || [ "$INITAU" = true ] ; then
+  if [ "$INITAU" = true ] && [ "$FORCE" = false ] ; then
+    echo "Option -i|--init must be used with --force"
+  elif [ "$INITAU" = true ] && [ "$FORCE" = true ] ; then
+    initau
+  fi 
+  
   exit
 fi
 
