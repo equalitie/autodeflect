@@ -484,14 +484,21 @@ function spin() {
 local pid=$1
 local delay=0.1
 tput civis
-while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+while [ "$(ps p $pid o pid=)" ]; do
   for s in / - \\ \|; do
     printf "\r[ $s ] - Running";
     sleep $delay;
   done;
 done
+# We are done
+wait $pid
+local exitcode=$?
 tput cnorm
 printf "\r                              \r"
+if [ $exitcode -ne 0 ] ; then
+  echo "Something went wrong. Run again in debug mode."
+  exit
+fi
 }
 
 #########
