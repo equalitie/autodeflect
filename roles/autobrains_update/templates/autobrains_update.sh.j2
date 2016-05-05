@@ -48,6 +48,7 @@ YES=false
 FORCE=false
 THEREST=false
 STOP=false
+DEBUG=false
 if [ -n "$SUDO_USER" ] ; then
   UNAME=$SUDO_USER ; else
   UNAME=$(id -nu)
@@ -66,6 +67,8 @@ HELP=$(cat <<EOF
 			mode.
 	-y|--yes	Alway answer yes to prompts.
 	-n|--n		Always answer no to prompts.
+	-d|--debug	Run in debug mode. More output
+			printed to screen.
 	--most		Run most local tasks. Mainly
 			runs everything needed to update
 			configuration to be pushed to
@@ -475,8 +478,21 @@ function cat_blacklist() {
 
 function controller_update() {
   rm -rf {{ats_output}} {{banjax_output}} {{bind_output}} 
-  ansible-playbook {{playbook_dir}}/site.yml -l controller > /dev/null &
-  spin $!
+  if [ "$DEBUG" = true ] ; then
+    ansible-playbook {{playbook_dir}}/site.yml -l controller
+  else
+    ansible-playbook {{playbook_dir}}/site.yml -l controller > /dev/null &
+    spin $!
+  fi
+}
+
+function awstats_update() {
+  if [ "$DEBUG" = true ] ; then
+    ansible-playbook {{playbook_dir}}/site.yml -l awstats
+  else
+    ansible-playbook {{playbook_dir}}/site.yml -l awstats > /dev/null &
+    spin $!
+  fi
 }
 
 function spin() {
@@ -536,6 +552,10 @@ case "$1" in
   ;;
   --most)
   MOST=true
+  shift
+  ;;
+  -d|--debug)
+  DEBUG=true
   shift
   ;;
   -y|--yes)
@@ -612,9 +632,9 @@ if [ $SKIP_UPDATE -gt 0 ]; then
   if [ $MOST = false ] ; then
     AW_LASTRAN=$(cat {{playbook_dir}}/$AW_LASTRUN_FILE)
     echo "Awstats was last updated: $AW_LASTRAN"
-    awstatsorn "Update (awstats) config" "ansible-playbook {{playbook_dir}}/site.yml -l awstats"
+    awstatsorn "Update (awstats) config" "awstats_update"
   elif [ $THEREST = true ] ; then
-    ansible-playbook {{playbook_dir}}/site.yml -l awstats
+    awstats_update 
   fi
 fi
 
