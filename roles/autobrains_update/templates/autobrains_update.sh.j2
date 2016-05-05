@@ -49,6 +49,8 @@ FORCE=false
 THEREST=false
 STOP=false
 DEBUG=false
+NOSPIN=false
+
 if [ -n "$SUDO_USER" ] ; then
   UNAME=$SUDO_USER ; else
   UNAME=$(id -nu)
@@ -59,24 +61,36 @@ fi
 
 function autobrains_help() {
 HELP=$(cat <<EOF
-	-h|--help	Display this help and exit.
-	-m|--maint	Put $0 in maintenance mode.
-			so it will need -b|--bypass
-			to run.
-	-b|--bypass	Used to run when in maintenance
-			mode.
-	-y|--yes	Alway answer yes to prompts.
-	-n|--n		Always answer no to prompts.
-	-d|--debug	Run in debug mode. More output
-			printed to screen.
-	--most		Run most local tasks. Mainly
-			runs everything needed to update
-			configuration to be pushed to
-			the edges.
-	--all		Runs all tasks.
-	--force		Needed to get by some dangerous
-			options. You will be prompted to
-			include this option to force anyway.
+
+-h|--help	Display this help and exit.
+
+-m|--maint	Put $0 in maintenance mode.
+		so it will need -b|--bypass
+		to run.
+
+-b|--bypass	Used to run when in maintenance
+		mode.
+
+-y|--yes	Alway answer yes to prompts.
+
+-n|--n		Always answer no to prompts.
+
+-d|--debug	Run in debug mode. More output
+		printed to screen.
+
+-s|--nospin	Do not use spinner while waiting
+		for action to finish.
+
+--most		Run most local tasks. Mainly
+		runs everything needed to update
+		configuration to be pushed to
+		the edges.
+
+--all		Runs all tasks.
+
+--force		Needed to get by some dangerous
+		options. You will be prompted to
+		include this option to force anyway.
 
 Some useful options:
 
@@ -500,17 +514,25 @@ function spin() {
 local pid=$1
 local delay=0.1
 tput civis
-while [ "$(ps p $pid o pid=)" ]; do
-  for s in / - \\ \|; do
-    printf "\r[ $s ] - Running";
-    sleep $delay;
-  done;
-done
-# We are done
-wait $pid
-local exitcode=$?
-tput cnorm
-printf "\r                              \r"
+if [ "$NOSPIN" = false ] ; then
+  while [ "$(ps p $pid o pid=)" ]; do
+    for s in / - \\ \|; do
+      printf "\r[ $s ] - Running";
+      sleep $delay;
+    done;
+  done
+  # We are done
+  wait $pid
+  local exitcode=$?
+  tput cnorm
+  printf "\r                              \r"
+else
+  echo "[ / ] - Running, please wait."
+  wait $pid
+  local exitcode=$?
+  tput cnorm
+fi
+
 if [ $exitcode -ne 0 ] ; then
   echo "Something went wrong. Run again in debug mode."
   exit
@@ -578,6 +600,10 @@ case "$1" in
   ;;
   -m|--maint)
   MAINT=true
+  shift
+  ;;
+  -s|--nospin)
+  NOSPIN=true
   shift
   ;;
   -b|--bypass)
