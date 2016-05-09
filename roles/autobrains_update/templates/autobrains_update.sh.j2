@@ -50,6 +50,7 @@ THEREST=false
 STOP=false
 DEBUG=false
 NOSPIN=false
+NOCLIENT=false
 INITAU=false
 
 if [ -n "$SUDO_USER" ] ; then
@@ -84,6 +85,8 @@ HELP=$(cat <<EOF
 
 -i|--init	Rebuild this file and exit. Any
 		temporary changes will be lost.
+
+-c|--noclient	Do not download a new client.yml
 
 --most		Run most local tasks. Mainly
 		runs everything needed to update
@@ -582,6 +585,10 @@ case "$1" in
   THEREST=true
   shift
   ;;
+  -c|--noclient)
+  NOCLIENT=true
+  shift
+  ;;
   --most)
   MOST=true
   shift
@@ -662,13 +669,17 @@ else
   yorn "Run config rebuild options" "export SKIP_UPDATE=1"
 fi
 
+
 if [ $SKIP_UPDATE -gt 0 ]; then
-  if $MOST ; then
-    fetch_clients_yml
-  else
-    yorn "Download latest dashboard config" "fetch_clients_yml"
-    cat_blacklist
+  if [ "$NOCLIENT" = false ] ; then
+    if [ "$MOST" = true ] ; then
+      fetch_clients_yml
+    else
+      yorn "Download latest dashboard config" "fetch_clients_yml"
+      cat_blacklist
+    fi
   fi
+
   if $MOST ; then
     controller_update
   else
