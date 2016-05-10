@@ -1,0 +1,6 @@
+SiteDomain="{{item.key}}"
+
+HostAliases="REGEX[.*{{item.key | regex_replace('\.', '\\.')}}$]"
+Include "/etc/awstats/awstats.include"
+AllowAccessFromWebToFollowingAuthenticatedUsers="{{awstats_user}} {{item.key | regex_replace('\.', '_')}}"
+Include "/etc/awstats/alt-log.include"

@@ -1,0 +1,29 @@
+---
+remap:
+  example.local:
+    network: example-dnet 
+    origin_http_port: 6669
+    origin_https_port: 6669
+    bypass_remap: true
+    remove_http_map: true
+    cache_time: 0
+    cachecontrol: true
+    confremap: true
+    banjax_sha_inv: true
+    additional_domain_prefix:
+      - "subdomain1"
+      - "subdomain2"
+    origin_object: '/ttx/'
+    banjax_regex_banner:
+      - { interval: 20,
+          hits_per_interval: 6,
+          regex:{
+            method: 'POST',
+            url: '/xmlrpc\.php',
+            ua: '.*'}}
+      - { interval: 20,
+          hits_per_interval: 6,
+          regex:{
+            method: 'POST',
+            url: '/wp-admin/example\.php',
+            ua: '.*'}}

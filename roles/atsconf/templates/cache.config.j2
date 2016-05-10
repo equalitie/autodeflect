@@ -1,0 +1,23 @@
+# {{ no_edit_template }}
+# include config/cache.config.all
+{% include "config/cache.config.all" ignore missing %}
+
+# include config/cache.config.{{item.key}}
+{% include "config/cache.config." + item.key ignore missing %}
+
+{% if item.value is defined and item.value %}
+{% set domain = item.value %}
+{% else %}
+{% set domain = dnets[default_dnet] %}
+{% endif %}
+
+# Allow LetsEncrypt endpoints through
+url_regex=^.*/.well-known/acme-challenge$       action=never-cache
+
+dest_domain=0m.{{domain}}	action=never-cache
+{% for id in range(1,30) %}
+dest_domain={{id}}m.{{domain}}	ttl-in-cache={{ id }}m
+{% endfor %}
+{% for id in range(30,2890,10) %}
+dest_domain={{id}}m.{{domain}}	ttl-in-cache={{ id }}m
+{% endfor %}

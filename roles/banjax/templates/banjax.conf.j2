@@ -1,0 +1,32 @@
+---
+priority:
+  white_lister: 1
+  denialator: 2
+  auth: 3
+  challenger: 4
+  regex_banner: 5
+
+swabber:
+  grace_period: 600
+
+denialator:
+
+include:
+  - banjax.d/general.bconf
+  - banjax.d/whitelist.bconf
+{% for site, attributes in remap | dictsort %}
+{% if (remap[site]["network"] == item.key) and
+      ( (attributes["banjax_path"]) or
+      (attributes["banjax_sha_inv"] is defined and attributes["banjax_sha_inv"]) or
+      (attributes["banjax_regex_banner"] is defined) ) %}
+  - banjax.d/{{site}}.bconf
+{% endif %}
+{% endfor %}
+
+challenger:
+  key: {{challenger_key}}
+  difficulty: 8
+
+bot_sniffer:
+  botbanger_port: 22621
+  key: "{{botbanger_key}}"

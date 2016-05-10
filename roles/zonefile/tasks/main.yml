@@ -1,0 +1,36 @@
+---
+- name: Setup bind output base directory
+  file: path={{bind_output}}{{item}} state=directory mode=0755
+  with_items:
+    -
+    - bind
+  tags:
+    - dns
+    - setup
+
+- name: Setup bind dnet output directories
+  file: path={{bind_output}}{{item.key}} state=directory mode=0755
+  with_dict: dnets
+  tags:
+    - dns
+    - setup
+
+- name: Per-site zone files
+  template: src=zonetemplate.zone.j2 dest={{bind_output}}{{remap[item.key].network}}/{{item.key}}.zone
+  with_dict: remap
+  when: ('dns_records' in remap[item.key] and 'network' in remap[item.key])
+  tags: dns
+
+- name: Bind common named.conf file
+  copy: src=named.conf dest={{bind_output}}bind/named.conf
+  tags: dns
+
+- name: Bind common conf to enable templated zones
+  template: src=named.conf.local.j2 dest={{bind_output}}bind/named.conf.local.templated
+  tags: dns
+
+- name: Central DNS zone files
+  template: src=networkzone.dnets.j2 dest={{bind_output}}{{item.key}}/{{dnets[item.key]}}.zone
+  when: (item.value is defined and item.value)
+  with_dict: dnets
+  tags: dns

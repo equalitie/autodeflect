@@ -1,0 +1,66 @@
+---
+{% if (remap[item.key]["banjax_path"] is defined and remap[item.key]["banjax_path"] != '') or (remap[item.key]["banjax_sha_inv"] is defined and remap[item.key]["banjax_sha_inv"]) %}
+challenger:
+  challenges:
+{% endif %}
+{% if remap[item.key]["banjax_path"] is defined and remap[item.key]["banjax_path"] != ''%}
+    - name: "{{item.key}}_auth"
+      domains:
+       - "{{item.key}}"
+       - "www.{{item.key}}"
+{% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}
+{% for prefix in remap[item.key]["additional_domain_prefix"] %}
+       - "{{prefix}}.{{item.key}}"
+{% endfor %}
+{% endif %}
+      challenge_type: "auth"
+      challenge: "auth.html"
+      password_hash: "{{remap[item.key]["banjax_password"]}}"
+      magic_word: "{{remap[item.key]["banjax_path"]}}"
+      validity_period: 360000
+      no_of_fails_to_ban: 10
+{% endif %}
+{% if remap[item.key]["banjax_sha_inv"] is defined and remap[item.key]["banjax_sha_inv"] %}
+
+    - name: "{{item.key}}_sha_inv"
+      domains:
+       - "{{item.key}}"
+       - "www.{{item.key}}"
+{% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}
+{% for prefix in remap[item.key]["additional_domain_prefix"] %}
+       - "{{prefix}}.{{item.key}}"
+{% endfor %}
+{% endif %}
+      challenge_type: "sha_inverse"
+      challenge: "solver.html"
+      no_of_fails_to_ban: 20
+      validity_period: 86400
+{% endif %}
+{% if remap[item.key]["banjax_regex_banner"] is defined %}
+
+regex_banner:
+{%for rb in remap[item.key]["banjax_regex_banner"] %}
+  - rule: {{item.key}}_regex_banner_{{loop.index}}
+    regex: '^{{rb.regex.method}}\ https?:\/\/{{rb.regex.url}}\ {{item.key | regex_replace('\.', '\\.')}}\ {{rb.regex.ua}}'
+    interval: {{rb.interval}}
+    hits_per_interval: {{rb.hits_per_interval}}
+
+  - rule: www.{{item.key}}_regex_banner_{{loop.index}}
+    regex: '^{{rb.regex.method}}\ https?:\/\/{{rb.regex.url}}\ www\.{{item.key | regex_replace('\.', '\\.')}}\ {{rb.regex.ua}}'
+    interval: {{rb.interval}}
+    hits_per_interval: {{rb.hits_per_interval}}
+{% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}
+{% for prefix in remap[item.key]["additional_domain_prefix"] %}
+
+  - rule: {{prefix}}.{{item.key}}_regex_banner_{{loop.index}}
+    regex: '^{{rb.regex.method}}\ https?:\/\/{{rb.regex.url}}\ {{prefix}}\.{{item.key | regex_replace('\.', '\\.')}}\ {{rb.regex.ua}}'
+    interval: {{rb.interval}}
+    hits_per_interval: {{rb.hits_per_interval}}
+{% endfor %}
+{% endif %}
+
+{% endfor -%}
+{%- endif -%}
+
+# include config/banjax.d/{{item.key}}.bconf
+{% include "config/banjax.d/" + item.key + ".bconf" ignore missing %}
