@@ -1,8 +1,0 @@
-# {{ no_edit_template }}
-{% for site, attributes in remap | dictsort %}
-zone "{{site}}" {
-        type master;
-        file "{{site}}.zone";
-        also-notify { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
-};
-{% endfor %}
