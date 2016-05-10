@@ -42,3 +42,5 @@ configuration set. Users should supply these configurations themselves
 can be obtained by tweaking them). In future static configuration
 files will be added to this repository.
 
+Requires:
+* python-passlib
