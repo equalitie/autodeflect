@@ -10,6 +10,7 @@ remap:
     cachecontrol: true
     confremap: true
     banjax_sha_inv: true
+    banjax_captcha: true
     additional_domain_prefix:
       - "subdomain1"
       - "subdomain2"
