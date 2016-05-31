@@ -4,7 +4,6 @@
       (remap[item.key]["banjax_captcha"] is defined and remap[item.key]["banjax_captcha"]) %}
 challenger:
   challenges:
-{% endif %}
 {% if remap[item.key]["banjax_path"] is defined and remap[item.key]["banjax_path"] != '' %}
     - name: "{{item.key}}_auth"
       domains:
@@ -53,6 +52,7 @@ challenger:
       challenge: "captcha.html"
       no_of_fails_to_ban: 20
       validity_period: 86400
+{% endif %}
 {% endif %}
 {% if remap[item.key]["banjax_regex_banner"] is defined %}
 
