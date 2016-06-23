@@ -205,14 +205,16 @@ echo
 
 function fetch_clients_yml() {
   curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" {{autobrains_config["dash_proxy"]}}{{autobrains_config["clients_yml_url"]}} > {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} 2> /dev/null
+   # Do this here incase clients.yml does not exist or is broken
+  rm {{playbook_dir}}/clients.yml
+  ln -s clients.yml-revisions/clients.yml-${DATE} clients.yml
+
     echo -e $ECHO_SEPARATOR
   if diff {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} >/dev/null 2>&1 ; then
     echo "No differences found from dashboard since last completed run."
   else
     echo "Differences found from dashboard since last completed autobrains run:"
     diff -U 15 {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE}
-    rm {{playbook_dir}}/clients.yml
-    ln -s clients.yml-revisions/clients.yml-${DATE} clients.yml
   fi
   export NEWCLIENTS_YML=1
 }
