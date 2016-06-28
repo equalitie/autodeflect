@@ -28,6 +28,9 @@ fi
 # clients.yml
 # clients.yml-revisions/
 
+# Exit on error: if anything fails to copy from the LIVEDIR, it is not worth continuing
+set -e
+
 # This file just needs to exist. autobrains_update.sh should link correctly
 rm -f clients.yml
 touch clients.yml
