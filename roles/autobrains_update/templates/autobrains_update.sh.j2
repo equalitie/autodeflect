@@ -340,7 +340,20 @@ function zone_diff_loop {
       echo "ERROR: There was something wrong with the diff command"
     elif [ $RT -eq 1 ]
     then
-      yorn "Do you want to install this file" "install_file $i {{autobrains_config["zone_files"]}}/$DNET/$(basename $i)"
+      # Check if live zone file is active in another dnet
+      local zone_conflict=0
+      for d in $DNETS ; do
+        if [ "$d" == "$DNET" ]; then
+          continue
+        else
+          [ -f {{autobrains_config["zone_files"]}}/$d/$(basename $i) ] && echo -e "\n$(basename $i) exists in $d\nand you want to install to $DNET.\nThis is not aloud! Please fix this.\nexample:\n mv {{autobrains_config["zone_files"]}}/$d/$(basename $i) {{autobrains_config["zone_files"]}}/$DNET/$(basename $i)\nor\n rm {{autobrains_config["zone_files"]}}/$d/$(basename $i)\nBypassing install option.\n" && local zone_conflict=1 
+        fi
+      done
+      if [ $zone_conflict -eq 1 ]; then
+        read -t 30 -p "[Enter] to continue or will automatically in 30 seconds " 
+      else
+        yorn "Do you want to install this file" "install_file $i {{autobrains_config["zone_files"]}}/$DNET/$(basename $i)"
+     fi
       echo -e $ECHO_SEPARATOR
     fi 
 done
