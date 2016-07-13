@@ -1,6 +1,7 @@
 ---
 remap:
   example.local:
+    le: true
     network: example-dnet 
     origin_http_port: 6669
     origin_https_port: 6669
