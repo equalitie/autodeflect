@@ -1,4 +1,14 @@
 # {{ no_edit_template }}
+{% if remap[item.key]["letsencrypt"] is defined and remap[item.key]["letsencrypt"] == true %}
+
+## Let's Encrypt!
+regex_map http://^(www\.)?{{item.key | regex_replace('\.', '\\.')}}/\.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
+{% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}
+{% for prefix in remap[item.key]["additional_domain_prefix"] %}
+regex_map http://{{prefix}}\.{{item.key | regex_replace('\.', '\\.')}}/\.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
+{% endfor %}
+{% endif %}
+{% endif %}
 {% include "config/remap.d/" + item.key + ".config" ignore missing %}
 
 # END include config/remap.d/{{item.key}}.config
@@ -70,16 +80,6 @@ map https://{{prefix}}.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origi
 {% endif %}
 
 {% endif %}
-{% endfor %}
-{% endif %}
-{% endif %}
-{% if remap[item.key]["le"] is defined and remap[item.key]["le"] == true %}
-
-## Let's Encrypt!
-regex_map http://^(www\.)?{{item.key | regex_replace('\.', '\\.')}}/\.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
-{% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}
-{% for prefix in remap[item.key]["additional_domain_prefix"] %}
-regex_map http://{{prefix}}\.{{item.key | regex_replace('\.', '\\.')}}/\.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
 {% endfor %}
 {% endif %}
 {% endif %}
