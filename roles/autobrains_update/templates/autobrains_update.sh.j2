@@ -39,7 +39,6 @@ ECHO_SEPARATOR='\n#################################\n\t##\t##\n#################
 DATE=$(date +%Y%m%d%H%M%S)
 SKIP_UPDATE=0
 NOTIFY_CONTENT=''
-REMAP_TOUCHED=0
 NEWCLIENTS_YML=0
 MAINT=false
 MAINT_BYPASS=false
@@ -54,6 +53,12 @@ NOSPIN=false
 NOCLIENT=false
 INITAU=false
 OVERRIDECHECKED=false
+
+# Set default for all dnets if remap touch is needed
+for d in $DNETS ; do
+  REMAP_TOUCHED[$d]=0
+done
+unset $d
 
 if [ -n "$SUDO_USER" ] ; then
   UNAME=$SUDO_USER ; else
@@ -284,7 +289,7 @@ function remap_diff_loop {
     elif [ $RT -eq 1 ]
     then
       yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/remap.d/$(basename $i)" 
-      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED=1
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=1
       echo -e $ECHO_SEPARATOR 
   fi
     
@@ -313,7 +318,7 @@ function banjax_diff_loop {
     elif [ $RT -eq 1 ]
     then
       yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/banjax/banjax.d/$(basename $i)" 
-      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED=1
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=1
       echo -e $ECHO_SEPARATOR 
   fi
     
@@ -374,6 +379,7 @@ function banjax_new_diff {
   elif [ $RT -eq 1 ]
   then
     yorn "Do you want to install this file" "install_file {{banjax_output}}$DNET/banjax.conf $ATS_DIR/conf/banjax/banjax.conf"
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=1
     echo -e $ECHO_SEPARATOR
   fi
 }
@@ -393,6 +399,7 @@ function logs_xml_diff {
   elif [ $RT -eq 1 ]
   then 
     yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/logs_xml.config $ATS_DIR/conf/logs_xml.config" 
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=1
     echo -e $ECHO_SEPARATOR
   fi
 }
@@ -412,7 +419,7 @@ function remap_diff {
   elif [ $RT -eq 1 ]
   then  
     yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/remap.config $ATS_DIR/conf/remap.config"
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED=1
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=1
     echo -e $ECHO_SEPARATOR
   fi 
 }
@@ -432,7 +439,7 @@ function cache_diff {
   elif [ $RT -eq 1 ]
   then  
     yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/cache.config $ATS_DIR/conf/cache.config"
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED=1
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=1
     echo -e $ECHO_SEPARATOR
   fi 
 }
@@ -459,10 +466,10 @@ function all_diff {
 for DNET in $DNETS; do
   echo "dnet: $DNET"
   banjax_new_diff
+  banjax_diff_loop
   logs_xml_diff
   remap_diff
   remap_diff_loop
-  banjax_diff_loop
   cache_diff
   zone_diff_loop
 done
@@ -507,6 +514,7 @@ function dot_generated() {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   echo -e "\tcreating .generated file for dnet $DNET remap.d"
   date +%s > $ATS_DIR/conf/remap.d/.generated
+  touch $ATS_DIR/conf/remap.config
 }
 
 function cat_blacklist() {
@@ -738,10 +746,10 @@ else
   yorn "Check config changes (controller)" "all_diff"
 fi
 
-[ $REMAP_TOUCHED -gt 0 ] && (
 for DNET in $DNETS; do
-  dot_generated
-done)
+  [ ${REMAP_TOUCHED[$d]} -gt 0 ] && dot_generated
+done
+unset $DNET
 
 [ ! -s "${LOCK_PREFIX-}$UNAME" ] || cat "${LOCK_PREFIX-}$UNAME" | notify
 
