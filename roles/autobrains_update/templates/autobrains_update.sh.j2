@@ -747,7 +747,7 @@ else
 fi
 
 for DNET in $DNETS; do
-  [ ${REMAP_TOUCHED[$d]} -gt 0 ] && dot_generated
+  [ ${REMAP_TOUCHED[$DNET]} -gt 0 ] && dot_generated
 done
 unset $DNET
 
