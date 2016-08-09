@@ -756,20 +756,30 @@ for DNET in $DNETS; do
 done
 unset $DNET
 
+if [ $NEWCLIENTS_YML -eq 1 ]; then
+  cp {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used
+fi
+
 [ ! -s "${LOCK_PREFIX-}$UNAME" ] || cat "${LOCK_PREFIX-}$UNAME" | notify
 
 rm ${LOCK_PREFIX-}$UNAME
 cd $CUR_DIR
 
-if [ $NEWCLIENTS_YML -eq 1 ]; then
-  cp {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used
-fi
+echo -e "Update dashadmin and redmine if needed.\n"
+for DNET in $DNETS; do
+  if [ ${REMAP_TOUCHED[$DNET]} -gt 0 ]; then
+    echo -e "ATS changes for $DNET detected\ndeploy.sh -A $DNET -p ats -H ALL\n"
+  else
+    echo -e "No ATS changes for $DNET detected\ndeploy.sh -A $DNET -p conftouch -H ALL\n"
+  fi
+done
 
-echo -e "\nUpdate dashadmin and redmine if needed.\nDon't forget to deploy to a non-live edge before using -H ALL\n\nIf nothing changed, consider running deploy.sh with option -p conftouch \nto prevent nagios warning about confsync.\nNote: edge_manage will pick up zone changes automatically."
+echo "Note: edge_manage will pick up zone changes automatically."
 ## FIXME -- This will break badly if a dnet is defined with a value that is not default_dnet
 for DNET in $DNETS; do
   echo -e "\n\nCurrent list of non-live edges in $DNET dnet: "
-  edge_query --dnet $DNET -v -s out | sed -e "s/[[:space:]]\+/ /g" | cut -d " " -f 4 | sed 's/\.{{dnets[default_dnet] | regex_replace('\.', '\\.')}}//g' | tr '\r\n' ' '
+  edge_query --dnet $DNET --health pass -s out -m available | sed -e "s/[[:space:]]\+/ /g" | cut -d " " -f1 | sed 's/\.{{dnets[default_dnet] | regex_replace('\.', '\\.')}}//g' | tr '\r\n' ' '
 done
+
 echo
 exit
