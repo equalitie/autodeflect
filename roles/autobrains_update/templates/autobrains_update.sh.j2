@@ -4,6 +4,8 @@
 # {{no_edit_template}}
 # {{no_edit_template}}
 # ./autobrains_update.sh -i --force will update this file from template
+# or if autobrains_update.sh is broken
+# ansible-playbook {{playbook_dir}}/site.yml -l controller --tags init
 # {{no_edit_template}}
 # {{no_edit_template}}
 # {{no_edit_template}}
@@ -27,11 +29,6 @@ AW_LASTRUN_FILE=".aw_lastrun"
 {% if autobrains_bypasses is defined and autobrains_bypasses %}
 BYPASS_FILES="{% for bypass in autobrains_bypasses %}{{bpspace()}}{{bypass}}{% endfor %}" 
 {% endif %}
-
-MOTD=$(cat <<EOF
- 
-EOF
-)
 
 ##########
 ## SETUP 
@@ -710,8 +707,6 @@ if [ "$YES" = true ] && [ "$FORCE" = false ] ; then
 fi
 
 maint_lock
-
-echo "$MOTD"
 
 if $MOST ; then
   export SKIP_UPDATE=1
