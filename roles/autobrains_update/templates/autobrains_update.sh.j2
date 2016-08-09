@@ -55,7 +55,9 @@ INITAU=false
 OVERRIDECHECKED=false
 
 # Set default for all dnets if remap touch is needed
-for d in $DNETS ; do
+# also set REMAP_TOUCHED as a associative array
+declare -A REMAP_TOUCHED
+for d in $DNETS; do
   REMAP_TOUCHED[$d]=0
 done
 unset $d
@@ -175,9 +177,11 @@ fi
 }
 
 function yorn() {
-if $YES ; then
+if $YES; then
+  yn='y'
   $2
-elif $NO ; then
+elif $NO; then
+  yn='n'
   return
 else
   while true; do
@@ -193,9 +197,11 @@ echo
 }
 
 function awstatsorn() {
-if $YES ; then
+if $YES; then
+  yn='y'
   $2
-elif $NO ; then
+elif $NO; then
+  yn='n'
   return
 else
   while true; do
@@ -464,7 +470,6 @@ function bind_local_templated_diff {
   
 function all_diff {
 for DNET in $DNETS; do
-  echo "dnet: $DNET"
   banjax_new_diff
   banjax_diff_loop
   logs_xml_diff
@@ -512,7 +517,7 @@ function finish() {
 
 function dot_generated() {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
-  echo -e "\tcreating .generated file for dnet $DNET remap.d"
+  echo -e "\t$DNET marked as updated"
   date +%s > $ATS_DIR/conf/remap.d/.generated
   touch $ATS_DIR/conf/remap.config
 }
