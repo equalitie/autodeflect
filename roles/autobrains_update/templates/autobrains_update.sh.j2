@@ -5,6 +5,7 @@
 # {{no_edit_template}}
 # ./autobrains_update.sh -i --force will update this file from template
 # or if autobrains_update.sh is broken
+# rm autobrains_update.sh
 # ansible-playbook {{playbook_dir}}/site.yml -l controller --tags init
 # {{no_edit_template}}
 # {{no_edit_template}}
@@ -514,7 +515,6 @@ function finish() {
 
 function dot_generated() {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
-  echo -e "\t$DNET marked as updated"
   date +%s > $ATS_DIR/conf/remap.d/.generated
   touch $ATS_DIR/conf/remap.config
 }
@@ -598,6 +598,31 @@ function check_override {
     exit
   fi
 }
+
+{% raw %}
+function get_nonlive_edge() {
+# This will return 1 available nonlive edges 
+# Also it will try 5 times until it gets atleast 1 or returns nothing
+if [ $DNET ]; then
+  count=5
+  until [ $count -le 0 ]; do
+    # This should return a array
+    edge=($(edge_query --dnet $DNET --health pass -s out -m available -q --format flat 2> /dev/null | cut -d' ' -f1 | cut -d'.' -f1 | tr '\r\n' ' '))
+    if [ "${#edge[@]}" -ge "1" ]; then
+      count=0
+    else
+      let count-=1
+      sleep 5
+    fi
+  done
+  if [ "${#edge[@]}" -ge "1" ]; then
+    rand=$[$RANDOM % ${#edge[@]}]
+    echo "${edge[$rand]}"
+  fi
+fi
+unset edge count rand
+}
+{% endraw %}
 
 #########
 ### MAIN
@@ -763,18 +788,22 @@ cd $CUR_DIR
 echo -e "Update dashadmin and redmine if needed.\n"
 for DNET in $DNETS; do
   if [ ${REMAP_TOUCHED[$DNET]} -gt 0 ]; then
-    echo -e "ATS changes for $DNET detected\ndeploy.sh -A $DNET -p ats -H ALL\n"
+    echo "ATS changes for $DNET detected"
+    nonlive=$(get_nonlive_edge)
+    if [ $nonlive ]; then
+      echo "deploy.sh -A $DNET -p ats -H $nonlive"
+    else
+      echo "deploy.sh -A $DNET -p ats -H **error nonlive edge not returned**"
+    fi
+    echo "deploy.sh -A $DNET -p ats -H ALL"
+    echo
   else
-    echo -e "No ATS changes for $DNET detected\ndeploy.sh -A $DNET -p conftouch -H ALL\n"
+    echo "No ATS changes for $DNET detected"
+    echo "deploy.sh -A $DNET -p conftouch -H ALL"
+    echo
   fi
+
 done
 
 echo "Note: edge_manage will pick up zone changes automatically."
-## FIXME -- This will break badly if a dnet is defined with a value that is not default_dnet
-for DNET in $DNETS; do
-  echo -e "\n\nCurrent list of non-live edges in $DNET dnet: "
-  edge_query --dnet $DNET --health pass -s out -m available | sed -e "s/[[:space:]]\+/ /g" | cut -d " " -f1 | sed 's/\.{{dnets[default_dnet] | regex_replace('\.', '\\.')}}//g' | tr '\r\n' ' '
-done
-
-echo
 exit
