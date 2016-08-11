@@ -631,30 +631,44 @@ for DNET in $DNETS; do
   if [ ${REMAP_TOUCHED[$DNET]} -eq 0 2>/dev/null ]; then
     nonlive=$(get_nonlive_edge)
     if [ $nonlive ]; then
+      echo "Test config on $nonlive"
       if [ "$DEBUG" = true ]; then
-        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive
+        local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive | tee /dev/tty)
       else
-        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive 2> /dev/null | grep '!!! '
+        local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive 2> /dev/null | grep '!!! \|Via:' | sed 's/!!!//g' | sed 's/NOW//g' | tee /dev/tty)
       fi
-    # FIXME: Check to make sure nonlive has safe config and set this variable
-    NONLIVESAFE=0
+      if echo "$test_run" | grep Via 2>&1 >/dev/null; then 
+        echo "Found Via header. Test config good"
+        NONLIVESAFE=0
+      fi
     fi
 
     if [ $NONLIVESAFE -eq 0 ]; then
-       # FIXME: Add DEBUG mode
-       {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H ALL 2> /dev/null | grep '!!! '
-       # We set a variable array for this DNET has been deployed
-       DEPLOYED[$DNET]=0
+      if [ "$DEBUG" = true ]; then
+        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H ALL
+      else
+        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H ALL 2> /dev/null | grep '!!! \|Via:' | sed 's/!!!//g' | sed 's/NOW//g' 
+      fi
+      # We set a variable array for this DNET has been deployed
+      DEPLOYED[$DNET]=0
     else
-      # FIXME: What do we do if we do not get a safe config deployed?
-      echo "Config unsafe when deployed to $nonlive. Can't continue."
-      exit
+      if [ "$nonlive" = '' ]; then
+        echo "Could not find a test edge. Will not continue."
+      else
+        echo -e "Config not safe. No Via header found when\ndeployed to $nonlive. Will not continue."
+      fi
+    exit
     fi
   # We are here because no new config detected on the DNET
   else
     # We only need 'conftouch' if client.yml was different
     if [ $NEWCLIENTS_YML -eq 0 ] && [ ! ${SKIPPED_INSTALL[$DNET]} -eq 0 2>/dev/null ]; then
-      {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL
+      echo "Full deploy not needed. Running \"conftouch\" for \"$DNET\""
+      if [ "$DEBUG" = true ]; then
+        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL
+      else
+        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL 2> /dev/null | grep '!!! ' | sed 's/!!!//g' | sed 's/NOW//g'
+      fi
     else
       echo "Do not need a deploy on \"$DNET\""
     fi
