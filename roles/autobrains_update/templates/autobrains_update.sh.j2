@@ -52,8 +52,9 @@ NOCLIENT=false
 INITAU=false
 OVERRIDECHECKED=false
 
-# set REMAP_TOUCHED as a associative array
+# set associative arrays
 declare -A REMAP_TOUCHED
+declare -A SKIPPED_INSTALL
 
 if [ -n "$SUDO_USER" ] ; then
   UNAME=$SUDO_USER ; else
@@ -288,7 +289,7 @@ function remap_diff_loop {
     elif [ $RT -eq 1 ]
     then
       yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/remap.d/$(basename $i)" 
-      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=0
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
       echo -e $ECHO_SEPARATOR 
   fi
     
@@ -317,7 +318,7 @@ function banjax_diff_loop {
     elif [ $RT -eq 1 ]
     then
       yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/banjax/banjax.d/$(basename $i)" 
-      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=0
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
       echo -e $ECHO_SEPARATOR 
   fi
     
@@ -378,7 +379,7 @@ function banjax_new_diff {
   elif [ $RT -eq 1 ]
   then
     yorn "Do you want to install this file" "install_file {{banjax_output}}$DNET/banjax.conf $ATS_DIR/conf/banjax/banjax.conf"
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=0
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
     echo -e $ECHO_SEPARATOR
   fi
 }
@@ -398,7 +399,7 @@ function logs_xml_diff {
   elif [ $RT -eq 1 ]
   then 
     yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/logs_xml.config $ATS_DIR/conf/logs_xml.config" 
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=0
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
     echo -e $ECHO_SEPARATOR
   fi
 }
@@ -418,7 +419,7 @@ function remap_diff {
   elif [ $RT -eq 1 ]
   then  
     yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/remap.config $ATS_DIR/conf/remap.config"
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=0
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
     echo -e $ECHO_SEPARATOR
   fi 
 }
@@ -438,7 +439,7 @@ function cache_diff {
   elif [ $RT -eq 1 ]
   then  
     yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/cache.config $ATS_DIR/conf/cache.config"
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=0
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
     echo -e $ECHO_SEPARATOR
   fi 
 }
