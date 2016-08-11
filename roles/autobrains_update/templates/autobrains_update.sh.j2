@@ -52,13 +52,8 @@ NOCLIENT=false
 INITAU=false
 OVERRIDECHECKED=false
 
-# Set default for all dnets if remap touch is needed
-# also set REMAP_TOUCHED as a associative array
+# set REMAP_TOUCHED as a associative array
 declare -A REMAP_TOUCHED
-for d in $DNETS; do
-  REMAP_TOUCHED[$d]=0
-done
-unset $d
 
 if [ -n "$SUDO_USER" ] ; then
   UNAME=$SUDO_USER ; else
@@ -220,14 +215,14 @@ function fetch_clients_yml() {
   rm {{playbook_dir}}/clients.yml
   ln -s clients.yml-revisions/clients.yml-${DATE} clients.yml
 
-    echo -e $ECHO_SEPARATOR
   if diff {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} >/dev/null 2>&1 ; then
     echo -e "No differences found from dashboard\nsince last completed run."
   else
     echo -e "Differences found from dashboard\nsince last completed autobrains run."
+    echo -e $ECHO_SEPARATOR
     diff -U 15 {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE}
-  fi
   NEWCLIENTS_YML=0
+  fi
 }
 
 function install_file {
@@ -293,7 +288,7 @@ function remap_diff_loop {
     elif [ $RT -eq 1 ]
     then
       yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/remap.d/$(basename $i)" 
-      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=1
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=0
       echo -e $ECHO_SEPARATOR 
   fi
     
@@ -322,7 +317,7 @@ function banjax_diff_loop {
     elif [ $RT -eq 1 ]
     then
       yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/banjax/banjax.d/$(basename $i)" 
-      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=1
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=0
       echo -e $ECHO_SEPARATOR 
   fi
     
@@ -383,7 +378,7 @@ function banjax_new_diff {
   elif [ $RT -eq 1 ]
   then
     yorn "Do you want to install this file" "install_file {{banjax_output}}$DNET/banjax.conf $ATS_DIR/conf/banjax/banjax.conf"
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=1
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=0
     echo -e $ECHO_SEPARATOR
   fi
 }
@@ -403,7 +398,7 @@ function logs_xml_diff {
   elif [ $RT -eq 1 ]
   then 
     yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/logs_xml.config $ATS_DIR/conf/logs_xml.config" 
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=1
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=0
     echo -e $ECHO_SEPARATOR
   fi
 }
@@ -423,7 +418,7 @@ function remap_diff {
   elif [ $RT -eq 1 ]
   then  
     yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/remap.config $ATS_DIR/conf/remap.config"
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=1
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=0
     echo -e $ECHO_SEPARATOR
   fi 
 }
@@ -443,7 +438,7 @@ function cache_diff {
   elif [ $RT -eq 1 ]
   then  
     yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/cache.config $ATS_DIR/conf/cache.config"
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=1
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] || REMAP_TOUCHED[$DNET]=0
     echo -e $ECHO_SEPARATOR
   fi 
 }
@@ -627,8 +622,10 @@ unset edge count rand
 function run_deploy() {
 declare -A DEPLOYED
 for DNET in $DNETS; do
+  # Set DEPLOYED to 1 by default
+  DEPLOYED[$DNET]=1
   NONLIVESAFE=1
-  if [ ${REMAP_TOUCHED[$DNET]} -gt 0 ]; then
+  if [ ${REMAP_TOUCHED[$DNET]} -eq 0 2>/dev/null ]; then
     nonlive=$(get_nonlive_edge)
     if [ $nonlive ]; then
       if [ "$DEBUG" = true ]; then
@@ -647,11 +644,17 @@ for DNET in $DNETS; do
        DEPLOYED[$DNET]=0
     else
       # FIXME: What do we do if we do not get a safe config deployed?
-      DEPLOYED[$DNET]=1
+      echo "Config unsafe when deployed to $nonlive. Can't continue."
+      exit
     fi
   # We are here because no new config detected on the DNET
   else
-    {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL
+    # We only need 'conftouch' if client.yml was different
+    if [ $NEWCLIENTS_YML -eq 0 ]; then
+      {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL
+    else
+      echo "Do not need deploy on $DNET"
+    fi
     # We set a variable array for this DNET has been deployed
     DEPLOYED[$DNET]=0
   fi
@@ -806,14 +809,23 @@ else
 fi
 
 for DNET in $DNETS; do
-  [ ${REMAP_TOUCHED[$DNET]} -gt 0 ] && dot_generated
+  if [ ${REMAP_TOUCHED[$DNET]} -eq 0 2>/dev/null ]; then
+    dot_generated
+    CHANGED=0
+  fi
 done
 
-yorn "WARN: DO NOT RUN THIS UNLESS TESTING. Deploy to network" "run_deploy"
+# Only show if ATS change installed or clients.yml was updated
+if [ $CHANGED -eq 0 2> /dev/null ] || [ $NEWCLIENTS_YML -eq 0 ]; then
+  yorn "WARN: DO NOT RUN THIS UNLESS TESTING. Deploy to network" "run_deploy"
+else
+  # Set this for the next statment
+  yn='n'
+fi
 
 if [ "$yn" = 'n'  ] || [ "$yn" = 'N' ]; then 
 for DNET in $DNETS; do
-  if [ ${REMAP_TOUCHED[$DNET]} -gt 0 ]; then
+  if [ ${REMAP_TOUCHED[$DNET]} -eq 0 2>/dev/null ]; then
     echo "ATS changes for $DNET detected"
     nonlive=$(get_nonlive_edge)
     if [ $nonlive ]; then
@@ -828,13 +840,15 @@ for DNET in $DNETS; do
     if [ $NEWCLIENTS_YML -eq 0 ]; then 
       echo "deploy.sh -A $DNET -p conftouch -H ALL"
       echo
+    else
+      echo -e "and conftouch not needed"
+      echo
     fi
   fi
-
 done
 fi
 
-echo "Note: edge_manage will pick up zone changes automatically."
+echo "'edge_manage' will pick up zone changes automatically."
 echo "Update dashadmin and redmine if needed."
 echo
 
