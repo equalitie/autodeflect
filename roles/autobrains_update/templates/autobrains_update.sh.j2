@@ -221,7 +221,7 @@ function fetch_clients_yml() {
   else
     echo -e "Differences found from dashboard\nsince last completed autobrains run."
     echo -e $ECHO_SEPARATOR
-    diff -U 15 {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE}
+    diff -U 5 {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE}
   NEWCLIENTS_YML=0
   fi
 }
@@ -358,8 +358,9 @@ function zone_diff_loop {
         read -t 30 -p "[Enter] to continue or will automatically in 30 seconds " 
       else
         yorn "Do you want to install this file" "install_file $i {{autobrains_config["zone_files"]}}/$DNET/$(basename $i)"
+        [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
+        echo -e $ECHO_SEPARATOR
      fi
-      echo -e $ECHO_SEPARATOR
     fi 
 done
 }
@@ -458,6 +459,7 @@ function bind_local_templated_diff {
   elif [ $RT -eq 1 ]
   then
     yorn "Do you want to install this file" "install_file {{bind_output}}bind/named.conf.local.templated {{autobrains_config["loc_bind_confs"]}}/named.conf.local.templated"
+    # FIXME: Need $DNET # [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 
     echo -e $ECHO_SEPARATOR
   fi
 }
@@ -516,9 +518,9 @@ function dot_generated() {
 }
 
 function cat_blacklist() {
-  echo "The following are blacklisted on {{autobrains_config["dashadmin_host"]}} and not included."
+  echo -e "The following are not included from\n{{autobrains_config["dashadmin_host"]}}\n## START BLACKLIST ##"
   curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" {{autobrains_config["dash_proxy"]}}{{autobrains_config["dash_blacklist_url"]}}
-  echo -e "\nEnd of blacklist."
+  echo -e "\n## END BLACKLIST ##"
 }
 
 function controller_update() {
@@ -632,15 +634,15 @@ for DNET in $DNETS; do
       if [ "$DEBUG" = true ]; then
         {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive
       else
-        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive > /dev/null &
-        spin $!
+        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive 2> /dev/null | grep '!!! '
       fi
     # FIXME: Check to make sure nonlive has safe config and set this variable
     NONLIVESAFE=0
     fi
 
     if [ $NONLIVESAFE -eq 0 ]; then
-       {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H ALL
+       # FIXME: Add DEBUG mode
+       {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H ALL 2> /dev/null | grep '!!! '
        # We set a variable array for this DNET has been deployed
        DEPLOYED[$DNET]=0
     else
@@ -651,10 +653,10 @@ for DNET in $DNETS; do
   # We are here because no new config detected on the DNET
   else
     # We only need 'conftouch' if client.yml was different
-    if [ $NEWCLIENTS_YML -eq 0 ]; then
+    if [ $NEWCLIENTS_YML -eq 0 ] && [ ! ${SKIPPED_INSTALL[$DNET]} -eq 0 2>/dev/null ]; then
       {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL
     else
-      echo "Do not need deploy on $DNET"
+      echo "Do not need a deploy on \"$DNET\""
     fi
     # We set a variable array for this DNET has been deployed
     DEPLOYED[$DNET]=0
@@ -775,6 +777,7 @@ if $MOST ; then
   export SKIP_UPDATE=1
 else
   yorn "Run config rebuild options" "export SKIP_UPDATE=1"
+  # FIXME: [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
 fi
 
 
@@ -792,6 +795,7 @@ if [ $SKIP_UPDATE -gt 0 ]; then
     controller_update
   else
     yorn "Update (controller) config" "controller_update"
+    # FIXME: [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
     echo
   fi
   if [ $MOST = false ] ; then
@@ -807,6 +811,7 @@ if $MOST ; then
   all_diff
 else
   yorn "Check config changes (controller)" "all_diff"
+  # FIXME: [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
 fi
 
 for DNET in $DNETS; do
@@ -825,31 +830,39 @@ else
 fi
 
 if [ "$yn" = 'n'  ] || [ "$yn" = 'N' ]; then 
+echo "Below are the best guessed details that"
+echo "still needs to happen to complete."
+echo
 for DNET in $DNETS; do
   if [ ${REMAP_TOUCHED[$DNET]} -eq 0 2>/dev/null ]; then
-    echo "ATS changes for $DNET detected"
+    echo "proxy config changes for \"$DNET\" detected"
     nonlive=$(get_nonlive_edge)
     if [ $nonlive ]; then
       echo "deploy.sh -A $DNET -p ats -H $nonlive"
     else
-      echo "deploy.sh -A $DNET -p ats -H **error nonlive edge not returned**"
+      echo "ERROR: deploy.sh -A $DNET -p ats -H **missing**"
     fi
     echo "deploy.sh -A $DNET -p ats -H ALL"
     echo
   else
-    echo "No ATS changes for $DNET detected"
-    if [ $NEWCLIENTS_YML -eq 0 ]; then 
+    echo "No proxy config changes for \"$DNET\" detected"
+    if [ $NEWCLIENTS_YML -eq 0 ] && [ ! ${SKIPPED_INSTALL[$DNET]} -eq 0 2>/dev/null ]; then 
       echo "deploy.sh -A $DNET -p conftouch -H ALL"
       echo
     else
-      echo -e "and conftouch not needed"
-      echo
+      if [ ${SKIPPED_INSTALL[$DNET]} -eq 0 2>/dev/null ]; then
+        echo -e "and conftouch not recommended when\nchanges skipped"
+        echo
+      else
+        echo  "and conftouch not needed"
+        echo
+      fi
     fi
   fi
 done
+echo "\"edge_manage\" will pick up zone changes automatically."
 fi
 
-echo "'edge_manage' will pick up zone changes automatically."
 echo "Update dashadmin and redmine if needed."
 echo
 
@@ -858,9 +871,5 @@ if [ $NEWCLIENTS_YML -eq 0 ]; then
   cp {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used
 fi
 
-[ ! -s "${LOCK_PREFIX-}$UNAME" ] || cat "${LOCK_PREFIX-}$UNAME" | notify
 
-rm ${LOCK_PREFIX-}$UNAME
-cd $CUR_DIR
-
-exit
+finish
