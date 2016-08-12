@@ -906,13 +906,6 @@ echo "\"edge_manage\" will pick up zone changes automatically."
 fi
 
 echo "Update dashadmin and redmine if needed."
-for DNET in $DNETS; do
-  if [ {DEPLOYED[$DNET]} -eq 0 ]; then
-    echo "Deploy completed on \"{DEPLOYED[$DNET]}\""
-  else
-    echo "Deploy not completed on \"{DEPLOYED[$DNET]}\""
-  fi
-done
 echo
 
 # We do this if everything went okay
