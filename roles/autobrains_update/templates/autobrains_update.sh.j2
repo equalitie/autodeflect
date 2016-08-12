@@ -464,7 +464,7 @@ function bind_local_templated_diff {
   elif [ $RT -eq 1 ]
   then
     yorn "Do you want to install this file" "install_file {{bind_output}}bind/named.conf.local.templated {{autobrains_config["loc_bind_confs"]}}/named.conf.local.templated"
-    # FIXME: Need $DNET # [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
     echo -e $ECHO_SEPARATOR
   fi
 }
@@ -700,6 +700,12 @@ for DNET in $DNETS; do
 done
 }
 
+function mark_all_skipped() {
+for d in $DNETS; do
+ SKIPPED_INSTALL[$d]=0
+done
+}
+
 #########
 ### MAIN
 
@@ -813,7 +819,7 @@ if $MOST ; then
   export SKIP_UPDATE=1
 else
   yorn "Run config rebuild options" "export SKIP_UPDATE=1"
-  # FIXME: [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
+  [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
 fi
 
 
@@ -831,7 +837,7 @@ if [ $SKIP_UPDATE -gt 0 ]; then
     controller_update
   else
     yorn "Update (controller) config" "controller_update"
-    # FIXME: [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
     echo
   fi
   if [ $MOST = false ] ; then
@@ -847,7 +853,7 @@ if $MOST ; then
   all_diff
 else
   yorn "Check config changes (controller)" "all_diff"
-  # FIXME: [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
+  [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
 fi
 
 for DNET in $DNETS; do
@@ -858,7 +864,7 @@ done
 
 # Only show if ATS change installed or clients.yml was updated
 if [ $CHANGED -eq 0 ] || [ $NEWCLIENTS_YML -eq 0 ]; then
-  yorn "WARN: DO NOT RUN THIS UNLESS TESTING. Deploy to network" "run_deploy"
+  yorn "Deploy to network" "run_deploy"
 else
   # Set this for the next statment
   yn='n'
@@ -887,7 +893,7 @@ for DNET in $DNETS; do
       echo
     else
       if [ ${SKIPPED_INSTALL[$DNET]} -eq 0 ]; then
-        echo -e "and conftouch not recommended when\nchanges skipped"
+        echo -e "and conftouch not recommended when skipping any steps."
         echo
       else
         echo  "and conftouch not needed"
@@ -900,6 +906,13 @@ echo "\"edge_manage\" will pick up zone changes automatically."
 fi
 
 echo "Update dashadmin and redmine if needed."
+for DNET in $DNETS; do
+  if [ {DEPLOYED[$DNET]} -eq 0 ]; then
+    echo "Deploy completed on \"{DEPLOYED[$DNET]}\""
+  else
+    echo "Deploy not completed on \"{DEPLOYED[$DNET]}\""
+  fi
+done
 echo
 
 # We do this if everything went okay
