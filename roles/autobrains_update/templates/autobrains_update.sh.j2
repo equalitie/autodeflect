@@ -638,9 +638,9 @@ for DNET in $DNETS; do
     if [ $nonlive ]; then
       echo "Test config on $nonlive"
       if [ "$DEBUG" = true ]; then
-        local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive | tee /dev/tty)
+        local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive)
       else
-        local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive 2> /dev/null | grep '!!! \|Via:' | sed 's/!!!//g' | sed 's/NOW//g' | tee /dev/tty)
+        local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive 2> /dev/null | grep '!!! \|Via:' | sed 's/!!!//g' | sed 's/NOW//g')
       fi
       if echo "$test_run" | grep Via >/dev/null 2>&1; then 
         echo "Found Via header. Test config good"
