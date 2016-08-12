@@ -33,6 +33,7 @@
       clients_yml_url: /brainsconfig/site.yml
       dashadmin_host: example-dashboard-admin.example.local
       dash_blacklist_url: /brainsconfig/blacklist.txt
+      deploy_key_path: /usr/local/deflect/etc/edge_id 
     autobrains_bypasses:
     # Note: You must rebuild autobrains_update.sh for this
     # to take effect.

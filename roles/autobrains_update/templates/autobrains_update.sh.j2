@@ -513,6 +513,7 @@ function finish() {
   [ ! -s "${LOCK_PREFIX-}$UNAME" ] || cat "${LOCK_PREFIX-}$UNAME" | notify
   rm ${LOCK_PREFIX-}$UNAME  2>/dev/null
   cd $CUR_DIR
+  [ -n "$AUTODEFLECT_AGENT" ] && kill $AUTODEFLECT_AGENT && echo "killing ssh-agent (${AUTODEFLECT_AGENT})"
   exit
 }
 
@@ -520,6 +521,7 @@ function dot_generated() {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   date +%s > $ATS_DIR/conf/remap.d/.generated
   touch $ATS_DIR/conf/remap.config
+  CHANGED=0
 }
 
 function cat_blacklist() {
@@ -629,6 +631,21 @@ unset edge count rand
 
 function run_deploy() {
 declare -A DEPLOYED
+
+# set up an ssh-agent if we don't already have one, and kill it after if we created
+# it now
+[ -z $SSH_AUTH_SOCK ] && eval `ssh-agent -s` && AUTODEFLECT_AGENT=$SSH_AGENT_PID 
+COUNTER=0
+while ! ssh-add -ls 2>&1 | grep `ssh-keygen -lf {{ autobrains_config["deploy_key_path"] }} 2>&1 | awk '{print $2}'` >/dev/null ; do 
+  ssh-add {{ autobrains_config["deploy_key_path"] }}
+  let COUNTER=COUNTER+1
+  if [ $COUNTER -gt 4 ]; then
+    echo "Error loading key. Can not continue"
+    exit
+  fi
+done
+unset COUNTER
+
 for DNET in $DNETS; do
   # Set DEPLOYED to 1 by default
   DEPLOYED[$DNET]=1
@@ -836,7 +853,6 @@ fi
 for DNET in $DNETS; do
   if [ ${REMAP_TOUCHED[$DNET]} -eq 0 ]; then
     dot_generated
-    CHANGED=0
   fi
 done
 
