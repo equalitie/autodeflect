@@ -640,7 +640,7 @@ for DNET in $DNETS; do
       if [ "$DEBUG" = true ]; then
         local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive)
       else
-        local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive 2> /dev/null | grep '!!! \|Via:' | sed 's/!!!//g' | sed 's/NOW//g')
+        local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive 2> /dev/null | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}') 
       fi
       if echo "$test_run" | grep Via >/dev/null 2>&1; then 
         echo "Found Via header. Test config good"
@@ -652,7 +652,7 @@ for DNET in $DNETS; do
       if [ "$DEBUG" = true ]; then
         {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H ALL
       else
-        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H ALL 2> /dev/null | grep '!!! \|Via:' | sed 's/!!!//g' | sed 's/NOW//g' 
+        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H ALL 2> /dev/null | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}' 
       fi
       # We set a variable array for this DNET has been deployed
       DEPLOYED[$DNET]=0
@@ -672,7 +672,7 @@ for DNET in $DNETS; do
       if [ "$DEBUG" = true ]; then
         {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL
       else
-        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL 2> /dev/null | grep '!!! ' | sed 's/!!!//g' | sed 's/NOW//g'
+        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL 2> /dev/null | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}' 
       fi
     else
       echo "Do not need a deploy on \"$DNET\""
