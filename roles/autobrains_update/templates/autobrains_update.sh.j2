@@ -42,8 +42,7 @@ CHANGED=1
 MAINT=false
 MAINT_BYPASS=false
 MOST=false
-NO=false
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO
 
 
 # set associative arrays
@@ -172,7 +171,7 @@ function yorn() {
 if [ -n "$YES" ]; then
   yn='y'
   $2
-elif $NO; then
+elif [ -n "$NO" ]; then
   yn='n'
   return
 else
@@ -192,7 +191,7 @@ function awstatsorn() {
 if [ -n "$YES" ]; then
   yn='y'
   $2
-elif $NO; then
+elif [ -n "$NO" ]; then
   yn='n'
   return
 else
@@ -744,7 +743,7 @@ case "$1" in
   shift
   ;;
   -y|--yes)
-  if $NO ; then
+  if [ -n "$NO" ]; then
     echo "Illegal option -y|--yes and -n|--no"
     exit
   else
@@ -757,7 +756,7 @@ case "$1" in
     echo "Illegal options. -y|--yes and -n|--no can not be used together"
     exit
   else
-    NO=true
+    NO=0
   fi
   shift
   ;;
@@ -816,8 +815,8 @@ fi
 
 
 if [ $SKIP_UPDATE -gt 0 ]; then
-  if [ -z "$NOCLIENT" ] ; then
-    if [ "$MOST" = true ] ; then
+  if [ -z "$NOCLIENT" ]; then
+    if [ "$MOST" = true ]; then
       fetch_clients_yml
     else
       yorn "Download latest dashboard config" "fetch_clients_yml"
