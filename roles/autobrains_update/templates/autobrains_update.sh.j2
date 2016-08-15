@@ -35,9 +35,7 @@ BYPASS_FILES="{% for bypass in autobrains_bypasses %}{{bpspace()}}{{bypass}}{% e
 ## SETUP 
 ECHO_SEPARATOR='\n#################################\n\t##\t##\n#################################\n'
 DATE=$(date +%Y%m%d%H%M%S)
-SKIP_UPDATE=0
-NOTIFY_CONTENT=''
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT CHANGED NEWCLIENTS_YML 
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT CHANGED NEWCLIENTS_YML SKIP_UPDATE 
 
 
 # set associative arrays
@@ -121,9 +119,7 @@ NOTE_FILE=$1
 }
 
 function notify_store() {
-NOTE_FILE=$1
-local NOTIFY_CONTENT="$UNAME updated $NOTE_FILE @ $DATE $(cat)" 
-
+local NOTIFY_CONTENT="$UNAME updated $1 @ $DATE $(cat)" 
 echo "$NOTIFY_CONTENT" >> ${LOCK_PREFIX}${UNAME}
 }
 
@@ -487,19 +483,15 @@ echo $return
 } 
 
 function ctrl_c() {
-  echo -e "\n** CTRL-C **\nCleaning up." 
-  [ ! -s "${LOCK_PREFIX-}$UNAME" ] || cat "${LOCK_PREFIX-}$UNAME" | notify
-  rm ${LOCK_PREFIX-}$UNAME
-  cd $CUR_DIR
-  tput cnorm
-  echo -e "\n\n\tFinished.\n\n"
-  exit 
+  echo -e "\n** CTRL-C **\nSafe cleaning up." 
+  finish
 }
 
 function finish() {
   [ ! -s "${LOCK_PREFIX-}$UNAME" ] || cat "${LOCK_PREFIX-}$UNAME" | notify
   rm ${LOCK_PREFIX-}$UNAME  2>/dev/null
   cd $CUR_DIR
+  tput cnorm
   [ -n "$AUTODEFLECT_AGENT" ] && kill $AUTODEFLECT_AGENT && echo "killing ssh-agent (${AUTODEFLECT_AGENT})"
   exit
 }
@@ -802,14 +794,14 @@ fi
 maint_lock
 
 if [ -n "$MOST" ]; then
-  export SKIP_UPDATE=1
+  export SKIP_UPDATE=0
 else
-  yorn "Run config rebuild options" "export SKIP_UPDATE=1"
+  yorn "Run config rebuild options" "export SKIP_UPDATE=0"
   [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
 fi
 
 
-if [ $SKIP_UPDATE -gt 0 ]; then
+if [ -n "$SKIP_UPDATE" ]; then
   if [ -z "$NOCLIENT" ]; then
     if [ -n "$MOST" ]; then
       fetch_clients_yml
