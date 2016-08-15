@@ -51,7 +51,8 @@ DEBUG=false
 NOSPIN=false
 NOCLIENT=false
 INITAU=false
-OVERRIDECHECKED=false
+unset OVERRIDECHECKED
+
 
 # set associative arrays
 declare -A REMAP_TOUCHED
@@ -531,9 +532,8 @@ function cat_blacklist() {
 }
 
 function controller_update() {
-  # Check to make sure override.tml does not have sites not in clients.yml
+  # Check to make sure override.yml does not have sites not in clients.yml
   check_override
-  OVERRIDECHECKED=true
 
   rm -rf {{ats_output}} {{banjax_output}} {{bind_output}} 
   if [ "$DEBUG" = true ] ; then
@@ -545,9 +545,8 @@ function controller_update() {
 }
 
 function awstats_update() {
-  if [ "$OVERRIDECHECKED" = false ]; then
+  if [ -z "$OVERRIDECHECKED" ]; then
     check_override
-    OVERRIDECHECKED=true
   fi
 
   if [ "$DEBUG" = true ] ; then
@@ -597,6 +596,7 @@ function check_override {
   local check=$(for n in $(grep '^  [a-zA-Z0-9]' override.yml) ; do grep $n clients.yml >> /dev/null || echo "${n%%:} not found in clients.yml. This needs fixed." ; done)
 
   if [ "$check" == "" ]; then
+    OVERRIDECHECKED=0
     return
   else
     echo "$check"
