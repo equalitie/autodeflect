@@ -43,8 +43,7 @@ MAINT=false
 MAINT_BYPASS=false
 MOST=false
 NO=false
-YES=false
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES
 
 
 # set associative arrays
@@ -170,7 +169,7 @@ fi
 }
 
 function yorn() {
-if $YES; then
+if [ -n "$YES" ]; then
   yn='y'
   $2
 elif $NO; then
@@ -190,7 +189,7 @@ echo
 }
 
 function awstatsorn() {
-if $YES; then
+if [ -n "$YES" ]; then
   yn='y'
   $2
 elif $NO; then
@@ -238,7 +237,7 @@ FILE=${OLD_FILE##*/}
 
 [ -d ${DIR}/old ] || mkdir ${DIR}/old || ( echo "error creating old directory -quitting" && exit )
 if [ -f ${OLD_FILE} ] ; then
-  if [ $YES = false ] ; then
+  if [ -z "$YES" ]; then
     echo "Anything you would like to say about this update?"
     read explanation
     test -z "$explanation" && echo "no explanation? naughty!"
@@ -254,7 +253,7 @@ if [ -f ${OLD_FILE} ] ; then
 else
   cp ${NEW_FILE} ${OLD_FILE}
   cp ${DIR}/${FILE} ${DIR}/old/${FILE}-latest
-  if [ $YES = false ] ; then
+  if [ -z "$YES" ]; then
     echo "Anything you would like to say about this update?"
     read explanation
     test -z "$explanation" && echo "no explanation? naughty!"
@@ -749,12 +748,12 @@ case "$1" in
     echo "Illegal option -y|--yes and -n|--no"
     exit
   else
-    YES=true
+    YES=0
   fi
   shift
   ;;
   -n|--no)
-  if $YES ; then
+  if [ -n "$YES" ]; then
     echo "Illegal options. -y|--yes and -n|--no can not be used together"
     exit
   else
@@ -801,7 +800,7 @@ if [ -n "$STOP" ] || [ -n "$INITAU" ] ; then
   exit
 fi
 
-if [ "$YES" = true ] && [ -z "$FORCE" ] ; then
+if [ -n "$YES" ] && [ -z "$FORCE" ]; then
   echo "Option -y|--yes must be used with caution. Include --force option if you are sure"
   exit
 fi
