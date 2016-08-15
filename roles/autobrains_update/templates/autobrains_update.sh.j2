@@ -38,8 +38,7 @@ DATE=$(date +%Y%m%d%H%M%S)
 SKIP_UPDATE=0
 NOTIFY_CONTENT=''
 NEWCLIENTS_YML=1
-CHANGED=1
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT CHANGED
 
 
 # set associative arrays
@@ -851,7 +850,7 @@ for DNET in $DNETS; do
 done
 
 # Only show if ATS change installed or clients.yml was updated
-if [ $CHANGED -eq 0 ] || [ $NEWCLIENTS_YML -eq 0 ]; then
+if [ -n "$CHANGED" ] || [ $NEWCLIENTS_YML -eq 0 ]; then
   yorn "Deploy to network" "run_deploy"
 else
   # Set this for the next statment
