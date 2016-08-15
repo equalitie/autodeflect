@@ -49,8 +49,7 @@ THEREST=false
 STOP=false
 DEBUG=false
 NOSPIN=false
-NOCLIENT=false
-unset OVERRIDECHECKED INITAU
+unset OVERRIDECHECKED INITAU NOCLIENT
 
 
 # set associative arrays
@@ -739,7 +738,7 @@ case "$1" in
   shift
   ;;
   -c|--noclient)
-  NOCLIENT=true
+  NOCLIENT=0
   shift
   ;;
   --most)
@@ -823,7 +822,7 @@ fi
 
 
 if [ $SKIP_UPDATE -gt 0 ]; then
-  if [ "$NOCLIENT" = false ] ; then
+  if [ -z "$NOCLIENT" ] ; then
     if [ "$MOST" = true ] ; then
       fetch_clients_yml
     else
