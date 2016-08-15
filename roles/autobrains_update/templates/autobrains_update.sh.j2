@@ -37,8 +37,7 @@ ECHO_SEPARATOR='\n#################################\n\t##\t##\n#################
 DATE=$(date +%Y%m%d%H%M%S)
 SKIP_UPDATE=0
 NOTIFY_CONTENT=''
-NEWCLIENTS_YML=1
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT CHANGED
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT CHANGED NEWCLIENTS_YML 
 
 
 # set associative arrays
@@ -671,7 +670,7 @@ for DNET in $DNETS; do
   # We are here because no new config detected on the DNET
   else
     # We only need 'conftouch' if client.yml was different
-    if [ $NEWCLIENTS_YML -eq 0 ] && [ ! ${SKIPPED_INSTALL[$DNET]} -eq 0 ]; then
+    if [ -n "$NEWCLIENTS_YML" ] && [ ! ${SKIPPED_INSTALL[$DNET]} -eq 0 ]; then
       echo "Full deploy not needed. Running \"conftouch\" for \"$DNET\""
       if [ -n "$DEBUG" ]; then
         {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL
@@ -850,7 +849,7 @@ for DNET in $DNETS; do
 done
 
 # Only show if ATS change installed or clients.yml was updated
-if [ -n "$CHANGED" ] || [ $NEWCLIENTS_YML -eq 0 ]; then
+if [ -n "$CHANGED" ] || [ -n "$NEWCLIENTS_YML" ]; then
   yorn "Deploy to network" "run_deploy"
 else
   # Set this for the next statment
@@ -875,7 +874,7 @@ for DNET in $DNETS; do
     echo
   else
     echo "No proxy config changes for \"$DNET\" detected"
-    if [ $NEWCLIENTS_YML -eq 0 ] && [ ! ${SKIPPED_INSTALL[$DNET]} -eq 0 ]; then 
+    if [ -n "$NEWCLIENTS_YML" ] && [ ! ${SKIPPED_INSTALL[$DNET]} -eq 0 ]; then 
       echo "deploy.sh -A $DNET -p conftouch -H ALL"
       echo
     else
@@ -896,7 +895,7 @@ echo "Update dashadmin and redmine if needed."
 echo
 
 # We do this if everything went okay
-if [ $NEWCLIENTS_YML -eq 0 ]; then
+if [ -n "$NEWCLIENTS_YML" ]; then
   cp {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used
 fi
 
