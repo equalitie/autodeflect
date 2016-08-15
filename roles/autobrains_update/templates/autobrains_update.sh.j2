@@ -47,9 +47,7 @@ YES=false
 FORCE=false
 THEREST=false
 STOP=false
-DEBUG=false
-#NOSPIN=false
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG
 
 
 # set associative arrays
@@ -534,7 +532,7 @@ function controller_update() {
   check_override
 
   rm -rf {{ats_output}} {{banjax_output}} {{bind_output}} 
-  if [ "$DEBUG" = true ] ; then
+  if [ -n "$DEBUG" ] ; then
     ansible-playbook {{playbook_dir}}/site.yml -l controller
   else
     ansible-playbook {{playbook_dir}}/site.yml -l controller > /dev/null &
@@ -547,7 +545,7 @@ function awstats_update() {
     check_override
   fi
 
-  if [ "$DEBUG" = true ] ; then
+  if [ -n "$DEBUG" ] ; then
     ansible-playbook {{playbook_dir}}/site.yml -l awstats
   else
     ansible-playbook {{playbook_dir}}/site.yml -l awstats > /dev/null &
@@ -652,7 +650,7 @@ for DNET in $DNETS; do
     nonlive=$(get_nonlive_edge)
     if [ $nonlive ]; then
       echo "Test config on $nonlive"
-      if [ "$DEBUG" = true ]; then
+      if [ -n "$DEBUG" ]; then
         local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive)
       else
         local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive 2> /dev/null | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}') 
@@ -664,7 +662,7 @@ for DNET in $DNETS; do
     fi
 
     if [ $NONLIVESAFE -eq 0 ]; then
-      if [ "$DEBUG" = true ]; then
+      if [ -n "$DEBUG" ]; then
         {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H ALL
       else
         {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H ALL 2> /dev/null | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}' 
@@ -684,7 +682,7 @@ for DNET in $DNETS; do
     # We only need 'conftouch' if client.yml was different
     if [ $NEWCLIENTS_YML -eq 0 ] && [ ! ${SKIPPED_INSTALL[$DNET]} -eq 0 ]; then
       echo "Full deploy not needed. Running \"conftouch\" for \"$DNET\""
-      if [ "$DEBUG" = true ]; then
+      if [ -n "$DEBUG" ]; then
         {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL
       else
         {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL 2> /dev/null | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}' 
@@ -746,7 +744,7 @@ case "$1" in
   shift
   ;;
   -d|--debug)
-  DEBUG=true
+  DEBUG=0
   shift
   ;;
   -y|--yes)
