@@ -45,8 +45,7 @@ MOST=false
 NO=false
 YES=false
 FORCE=false
-THEREST=false
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST
 
 
 # set associative arrays
@@ -731,7 +730,7 @@ case "$1" in
   ;;
   --all)
   MOST=true
-  THEREST=true
+  THEREST=0
   shift
   ;;
   -c|--noclient)
@@ -839,7 +838,7 @@ if [ $SKIP_UPDATE -gt 0 ]; then
     AW_LASTRAN=$(cat {{playbook_dir}}/$AW_LASTRUN_FILE)
     echo "Awstats was last updated: $AW_LASTRAN"
     awstatsorn "Update (awstats) config" "awstats_update"
-  elif [ $THEREST = true ] ; then
+  elif [ -n "$THEREST" ] ; then
     awstats_update 
   fi
 fi
