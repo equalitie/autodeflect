@@ -41,8 +41,7 @@ NEWCLIENTS_YML=1
 CHANGED=1
 MAINT=false
 MAINT_BYPASS=false
-MOST=false
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST
 
 
 # set associative arrays
@@ -726,7 +725,7 @@ case "$1" in
   shift
   ;;
   --all)
-  MOST=true
+  MOST=0
   THEREST=0
   shift
   ;;
@@ -735,7 +734,7 @@ case "$1" in
   shift
   ;;
   --most)
-  MOST=true
+  MOST=0
   shift
   ;;
   -d|--debug)
@@ -806,7 +805,7 @@ fi
 
 maint_lock
 
-if $MOST ; then
+if [ -n "$MOST" ]; then
   export SKIP_UPDATE=1
 else
   yorn "Run config rebuild options" "export SKIP_UPDATE=1"
@@ -816,7 +815,7 @@ fi
 
 if [ $SKIP_UPDATE -gt 0 ]; then
   if [ -z "$NOCLIENT" ]; then
-    if [ "$MOST" = true ]; then
+    if [ -n "$MOST" ]; then
       fetch_clients_yml
     else
       yorn "Download latest dashboard config" "fetch_clients_yml"
@@ -824,14 +823,14 @@ if [ $SKIP_UPDATE -gt 0 ]; then
     fi
   fi
 
-  if $MOST ; then
+  if [ -n "$MOST" ]; then
     controller_update
   else
     yorn "Update (controller) config" "controller_update"
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
     echo
   fi
-  if [ $MOST = false ] ; then
+  if [ -z "$MOST" ]; then
     AW_LASTRAN=$(cat {{playbook_dir}}/$AW_LASTRUN_FILE)
     echo "Awstats was last updated: $AW_LASTRAN"
     awstatsorn "Update (awstats) config" "awstats_update"
@@ -840,7 +839,7 @@ if [ $SKIP_UPDATE -gt 0 ]; then
   fi
 fi
 
-if $MOST ; then
+if [ -n "$MOST" ]; then
   all_diff
 else
   yorn "Check config changes (controller)" "all_diff"
