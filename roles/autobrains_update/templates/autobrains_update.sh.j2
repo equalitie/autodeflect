@@ -50,8 +50,7 @@ STOP=false
 DEBUG=false
 NOSPIN=false
 NOCLIENT=false
-INITAU=false
-unset OVERRIDECHECKED
+unset OVERRIDECHECKED INITAU
 
 
 # set associative arrays
@@ -782,7 +781,7 @@ case "$1" in
   shift
   ;;
   -i|--init)
-  INITAU=true
+  INITAU=0
   shift
   ;;
   --force)
@@ -798,10 +797,10 @@ case "$1" in
 esac
 done
 
-if [ "$STOP" = true ] || [ "$INITAU" = true ] ; then
-  if [ "$INITAU" = true ] && [ "$FORCE" = false ] ; then
+if [ "$STOP" = true ] || [ -n "$INITAU" ] ; then
+  if [ -n "$INITAU" ] && [ "$FORCE" = false ] ; then
     echo "Option -i|--init must be used with --force"
-  elif [ "$INITAU" = true ] && [ "$FORCE" = true ] ; then
+  elif [ -n "$INITAU" ] && [ "$FORCE" = true ] ; then
     initau
   fi 
   
