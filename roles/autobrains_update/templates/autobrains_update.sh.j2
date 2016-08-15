@@ -46,8 +46,7 @@ NO=false
 YES=false
 FORCE=false
 THEREST=false
-STOP=false
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP
 
 
 # set associative arrays
@@ -727,7 +726,7 @@ while test $# -gt 0; do
 case "$1" in
   -h|--help)
   autobrains_help
-  STOP=true
+  STOP=0
   shift
   ;;
   --all)
@@ -788,13 +787,13 @@ case "$1" in
   *)
   # unknown option
   echo "Unknown option $1"
-  STOP=true 
+  STOP=0
   shift
   ;;
 esac
 done
 
-if [ "$STOP" = true ] || [ -n "$INITAU" ] ; then
+if [ -n "$STOP" ] || [ -n "$INITAU" ] ; then
   if [ -n "$INITAU" ] && [ "$FORCE" = false ] ; then
     echo "Option -i|--init must be used with --force"
   elif [ -n "$INITAU" ] && [ "$FORCE" = true ] ; then
