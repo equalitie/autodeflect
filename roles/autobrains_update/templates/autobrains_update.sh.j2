@@ -48,8 +48,8 @@ FORCE=false
 THEREST=false
 STOP=false
 DEBUG=false
-NOSPIN=false
-unset OVERRIDECHECKED INITAU NOCLIENT
+#NOSPIN=false
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN
 
 
 # set associative arrays
@@ -565,7 +565,7 @@ function spin() {
 local pid=$1
 local delay=0.1
 tput civis
-if [ "$NOSPIN" = false ] ; then
+if [ -z "$NOSPIN" ] ; then
   while [ "$(ps p $pid o pid=)" ]; do
     for s in / - \\ \|; do
       printf "\r[ $s ] - Running";
@@ -772,7 +772,7 @@ case "$1" in
   shift
   ;;
   -s|--nospin)
-  NOSPIN=true
+  NOSPIN=0
   shift
   ;;
   -b|--bypass)
