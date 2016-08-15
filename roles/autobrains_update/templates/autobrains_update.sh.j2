@@ -40,8 +40,7 @@ NOTIFY_CONTENT=''
 NEWCLIENTS_YML=1
 CHANGED=1
 MAINT=false
-MAINT_BYPASS=false
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS
 
 
 # set associative arrays
@@ -143,7 +142,7 @@ fi
 }
 
 function maint_lock() {
-if [ "$MAINT_BYPASS" = true ]; then
+if [ -n "$MAINT_BYPASS" ]; then
   if [ "$MAINT" = true ]; then
     echo "Can not set maintenance mode while trying to bypass. Exiting."
     exit
@@ -768,7 +767,7 @@ case "$1" in
   shift
   ;;
   -b|--bypass)
-  MAINT_BYPASS=true
+  MAINT_BYPASS=0
   shift
   ;;
   -i|--init)
