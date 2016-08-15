@@ -35,18 +35,13 @@ BYPASS_FILES="{% for bypass in autobrains_bypasses %}{{bpspace()}}{{bypass}}{% e
 ## SETUP 
 ECHO_SEPARATOR='\n#################################\n\t##\t##\n#################################\n'
 DATE=$(date +%Y%m%d%H%M%S)
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT CHANGED NEWCLIENTS_YML SKIP_UPDATE 
-
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT CHANGED NEWCLIENTS_YML SKIP_UPDATE REMAP_TOUCHED SKIPPED_INSTALL 
 
 # set associative arrays
-declare -A REMAP_TOUCHED
 declare -A SKIPPED_INSTALL
-for d in $DNETS; do
- REMAP_TOUCHED[$d]=1
- SKIPPED_INSTALL[$d]=1
-done
+declare -A REMAP_TOUCHED
 
-if [ -n "$SUDO_USER" ] ; then
+if [ -n "$SUDO_USER" ]; then
   UNAME=$SUDO_USER ; else
   UNAME=$(id -nu)
 fi
@@ -628,7 +623,7 @@ for DNET in $DNETS; do
   # Set DEPLOYED to 1 by default
   DEPLOYED[$DNET]=1
   NONLIVESAFE=1
-  if [ ${REMAP_TOUCHED[$DNET]} -eq 0 ]; then
+  if [ -n "${REMAP_TOUCHED[$DNET]}" ]; then
     nonlive=$(get_nonlive_edge)
     if [ $nonlive ]; then
       echo "Test config on $nonlive"
@@ -662,7 +657,7 @@ for DNET in $DNETS; do
   # We are here because no new config detected on the DNET
   else
     # We only need 'conftouch' if client.yml was different
-    if [ -n "$NEWCLIENTS_YML" ] && [ ! ${SKIPPED_INSTALL[$DNET]} -eq 0 ]; then
+    if [ -n "$NEWCLIENTS_YML" ] && [ -z "${SKIPPED_INSTALL[$DNET]}" ]; then
       echo "Full deploy not needed. Running \"conftouch\" for \"$DNET\""
       if [ -n "$DEBUG" ]; then
         {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL
@@ -835,7 +830,7 @@ else
 fi
 
 for DNET in $DNETS; do
-  if [ ${REMAP_TOUCHED[$DNET]} -eq 0 ]; then
+  if [ -n "${REMAP_TOUCHED[$DNET]}" ]; then
     dot_generated
   fi
 done
@@ -854,7 +849,7 @@ echo "Below are the best guessed details that"
 echo "still needs to happen to complete."
 echo
 for DNET in $DNETS; do
-  if [ ${REMAP_TOUCHED[$DNET]} -eq 0 ]; then
+  if [ -n "${REMAP_TOUCHED[$DNET]}" ]; then
     echo "proxy config changes for \"$DNET\" detected"
     nonlive=$(get_nonlive_edge)
     if [ $nonlive ]; then
@@ -866,11 +861,11 @@ for DNET in $DNETS; do
     echo
   else
     echo "No proxy config changes for \"$DNET\" detected"
-    if [ -n "$NEWCLIENTS_YML" ] && [ ! ${SKIPPED_INSTALL[$DNET]} -eq 0 ]; then 
+    if [ -n "$NEWCLIENTS_YML" ] && [ -z "${SKIPPED_INSTALL[$DNET]}" ]; then 
       echo "deploy.sh -A $DNET -p conftouch -H ALL"
       echo
     else
-      if [ ${SKIPPED_INSTALL[$DNET]} -eq 0 ]; then
+      if [ -n "${SKIPPED_INSTALL[$DNET]}" ]; then
         echo -e "and conftouch not recommended when skipping any steps."
         echo
       else
