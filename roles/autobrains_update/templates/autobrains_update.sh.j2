@@ -44,8 +44,7 @@ MAINT_BYPASS=false
 MOST=false
 NO=false
 YES=false
-FORCE=false
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE
 
 
 # set associative arrays
@@ -780,7 +779,7 @@ case "$1" in
   shift
   ;;
   --force)
-  FORCE=true
+  FORCE=0
   shift
   ;;
   *)
@@ -793,16 +792,16 @@ esac
 done
 
 if [ -n "$STOP" ] || [ -n "$INITAU" ] ; then
-  if [ -n "$INITAU" ] && [ "$FORCE" = false ] ; then
+  if [ -n "$INITAU" ] && [ -z "$FORCE" ] ; then
     echo "Option -i|--init must be used with --force"
-  elif [ -n "$INITAU" ] && [ "$FORCE" = true ] ; then
+  elif [ -n "$INITAU" ] && [ -n "$FORCE" ] ; then
     initau
   fi 
   
   exit
 fi
 
-if [ "$YES" = true ] && [ "$FORCE" = false ] ; then
+if [ "$YES" = true ] && [ -z "$FORCE" ] ; then
   echo "Option -y|--yes must be used with caution. Include --force option if you are sure"
   exit
 fi
