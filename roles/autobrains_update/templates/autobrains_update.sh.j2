@@ -39,8 +39,7 @@ SKIP_UPDATE=0
 NOTIFY_CONTENT=''
 NEWCLIENTS_YML=1
 CHANGED=1
-MAINT=false
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT
 
 
 # set associative arrays
@@ -143,7 +142,7 @@ fi
 
 function maint_lock() {
 if [ -n "$MAINT_BYPASS" ]; then
-  if [ "$MAINT" = true ]; then
+  if [ -n "$MAINT" ]; then
     echo "Can not set maintenance mode while trying to bypass. Exiting."
     exit
   else
@@ -158,7 +157,7 @@ if [ $RT -eq 0 ]; then
   exit
 fi
 
-if [ "$MAINT" = true ]; then
+if [ -n "$MAINT" ]; then
   touch ${MAINTENANCE_LOCK-}$UNAME || echo -e "Could not write $(pwd)/${MAINTENANCE_LOCK-}$UNAME\n\n"
   echo "Maintenance mode is now enabled. Use $0 -b or $0 --bypass"
   exit
@@ -759,7 +758,7 @@ case "$1" in
   shift
   ;;
   -m|--maint)
-  MAINT=true
+  MAINT=0
   shift
   ;;
   -s|--nospin)
