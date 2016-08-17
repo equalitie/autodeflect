@@ -886,5 +886,5 @@ if [ -n "$NEWCLIENTS_YML" ]; then
   cp {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used
 fi
 
-
-finish
+# This should also run the finish function since we have a trap on EXIT above.
+exit
