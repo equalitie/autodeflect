@@ -487,7 +487,7 @@ function finish() {
   rm ${LOCK_PREFIX-}$UNAME  2>/dev/null
   cd $CUR_DIR
   tput cnorm
-  [ -n "$AUTODEFLECT_AGENT" ] && kill $AUTODEFLECT_AGENT && echo "killing autobrain ssh-agent (${AUTODEFLECT_AGENT})"
+  [ -n "$AUTODEFLECT_AGENT" ] && eval `ssh-agent -k` && echo "killed autobrain ssh-agent (${AUTODEFLECT_AGENT})"
   exit
 }
 
