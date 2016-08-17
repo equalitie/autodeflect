@@ -35,7 +35,8 @@ BYPASS_FILES="{% for bypass in autobrains_bypasses %}{{bpspace()}}{{bypass}}{% e
 ## SETUP 
 ECHO_SEPARATOR='\n#################################\n\t##\t##\n#################################\n'
 DATE=$(date +%Y%m%d%H%M%S)
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT CHANGED NEWCLIENTS_YML SKIP_UPDATE REMAP_TOUCHED SKIPPED_INSTALL 
+# Just in case
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT CHANGED NEWCLIENTS_YML SKIP_UPDATE REMAP_TOUCHED SKIPPED_INSTALL AUTODEFLECT_AGENT COUNTER 
 
 # set associative arrays
 declare -A SKIPPED_INSTALL
@@ -486,7 +487,7 @@ function finish() {
   rm ${LOCK_PREFIX-}$UNAME  2>/dev/null
   cd $CUR_DIR
   tput cnorm
-  [ -n "$AUTODEFLECT_AGENT" ] && kill $AUTODEFLECT_AGENT && echo "killing ssh-agent (${AUTODEFLECT_AGENT})"
+  [ -n "$AUTODEFLECT_AGENT" ] && kill $AUTODEFLECT_AGENT && echo "killing autobrain ssh-agent (${AUTODEFLECT_AGENT})"
   exit
 }
 
@@ -606,7 +607,7 @@ declare -A DEPLOYED
 
 # set up an ssh-agent if we don't already have one, and kill it after if we created
 # it now
-[ -z $SSH_AUTH_SOCK ] && eval `ssh-agent -s` && AUTODEFLECT_AGENT=$SSH_AGENT_PID 
+[ -z $SSH_AUTH_SOCK ] && eval `ssh-agent -s` && AUTODEFLECT_AGENT="$SSH_AGENT_PID"
 COUNTER=0
 while ! ssh-add -ls 2>&1 | grep `ssh-keygen -lf {{ autobrains_config["deploy_key_path"] }} 2>&1 | awk '{print $2}'` >/dev/null ; do 
   ssh-add {{ autobrains_config["deploy_key_path"] }}
