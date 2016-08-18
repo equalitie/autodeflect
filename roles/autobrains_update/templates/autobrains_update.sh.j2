@@ -36,11 +36,13 @@ BYPASS_FILES="{% for bypass in autobrains_bypasses %}{{bpspace()}}{{bypass}}{% e
 ECHO_SEPARATOR='\n#################################\n\t##\t##\n#################################\n'
 DATE=$(date +%Y%m%d%H%M%S)
 # Just in case
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT CHANGED NEWCLIENTS_YML SKIP_UPDATE REMAP_TOUCHED SKIPPED_INSTALL AUTODEFLECT_AGENT COUNTER 
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT CHANGED NEWCLIENTS_YML SKIP_UPDATE REMAP_TOUCHED SKIPPED_INSTALL AUTODEFLECT_AGENT COUNTER NONLIVESAFE DEPLOYED
 
 # set associative arrays
 declare -A SKIPPED_INSTALL
 declare -A REMAP_TOUCHED
+declare -A DEPLOYED
+
 
 if [ -n "$SUDO_USER" ]; then
   UNAME=$SUDO_USER ; else
@@ -603,8 +605,6 @@ unset edge count rand
 {% endraw %}
 
 function run_deploy() {
-declare -A DEPLOYED
-
 # set up an ssh-agent if we don't already have one, and kill it after if we created
 # it now
 [ -z $SSH_AUTH_SOCK ] && eval `ssh-agent -s` && AUTODEFLECT_AGENT="$SSH_AGENT_PID"
@@ -620,13 +620,10 @@ done
 unset COUNTER
 
 for DNET in $DNETS; do
-  # Set DEPLOYED to 1 by default
-  DEPLOYED[$DNET]=1
-  NONLIVESAFE=1
   if [ -n "${REMAP_TOUCHED[$DNET]}" ]; then
     nonlive=$(get_nonlive_edge)
     if [ $nonlive ]; then
-      echo "Test config on $nonlive"
+      echo "Test config on $nonlive on $DNET"
       if [ -n "$DEBUG" ]; then
         local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive)
       else
@@ -638,7 +635,8 @@ for DNET in $DNETS; do
       fi
     fi
 
-    if [ $NONLIVESAFE -eq 0 ]; then
+    if [ -n "$NONLIVESAFE" ]; then
+      echo "Full deploy need. Running \"deploy"\" for \"$DNET\""
       if [ -n "$DEBUG" ]; then
         {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H ALL
       else
