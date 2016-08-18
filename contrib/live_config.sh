@@ -3,7 +3,7 @@
 LIVEDIR=/usr/local/deflect/ansible/autobrains
 
 USER=$(id -nu)
-PWD=$(pwd)
+PWD=$(pwd -P)
 
 if [ "$USER" == "root" ]; then
   echo "Do not run this as root"
