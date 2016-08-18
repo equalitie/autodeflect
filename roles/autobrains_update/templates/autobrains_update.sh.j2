@@ -636,7 +636,7 @@ for DNET in $DNETS; do
     fi
 
     if [ -n "$NONLIVESAFE" ]; then
-      echo "Full deploy need. Running \"deploy"\" for \"$DNET\""
+      echo "Full deploy need. Running \"deploy\" for \"$DNET\""
       if [ -n "$DEBUG" ]; then
         {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H ALL
       else
