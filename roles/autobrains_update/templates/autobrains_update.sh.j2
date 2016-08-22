@@ -48,7 +48,7 @@ declare -A DEPLOYED
 # Prevent error if never ran and timestamp does not exist
 # Wed Dec 31 16:00:00 PST 1969
 [ ! -f "config/rundata/$AW_LASTRUN_FILE" ] && echo "0" > config/rundata/$AW_LASTRUN_FILE
-[ ! -f "config/rundata/$DPLY_TIME_FILE" ] echo "0" > config/rundata/$DPLY_TIME_FILE
+[ ! -f "config/rundata/$DPLY_TIME_FILE" ] && echo "0" > config/rundata/$DPLY_TIME_FILE
 
 if [ -n "$SUDO_USER" ]; then
   UNAME=$SUDO_USER ; else
