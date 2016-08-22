@@ -24,7 +24,6 @@ fi
 # hosts.yml
 # config/
 # override.yml
-# .aw_lastrun
 # clients.yml
 # clients.yml-revisions/
 
@@ -39,8 +38,6 @@ touch clients.yml
 rsync $LIVEDIR/site.yml site.yml
 rsync $LIVEDIR/hosts.yml hosts.yml
 rsync $LIVEDIR/override.yml override.yml
-rsync $LIVEDIR/.aw_lastrun .aw_lastrun
-
 rsync -a $LIVEDIR/config/ config
 rsync -a $LIVEDIR/clients.yml-revisions/ clients.yml-revisions
 
