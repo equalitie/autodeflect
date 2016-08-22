@@ -11,6 +11,7 @@
     - config
     - config/remap.d
     - config/banjax.d
+    - config/rundata
   tags:
     - init
     - setup

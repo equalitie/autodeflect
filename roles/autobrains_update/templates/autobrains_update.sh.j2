@@ -119,17 +119,17 @@ gpg --homedir /root/.gnupg/ -e -a -r $EMAIL_KEY_ID | mailx -s "$UNAME updated w/
 
 function notify_store() {
 local NOTIFY_CONTENT="$UNAME updated $1 @ $DATE $(cat)" 
-echo "$NOTIFY_CONTENT" >> ${LOCK_PREFIX}${UNAME}
+echo "$NOTIFY_CONTENT" >> config/rundata/$LOCK_PREFIX$UNAME
 }
 
 function lock() {
-ls -1 ${LOCK_PREFIX-}* > /dev/null 2>&1
+ls -1 config/rundata/$LOCK_PREFIX* > /dev/null 2>&1
 RT=$?
 if [ $RT -eq 0 ]; then 
-  echo "\"$(ls -x ${LOCK_PREFIX-}* | sed s/${LOCK_PREFIX-}//g)\" is currently running this script. If not remove $(ls -x ${LOCK_PREFIX-}*)"
+  echo "\"$(ls -x config/rundata/$LOCK_PREFIX* | sed -e "s/config\/rundata\/$LOCK_PREFIX//g")\" is currently running this script. If not remove \"$(ls -x config/rundata/$LOCK_PREFIX*)\""
   exit
 else
- touch ${LOCK_PREFIX-}$UNAME || echo -e "Could not write $(pwd)/${LOCK_PREFIX-}$UNAME\n\n"
+ touch config/rundata/$LOCK_PREFIX$UNAME || echo -e "Could not write $(pwd)/config/rundata/$LOCK_PREFIX$UNAME\n\n"
 fi
 }
 
@@ -487,8 +487,8 @@ function ctrl_c() {
 }
 
 function finish() {
-  [ ! -s "${LOCK_PREFIX-}$UNAME" ] || cat "${LOCK_PREFIX-}$UNAME" | notify
-  rm ${LOCK_PREFIX-}$UNAME  2>/dev/null
+  [ ! -s "config/rundata/$LOCK_PREFIX$UNAME" ] || cat "config/rundata/$LOCK_PREFIX$UNAME" | notify
+  rm config/rundata/$LOCK_PREFIX$UNAME  2>/dev/null
   cd $CUR_DIR
   tput cnorm
   [ -n "$AUTODEFLECT_AGENT" ] && eval `ssh-agent -k` && echo "killed autobrain ssh-agent (${AUTODEFLECT_AGENT})"
