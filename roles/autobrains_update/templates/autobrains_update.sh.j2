@@ -143,15 +143,15 @@ if [ -n "$MAINT_BYPASS" ]; then
     return
   fi
 fi
-ls -1 ${MAINTENANCE_LOCK-}* > /dev/null 2>&1
+ls -1 config/rundata/$MAINTENANCE_LOCK* > /dev/null 2>&1
 RT=$?
 if [ $RT -eq 0 ]; then
-  echo -e "$(ls -x ${MAINTENANCE_LOCK-}* | sed s/${MAINTENANCE_LOCK-}//g) put in maintenance mode.\nRemove file "$(ls -x ${MAINTENANCE_LOCK-}*)" when done.\nUse $0 -b or $0 --bypass to bypass and run anyway."
+  echo -e "\"$(ls -x config/rundata/$MAINTENANCE_LOCK* | sed -e "s/config\/rundata\/$MAINTENANCE_LOCK//g")\" put in maintenance mode. Remove file\n\"$(ls -x config/rundata/$MAINTENANCE_LOCK*)\" when done.\n\nUse $0 -b or $0 --bypass to run anyway."
   exit
 fi
 
 if [ -n "$MAINT" ]; then
-  touch ${MAINTENANCE_LOCK-}$UNAME || echo -e "Could not write $(pwd)/${MAINTENANCE_LOCK-}$UNAME\n\n"
+  touch config/rundata/$MAINTENANCE_LOCK$UNAME || echo -e "Could not write $(pwd)/config/rundata/$MAINTENANCE_LOCK$UNAME\n\n"
   echo "Maintenance mode is now enabled. Use $0 -b or $0 --bypass"
   exit
 fi
