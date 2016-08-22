@@ -25,6 +25,7 @@ CUR_DIR="$(pwd)"
 LOCK_PREFIX=".lock_autobrains-"
 MAINTENANCE_LOCK='.maint_lock-'
 AW_LASTRUN_FILE=".aw_lastrun"
+DPLY_TIME_FILE=".dply_timestamp"
 
 {% set bpspace = joiner(" ") %}
 {% if autobrains_bypasses is defined and autobrains_bypasses %}
@@ -35,6 +36,7 @@ BYPASS_FILES="{% for bypass in autobrains_bypasses %}{{bpspace()}}{{bypass}}{% e
 ## SETUP 
 ECHO_SEPARATOR='\n#################################\n\t##\t##\n#################################\n'
 DATE=$(date +%Y%m%d%H%M%S)
+EDATE=$(date +%s)
 # Just in case
 unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT CHANGED NEWCLIENTS_YML SKIP_UPDATE REMAP_TOUCHED SKIPPED_INSTALL AUTODEFLECT_AGENT COUNTER NONLIVESAFE DEPLOYED
 
@@ -186,7 +188,7 @@ else
   while true; do
     read -p "$1 (awstats/n)? " yn
     case $yn in
-      [awstats]* ) $2; date > {{playbook_dir}}/$AW_LASTRUN_FILE ; break;;
+      [awstats]* ) $2; echo "$EDATE" > {{playbook_dir}}/$AW_LASTRUN_FILE ; break;;
       [Nn]* ) break;;
          * ) echo "Please answer awstats or n.";;
     esac
@@ -672,9 +674,36 @@ done
 }
 
 function mark_all_skipped() {
+local d
 for d in $DNETS; do
  SKIPPED_INSTALL[$d]=0
 done
+}
+
+function finalize_deploy_status() {
+# FIXME: 
+# Need logic to:
+# * Check if deployed(-p ats), conftouch, or not needed. 
+# * Anytime a diff in clients.yml, all should be needed.
+# * We change the clients.yml update to never change clients.yml-last_used
+#   until deployed complete (no skips, all deployed with 'ats or conftouch')
+# * 
+# Are usable vars ${DEPLOYED[$DNET]}, ${SKIPPED_INSTALL[$DNET]}, $NEWCLIENTS_YML, $EDATE
+unset d nomark
+local d
+local nomark
+for d in $DNETS; do
+  [ -n "${SKIPPED_INSTALL[$DNET]}" ] && nomark=0
+  # We should get DEPLOYED[$DNET] on (deployed, conftouch, not needed)
+  [ -z "${DEPLOYED[$DNET]}" ] && nomark=0
+done
+
+if [ -n "$NEWCLIENTS_YML" ] && [ -z "$nomark" ]; then
+  cp {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used
+fi
+
+[ -z "$nomark" ] && echo "$EDATE" > {{playbook_dir}}/$DPLY_TIME_FILE
+
 }
 
 #########
@@ -812,7 +841,7 @@ if [ -n "$SKIP_UPDATE" ]; then
     echo
   fi
   if [ -z "$MOST" ]; then
-    AW_LASTRAN=$(cat {{playbook_dir}}/$AW_LASTRUN_FILE)
+    AW_LASTRAN=$(date -d @$(cat {{playbook_dir}}/$AW_LASTRUN_FILE))
     echo "Awstats was last updated: $AW_LASTRAN"
     awstatsorn "Update (awstats) config" "awstats_update"
   elif [ -n "$THEREST" ] ; then
@@ -879,10 +908,9 @@ fi
 echo "Update dashadmin and redmine if needed."
 echo
 
-# We do this if everything went okay
-if [ -n "$NEWCLIENTS_YML" ]; then
-  cp {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used
-fi
+# move lastest clients.yml to clients.yml-last_used
+# and set a timestamp if everything deployed
+finalize_deploy_status
 
 # This should also run the finish function since we have a trap on EXIT above.
 exit
