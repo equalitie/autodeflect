@@ -210,9 +210,9 @@ function fetch_clients_yml() {
   ln -s clients.yml-revisions/clients.yml-${DATE} clients.yml
 
   if diff {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} >/dev/null 2>&1 ; then
-    echo -e "No differences found from dashboard\nsince updated."
+    echo "No differences found in clients.yml since updated."
   else
-    echo -e "Differences found from dashboard\nsince last updated."
+    echo "Differences found in clients.yml since updated."
     echo -e $ECHO_SEPARATOR
     diff -U 5 {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE}
   NEWCLIENTS_YML=0
