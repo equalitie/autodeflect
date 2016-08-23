@@ -634,7 +634,7 @@ while ! ssh-add -ls 2>&1 | grep `ssh-keygen -lf {{ autobrains_config["deploy_key
     fi
   fi
 done
-return true
+return $(true)
 }
 
 function run_deploy() {
