@@ -38,7 +38,7 @@ ECHO_SEPARATOR='\n#################################\n\t##\t##\n#################
 DATE=$(date +%Y%m%d%H%M%S)
 EDATE=$(date +%s)
 # Just in case
-unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT CHANGED NEWCLIENTS_YML SKIP_UPDATE REMAP_TOUCHED SKIPPED_INSTALL AUTODEFLECT_AGENT COUNTER NONLIVESAFE DEPLOYED
+unset OVERRIDECHECKED INITAU NOCLIENT NOSPIN DEBUG STOP THEREST FORCE YES NO MOST MAINT_BYPASS MAINT CHANGED NEWCLIENTS_YML SKIP_UPDATE REMAP_TOUCHED SKIPPED_INSTALL AUTODEFLECT_AGENT NONLIVESAFE DEPLOYED SMART
 
 # set associative arrays
 declare -A SKIPPED_INSTALL
@@ -90,6 +90,13 @@ HELP=$(cat <<EOF
 --force		Needed to get by some dangerous
 		options. You will be prompted to
 		include this option to force anyway.
+
+--smart		Meant to be non-interactive and to 
+		automatically pick the best options
+		to run a complete automated run. You
+		must use --force with this and the
+		ssh-agent and ssh-add must be correctly
+		running before using this option.
 
 Some useful options:
 
@@ -608,20 +615,32 @@ fi
 }
 {% endraw %}
 
-function run_deploy() {
+function start_ssh_agent() {
+# We return true or exit
 # set up an ssh-agent if we don't already have one, and kill it after if we created
 # it now
 [ -z $SSH_AUTH_SOCK ] && eval `ssh-agent -s` && AUTODEFLECT_AGENT="$SSH_AGENT_PID"
-COUNTER=0
-while ! ssh-add -ls 2>&1 | grep `ssh-keygen -lf {{ autobrains_config["deploy_key_path"] }} 2>&1 | awk '{print $2}'` >/dev/null ; do 
-  ssh-add {{ autobrains_config["deploy_key_path"] }}
-  let COUNTER=COUNTER+1
-  if [ $COUNTER -gt 4 ]; then
-    echo "Error loading key. Can not continue"
+local counter
+while ! ssh-add -ls 2>&1 | grep `ssh-keygen -lf {{ autobrains_config["deploy_key_path"] }} 2>&1 | awk '{print $2}'` >/dev/null ; do
+  if [ -n "$SMART" ]; then
+    echo -e "\nwith --smart ssh-agent and ssh-add must already have edge key loaded. Can not continue.\n"
     exit
+  else
+    ssh-add {{ autobrains_config["deploy_key_path"] }}
+    let counter=counter+1
+    if [ $counter -gt 4 ]; then
+      echo "Error loading key. Can not continue"
+      exit
+    fi
   fi
 done
-unset COUNTER
+return true
+}
+
+function run_deploy() {
+
+# This function should always return true. Anything else should be exit in the function itself
+start_ssh_agent || exit
 
 for DNET in $DNETS; do
   if [ -n "${REMAP_TOUCHED[$DNET]}" ]; then
@@ -745,21 +764,11 @@ case "$1" in
   shift
   ;;
   -y|--yes)
-  if [ -n "$NO" ]; then
-    echo "Illegal option -y|--yes and -n|--no"
-    exit
-  else
-    YES=0
-  fi
+  YES=0
   shift
   ;;
   -n|--no)
-  if [ -n "$YES" ]; then
-    echo "Illegal options. -y|--yes and -n|--no can not be used together"
-    exit
-  else
-    NO=0
-  fi
+  NO=0
   shift
   ;;
   -m|--maint)
@@ -778,6 +787,13 @@ case "$1" in
   INITAU=0
   shift
   ;;
+  --smart)
+  SMART=0
+  MOST=0
+  NOSPIN=0
+  start_ssh_agent || STOP=0
+  shift
+  ;;
   --force)
   FORCE=0
   shift
@@ -791,22 +807,30 @@ case "$1" in
 esac
 done
 
-if [ -n "$STOP" ] || [ -n "$INITAU" ] ; then
-  if [ -n "$INITAU" ] && [ -z "$FORCE" ] ; then
+if [ -n "$NO" ] && ( [ -n "$YES" ] || [ -n "$SMART" ] ); then
+  [ -n "$SMART" ] && echo "-y|--yes implied with option --smart"
+  echo "Illegal option -y|--yes and -n|--no"
+  STOP=0
+fi
+
+# Make maint lock check before we do any real work
+maint_lock
+
+# If STOP is defined, we will exit.
+if [ -n "$STOP" ] || [ -n "$INITAU" ]; then
+  if [ -n "$INITAU" ] && [ -z "$FORCE" ]; then
     echo "Option -i|--init must be used with --force"
-  elif [ -n "$INITAU" ] && [ -n "$FORCE" ] ; then
+  elif [ -n "$INITAU" ] && [ -n "$FORCE" ]; then
     initau
   fi 
-  
   exit
 fi
 
-if [ -n "$YES" ] && [ -z "$FORCE" ]; then
-  echo "Option -y|--yes must be used with caution. Include --force option if you are sure"
+if [ -n "$YES" ] || [ -n "$SMART" ] && [ -z "$FORCE" ]; then
+  [ -n "$SMART" ] && echo "-y|--yes implied with option --smart"
+  echo -e "Option -y|--yes must be used with caution.\nInclude --force option if you are sure"
   exit
 fi
-
-maint_lock
 
 if [ -n "$MOST" ]; then
   export SKIP_UPDATE=0
