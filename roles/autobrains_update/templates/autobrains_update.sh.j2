@@ -471,6 +471,7 @@ done
 }
 
 function list_bypass_files {
+local aa
 for aa in $BYPASS_FILES; do
   echo $aa
 done
@@ -496,8 +497,13 @@ function finish() {
   [ ! -s "config/rundata/$LOCK_PREFIX$UNAME" ] || cat "config/rundata/$LOCK_PREFIX$UNAME" | notify
   rm config/rundata/$LOCK_PREFIX$UNAME  2>/dev/null
   cd $CUR_DIR
-  tput cnorm
+  [ -n "$SMART" ] || tput cnorm
   [ -n "$AUTODEFLECT_AGENT" ] && eval `ssh-agent -k` && echo "killed autobrain ssh-agent (${AUTODEFLECT_AGENT})"
+  local el=$(( $(date +%s) - EDATE ))
+  ((sec=el%60, el/=60, min=el%60, hrs=el/60))
+  local timetook=$(printf "%d:%02d:%02d" $hrs $min $sec)
+  echo "Runtime was $timetook"
+  trap '' EXIT
   exit
 }
 
@@ -549,7 +555,7 @@ function spin() {
 # Expects PID to be sent
 local pid=$1
 local delay=0.1
-tput civis
+[ -n "$SMART" ] || tput civis
 if [ -z "$NOSPIN" ] ; then
   while [ "$(ps p $pid o pid=)" ]; do
     for s in / - \\ \|; do
@@ -563,10 +569,10 @@ if [ -z "$NOSPIN" ] ; then
   tput cnorm
   printf "\r                              \r"
 else
-  echo "[ / ] - Running, please wait."
+  [ -n "$SMART" ] || echo "[ / ] - Running with no spinner, please wait."
   wait $pid
   local exitcode=$?
-  tput cnorm
+  [ -n "$SMART" ] || tput cnorm
 fi
 
 if [ $exitcode -ne 0 ] ; then
@@ -723,7 +729,7 @@ fi
 
 # Get us in the right directory
 if [ "$(pwd)" != "{{playbook_dir}}" ]; then
-  echo -e "Changing to {{playbook_dir}}\n"
+  [ -n "$SMART" ] || echo -e "Changing to {{playbook_dir}}\n"
   cd {{playbook_dir}} 2> /dev/null
   RT=$?
   if [ $RT -eq 1 ]; then
@@ -892,10 +898,10 @@ else
 fi
 
 if [ "$yn" = 'n'  ] || [ "$yn" = 'N' ]; then
-echo
-echo "Below are the best guessed details that"
-echo "still needs to happen to complete."
-echo
+  if [ -z "$SMART" ]; then
+    echo -e "\nBelow are the best guessed details that"
+    echo -e "still needs to happen to complete.\n"
+  fi
 for DNET in $DNETS; do
   if [ -n "${REMAP_TOUCHED[$DNET]}" ]; then
     echo "proxy config changes for \"$DNET\" detected"
@@ -905,20 +911,16 @@ for DNET in $DNETS; do
     else
       echo "ERROR: deploy.sh -A $DNET -p ats -H **missing**"
     fi
-    echo "deploy.sh -A $DNET -p ats -H ALL"
-    echo
+    echo -e "deploy.sh -A $DNET -p ats -H ALL\n"
   else
     echo "No proxy config changes for \"$DNET\" detected"
     if [ -n "$NEWCLIENTS_YML" ] && [ -z "${SKIPPED_INSTALL[$DNET]}" ]; then 
-      echo "deploy.sh -A $DNET -p conftouch -H ALL"
-      echo
+      echo -e "deploy.sh -A $DNET -p conftouch -H ALL\n"
     else
       if [ -n "${SKIPPED_INSTALL[$DNET]}" ]; then
-        echo -e "and conftouch not recommended when skipping any steps."
-        echo
+        echo -e "and conftouch not recommended when skipping any steps.\n"
       else
-        echo  "and conftouch not needed"
-        echo
+        [ -n "$SMART" ] || echo -e "and conftouch not needed.\n"
         # We are here because we do not need any deploy ran for this DNET and we did not skip.
         # Marking as deployed.
         DEPLOYED[$DNET]=0
@@ -926,11 +928,11 @@ for DNET in $DNETS; do
     fi
   fi
 done
-echo "\"edge_manage\" will pick up zone changes automatically."
+[ -n "$SMART" ] || echo "\"edge_manage\" will pick up zone changes automatically."
 fi
 
-echo "Update dashadmin and redmine if needed."
-echo
+[ -n "$SMART" ] || echo "Update dashadmin and redmine if needed."
+[ -n "$SMART" ] || echo
 
 # move lastest clients.yml to clients.yml-last_used
 # and set a timestamp if everything deployed or deploy not needed, as long as we did not skip anything.
