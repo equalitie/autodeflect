@@ -729,7 +729,7 @@ fi
 
 # Get us in the right directory
 if [ "$(pwd)" != "{{playbook_dir}}" ]; then
-  [ -n "$SMART" ] || echo -e "Changing to {{playbook_dir}}\n"
+  echo -e "Changing to {{playbook_dir}}\n"
   cd {{playbook_dir}} 2> /dev/null
   RT=$?
   if [ $RT -eq 1 ]; then
