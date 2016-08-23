@@ -180,7 +180,7 @@ else
       esac
   done
 fi
-echo
+[ -n "$SMART" ] || echo
 }
 
 function awstatsorn() {
@@ -200,7 +200,7 @@ else
     esac
   done
 fi
-echo
+[ -n "$SMART" ] || echo
 }
 
 function fetch_clients_yml() {
