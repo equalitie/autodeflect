@@ -203,9 +203,9 @@ function fetch_clients_yml() {
   ln -s clients.yml-revisions/clients.yml-${DATE} clients.yml
 
   if diff {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} >/dev/null 2>&1 ; then
-    echo -e "No differences found from dashboard\nsince last completed run."
+    echo -e "No differences found from dashboard\nsince updated."
   else
-    echo -e "Differences found from dashboard\nsince last completed autobrains run."
+    echo -e "Differences found from dashboard\nsince last updated."
     echo -e $ECHO_SEPARATOR
     diff -U 5 {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE}
   NEWCLIENTS_YML=0
@@ -580,10 +580,14 @@ function check_override {
   fi
 }
 
+# raw needs set here because of j2 template and arrays in the function
 {% raw %}
 function get_nonlive_edge() {
 # This will return 1 available nonlive edges 
 # Also it will try 5 times until it gets atleast 1 or returns nothing
+local count
+local edge
+local rand
 if [ $DNET ]; then
   count=5
   until [ $count -le 0 ]; do
@@ -601,7 +605,6 @@ if [ $DNET ]; then
     echo "${edge[$rand]}"
   fi
 fi
-unset edge count rand
 }
 {% endraw %}
 
@@ -680,27 +683,18 @@ done
 }
 
 function finalize_deploy_status() {
-# FIXME: 
-# Need logic to:
-# * Check if deployed(-p ats), conftouch, or not needed. 
-# * Anytime a diff in clients.yml, all should be needed.
-# * We change the clients.yml update to never change clients.yml-last_used
-#   until deployed complete (no skips, all deployed with 'ats or conftouch')
-# * 
-# Are usable vars ${DEPLOYED[$DNET]}, ${SKIPPED_INSTALL[$DNET]}, $NEWCLIENTS_YML, $EDATE
-unset d nomark
 local d
 local nomark
 for d in $DNETS; do
-  [ -n "${SKIPPED_INSTALL[$DNET]}" ] && nomark=0
-  # We should get DEPLOYED[$DNET] on (deployed, conftouch, not needed)
-  [ -z "${DEPLOYED[$DNET]}" ] && nomark=0
+  [ -n "${SKIPPED_INSTALL[$DNET]}" ] || [ -z "${DEPLOYED[$DNET]}" ] && nomark=0
 done
 
+# This should protect us from marking deployed timestamp if we skipped and ran again
 if [ -n "$NEWCLIENTS_YML" ] && [ -z "$nomark" ]; then
   cp {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used
 fi
 
+# If we did not set 'nomark' then update the timestamp file with EPOCH
 [ -z "$nomark" ] && echo "$EDATE" > {{playbook_dir}}/config/rundata/$DPLY_TIME_FILE
 
 }
@@ -822,7 +816,7 @@ else
 fi
 
 # Prevent error if never ran and timestamp does not exist
-# Wed Dec 31 16:00:00 PST 1969
+# Thu Jan  1 00:00:00 UTC 1970
 [ ! -f "config/rundata/$AW_LASTRUN_FILE" ] && echo "0" > config/rundata/$AW_LASTRUN_FILE
 [ ! -f "config/rundata/$DPLY_TIME_FILE" ] && echo "0" > config/rundata/$DPLY_TIME_FILE
 
@@ -841,7 +835,6 @@ if [ -n "$SKIP_UPDATE" ]; then
   else
     yorn "Update (controller) config" "controller_update"
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
-    echo
   fi
   if [ -z "$MOST" ]; then
     AW_LASTRAN=$(date -d @$(cat {{playbook_dir}}/config/rundata/$AW_LASTRUN_FILE))
@@ -868,12 +861,13 @@ done
 # Only show if ATS change installed or clients.yml was updated
 if [ -n "$CHANGED" ] || [ -n "$NEWCLIENTS_YML" ]; then
   yorn "Deploy to network" "run_deploy"
+  [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped
 else
-  # Set this for the next statment
-  yn='n'
+  # We should only be here if no changes or no new clients.yml 
+  yn='n' 
 fi
 
-if [ "$yn" = 'n'  ] || [ "$yn" = 'N' ]; then 
+if [ "$yn" = 'n'  ] || [ "$yn" = 'N' ]; then
 echo
 echo "Below are the best guessed details that"
 echo "still needs to happen to complete."
@@ -901,6 +895,9 @@ for DNET in $DNETS; do
       else
         echo  "and conftouch not needed"
         echo
+        # We are here because we do not need any deploy ran for this DNET and we did not skip.
+        # Marking as deployed.
+        DEPLOYED[$DNET]=0
       fi
     fi
   fi
@@ -912,8 +909,10 @@ echo "Update dashadmin and redmine if needed."
 echo
 
 # move lastest clients.yml to clients.yml-last_used
-# and set a timestamp if everything deployed
+# and set a timestamp if everything deployed or deploy not needed, as long as we did not skip anything.
 finalize_deploy_status
+
+echo "Last complete run: $(date -d @$(cat {{playbook_dir}}/config/rundata/$DPLY_TIME_FILE))"
 
 # This should also run the finish function since we have a trap on EXIT above.
 exit
