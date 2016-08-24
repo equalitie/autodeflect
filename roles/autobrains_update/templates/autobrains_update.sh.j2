@@ -25,7 +25,7 @@ CUR_DIR="$(pwd)"
 LOCK_PREFIX='.autobrains_lock-'
 MAINTENANCE_LOCK='.maint_lock-'
 AW_LASTRUN_FILE='.aw_lastrun'
-DPLY_TIME_FILE='.dply_timestamp'
+COMPLETED_TIME_FILE='.completed_timestamp'
 
 {% set bpspace = joiner(" ") %}
 {% if autobrains_bypasses is defined and autobrains_bypasses %}
@@ -730,7 +730,7 @@ if [ -n "$NEWCLIENTS_YML" ] && [ -z "$nomark" ]; then
 fi
 
 # If we did not set 'nomark' then update the timestamp file with EPOCH
-[ -z "$nomark" ] && echo "$EDATE" > {{playbook_dir}}/config/rundata/$DPLY_TIME_FILE
+[ -z "$nomark" ] && echo "$EDATE" > {{playbook_dir}}/config/rundata/$COMPLETED_TIME_FILE
 
 }
 
@@ -859,7 +859,7 @@ fi
 # Prevent error if never ran and timestamp does not exist
 # Thu Jan  1 00:00:00 UTC 1970
 [ ! -f "config/rundata/$AW_LASTRUN_FILE" ] && echo "0" > config/rundata/$AW_LASTRUN_FILE
-[ ! -f "config/rundata/$DPLY_TIME_FILE" ] && echo "0" > config/rundata/$DPLY_TIME_FILE
+[ ! -f "config/rundata/$COMPLETED_TIME_FILE" ] && echo "0" > config/rundata/$COMPLETED_TIME_FILE
 
 if [ -n "$SKIP_UPDATE" ]; then
   if [ -z "$NOCLIENT" ]; then
@@ -949,7 +949,7 @@ fi
 # and set a timestamp if everything deployed or deploy not needed, as long as we did not skip anything.
 finalize_deploy_status
 
-echo "Last complete run: $(date -d @$(cat {{playbook_dir}}/config/rundata/$DPLY_TIME_FILE))"
+echo "Last complete run: $(date -d @$(cat {{playbook_dir}}/config/rundata/$COMPLETED_TIME_FILE))"
 
 # This should also run the finish function since we have a trap on EXIT above.
 exit
