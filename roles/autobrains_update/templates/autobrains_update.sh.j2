@@ -495,18 +495,24 @@ function ctrl_c() {
 }
 
 function finish() {
-  [ ! -s "config/rundata/$LOCK_PREFIX$UNAME" ] || cat "config/rundata/$LOCK_PREFIX$UNAME" | notify
-  rm config/rundata/$LOCK_PREFIX$UNAME  2>/dev/null
-  cd $CUR_DIR
-  [ -n "$SMART" ] || tput cnorm
-  [ -n "$AUTODEFLECT_AGENT" ] && eval `ssh-agent -k` && echo "killed autobrain ssh-agent (${AUTODEFLECT_AGENT})"
   local el=$(( $(date +%s) - EDATE ))
   ((sec=el%60, el/=60, min=el%60, hrs=el/60))
   local timetook=$(printf "%d:%02d:%02d" $hrs $min $sec)
-  echo "Runtime was $timetook"
-  trap '' EXIT
+  if [ -s "config/rundata/$LOCK_PREFIX$UNAME" ]; then 
+    cat "config/rundata/$LOCK_PREFIX$UNAME" | notify
+    echo "[$(date -d @$EDATE)] $UNAME \"$COMMANDLINE\" [$timetook] - \"$(cat "config/rundata/$LOCK_PREFIX$UNAME")\"" >> config/logs/autodeflect-$(date +%Y%m%d).log
+  else
+    echo "[$(date -d @$EDATE)] $UNAME \"$COMMANDLINE\" [$timetook] - \"NO DIFF\"" >> config/logs/autodeflect-$(date +%Y%m%d).log
+  fi
+  echo "Last complete run: $(date -d @$(cat {{playbook_dir}}/config/rundata/$COMPLETED_TIME_FILE))"
   # Write to audit.log
   echo "[$(date -d @$EDATE)] $UNAME \"$COMMANDLINE\" [$timetook]" >> config/logs/audit.log
+  rm config/rundata/$LOCK_PREFIX$UNAME  2>/dev/null
+  [ -n "$SMART" ] || tput cnorm
+  [ -n "$AUTODEFLECT_AGENT" ] && eval `ssh-agent -k` && echo "killed autobrain ssh-agent (${AUTODEFLECT_AGENT})"
+  echo "Runtime: $timetook"
+  cd $CUR_DIR
+  trap '' EXIT
   exit
 }
 
@@ -951,8 +957,6 @@ fi
 # move lastest clients.yml to clients.yml-last_used
 # and set a timestamp if everything deployed or deploy not needed, as long as we did not skip anything.
 finalize_deploy_status
-
-echo "Last complete run: $(date -d @$(cat {{playbook_dir}}/config/rundata/$COMPLETED_TIME_FILE))"
 
 # This should also run the finish function since we have a trap on EXIT above.
 exit
