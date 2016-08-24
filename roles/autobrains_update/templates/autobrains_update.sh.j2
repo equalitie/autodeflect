@@ -525,8 +525,13 @@ function controller_update() {
   check_override
 
   rm -rf {{ats_output}} {{banjax_output}} {{bind_output}} 
-  if [ -n "$DEBUG" ] ; then
+  if [ -n "$DEBUG" ]; then
     ansible-playbook {{playbook_dir}}/site.yml -l controller
+    local exitcode=$?
+    if [ $exitcode -ne 0 ]; then
+      echo "Something went wrong. Can not continue."
+      exit
+    fi
   else
     ansible-playbook {{playbook_dir}}/site.yml -l controller > /dev/null &
     spin $!
@@ -538,8 +543,13 @@ function awstats_update() {
     check_override
   fi
 
-  if [ -n "$DEBUG" ] ; then
+  if [ -n "$DEBUG" ]; then
     ansible-playbook {{playbook_dir}}/site.yml -l awstats
+    local exitcode=$?
+    if [ $exitcode -ne 0 ]; then
+      echo "Something went wrong. Can not continue."
+      exit
+    fi
   else
     ansible-playbook {{playbook_dir}}/site.yml -l awstats > /dev/null &
     spin $!
@@ -575,7 +585,7 @@ else
   [ -n "$SMART" ] || tput cnorm
 fi
 
-if [ $exitcode -ne 0 ] ; then
+if [ $exitcode -ne 0 ]; then
   echo "Something went wrong. Run again in debug mode."
   exit
 fi
@@ -900,7 +910,7 @@ fi
 
 if [ "$yn" = 'n'  ] || [ "$yn" = 'N' ]; then
   if [ -z "$SMART" ]; then
-    echo -e "\nBelow are the best guessed details that"
+    echo "Below are the best guessed details that"
     echo -e "still needs to happen to complete.\n"
   fi
 for DNET in $DNETS; do
