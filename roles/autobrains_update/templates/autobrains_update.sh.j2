@@ -728,8 +728,9 @@ fi
 ### MAIN
 
 # Get us in the right directory
+echo "$(date -d @$EDATE)"
 if [ "$(pwd)" != "{{playbook_dir}}" ]; then
-  echo -e "Changing to {{playbook_dir}}\n"
+  echo "Changing to {{playbook_dir}}"
   cd {{playbook_dir}} 2> /dev/null
   RT=$?
   if [ $RT -eq 1 ]; then
