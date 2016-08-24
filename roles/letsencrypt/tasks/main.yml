@@ -1,4 +1,13 @@
 ---
+- name: Create directory structure
+  file: path=/opt/{{item}}  state=directory mode=0755
+  with_items:
+    - autodeflect
+    - autodeflect/etc
+  tags:
+    - config
+    - letsencrypt
+
 - name: Create Letsencrypt site list
-  template: src=letsencrypt-site.list.j2 dest=config/rundata/letsencrypt-site.list
+  template: src=letsencrypt-site.list.j2 dest=/opt/autodeflect/etc/letsencrypt-site.list
   tags: letsencrypt 

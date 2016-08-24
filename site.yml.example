@@ -46,7 +46,6 @@
     - {role: zonefile, tags: [zonefile, bind]}
     - {role: atsconf, tags: [ats]}
     - {role: banjax, tags: banjax}
-    - {role: letsencrypt, tags: letsencrypt}
     - {role: nagios, tags: nagios}
 
 - hosts: awstats
@@ -60,3 +59,13 @@
     - awstats
   roles:
     - awstats
+
+- hosts: letsencrypt
+  vars_files:
+    - clients.yml
+    - override.yml
+  user: root
+  tags:
+    - letsencrypt
+  roles:
+    - letsencrypt
