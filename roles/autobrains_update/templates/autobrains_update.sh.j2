@@ -34,6 +34,7 @@ BYPASS_FILES="{% for bypass in autobrains_bypasses %}{{bpspace()}}{{bypass}}{% e
 
 ##########
 ## SETUP 
+COMMANDLINE="$0 $*"
 ECHO_SEPARATOR='\n#################################\n\t##\t##\n#################################\n'
 DATE=$(date +%Y%m%d%H%M%S)
 EDATE=$(date +%s)
@@ -504,6 +505,8 @@ function finish() {
   local timetook=$(printf "%d:%02d:%02d" $hrs $min $sec)
   echo "Runtime was $timetook"
   trap '' EXIT
+  # Write to audit.log
+  echo "[$(date -d @$EDATE)] $UNAME \"$COMMANDLINE\" [$timetook]" >> config/logs/audit.log
   exit
 }
 
