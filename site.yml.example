@@ -46,6 +46,7 @@
     - {role: zonefile, tags: [zonefile, bind]}
     - {role: atsconf, tags: [ats]}
     - {role: banjax, tags: banjax}
+    - {role: letsencrypt, tags: letsencrypt}
     - {role: nagios, tags: nagios}
 
 - hosts: awstats

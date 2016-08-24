@@ -1,0 +1,6 @@
+# {{ no_edit_template }}
+{% for site, values in remap | dictsort %}
+{% if values["letsencrypt"] is defined and values["letsencrypt"] %}
+{{ site }}
+{% endif %}
+{% endfor %}

@@ -1,0 +1,4 @@
+---
+- name: Create Letsencrypt site list
+  template: src=letsencrypt-site.list.j2 dest=config/rundata/letsencrypt-site.list
+  tags: letsencrypt 
