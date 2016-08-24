@@ -231,7 +231,7 @@ DIR=${OLD_FILE%/*}
 FILE=${OLD_FILE##*/}
 
 [ -d ${DIR}/old ] || mkdir ${DIR}/old || ( echo "error creating old directory -quitting" && exit )
-if [ -f ${OLD_FILE} ] ; then
+if [ -f ${OLD_FILE} ]; then
   if [ -z "$YES" ]; then
     echo "Anything you would like to say about this update?"
     read explanation
@@ -566,7 +566,7 @@ function spin() {
 local pid=$1
 local delay=0.1
 [ -n "$SMART" ] || tput civis
-if [ -z "$NOSPIN" ] ; then
+if [ -z "$NOSPIN" ]; then
   while [ "$(ps p $pid o pid=)" ]; do
     for s in / - \\ \|; do
       printf "\r[ $s ] - Running";
@@ -881,7 +881,7 @@ if [ -n "$SKIP_UPDATE" ]; then
     AW_LASTRAN=$(date -d @$(cat {{playbook_dir}}/config/rundata/$AW_LASTRUN_FILE))
     echo "Awstats was last updated: $AW_LASTRAN"
     awstatsorn "Update (awstats) config" "awstats_update"
-  elif [ -n "$THEREST" ] ; then
+  elif [ -n "$THEREST" ]; then
     awstats_update 
   fi
 fi
