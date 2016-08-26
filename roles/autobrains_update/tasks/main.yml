@@ -13,6 +13,7 @@
     - config/banjax.d
     - config/rundata
     - config/logs
+    - bin
   tags:
     - init
     - setup

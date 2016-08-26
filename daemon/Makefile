@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -DVERSION="\"`cat VERSION`\""
 LDFLAGS = 
 
-prefix=/usr/local/deflect/ansible/autodeflect
+prefix=..
 
 PROGRAMS = ad2p autodctl 
 C_PROGRAMS = ad2p 

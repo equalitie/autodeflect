@@ -9,3 +9,8 @@ ats/
 /banjax
 autobrains_update.sh
 old/
+daemon/*.o
+daemon/cglobals.h
+daemon/autodctl
+daemon/ad2p
+bin/
