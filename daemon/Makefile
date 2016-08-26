@@ -56,8 +56,8 @@ distclean: clean
 	rm -f $(PROGRAMS)
 
 install: $(PROGRAMS)  
-	install -m 0755 autodctl $(prefix)/bin
-	install -m 0755 ad2p $(prefix)/bin
+	install -s -m 0755 autodctl $(prefix)/bin
+	install -s -m 0755 ad2p $(prefix)/bin
     
 .PHONY: install
 
