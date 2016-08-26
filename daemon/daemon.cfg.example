@@ -1,0 +1,9 @@
+## TEST CONFIG FILE
+
+sh_command /bin/bash
+directory_script /usr/local/deflect/ansible/autobrains 
+directory_daemon /usr/local/deflect/ansible/autobrains/daemon
+directory_run /run
+pid_suffix _autodeflect
+
+

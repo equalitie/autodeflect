@@ -1,0 +1,22 @@
+#ifndef _globals_h_
+#define _globals_h_
+
+double max_load = 15.00;
+
+int daemon_interval_high_load = 30;
+
+// Generic interval for use with errors or reconnections
+int daemon_interval_generic = 20;
+
+int daemon_interval_process = 20;
+int daemon_interval_send = 1;
+int daemon_interval_bounce = 15 * 60;
+int daemon_interval_report = 10 * 60;
+int daemon_interval_isploops = 15 * 60;
+int daemon_interval_embounce = 20 * 60;
+int daemon_interval_dialogue = 20 * 60;
+int daemon_interval_maint = 2 * 60 * 60;
+
+int reconnect_loops_normal = 360;
+
+#endif
