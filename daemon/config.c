@@ -36,6 +36,10 @@ int validate_core(void)
 		return FALSE;
 	}
 
+	if (process_file = NULL) {
+		return FALSE;
+	}
+
 	return TRUE;
 }
 
