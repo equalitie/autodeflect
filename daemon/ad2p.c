@@ -39,9 +39,17 @@ int main(int argc, char **argv)
 			continue;
 		}
 
-		sprintf(command, "%s %d %d &", program_process, 0, 0);
-		printf("Running '%s'\n", command);
-		system(command);
+		if (access(process_file, F_OK) == 0) {
+			sprintf(command, "%s --smart --force", program_process);
+			printf("Running '%s'\n", command);
+			system(command);
+			unlink(process_file);
+
+			if (access(process_file, F_OK) == 0) {
+				printf("Could not remove '%s'\n", process_file);
+				exit(-1);
+			}
+		}
 
 		sleep(daemon_interval_process);
 	}

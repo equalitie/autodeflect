@@ -2,8 +2,9 @@
 
 sh_command /bin/bash
 directory_script /usr/local/deflect/ansible/autobrains 
-directory_daemon /usr/local/deflect/ansible/autobrains/daemon
+directory_daemon /usr/local/deflect/ansible/autobrains/bin
 directory_run /run
+process_file .run
 pid_suffix _autodeflect
 
 

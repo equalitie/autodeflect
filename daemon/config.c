@@ -8,6 +8,7 @@ char *directory_script = NULL;
 char *directory_daemon = NULL;
 char *directory_run = NULL;
 char *pid_suffix = NULL;
+char *process_file = NULL;
 
 char *program_process = NULL;
 
@@ -112,6 +113,14 @@ int config_load(char *filename)
 			strncpy(directory_run, value, (strlen(value) + 1));
 		}
 
+		if (!strcasecmp(key, "process_file")) {
+			if ((process_file = (char *)calloc((strlen(value) + 1), sizeof(char))) == NULL) {
+				return FALSE;
+			}
+
+			strncpy(process_file, value, (strlen(value) + 1));
+		}
+
 		if (!strcasecmp(key, "pid_suffix")) {
 			if ((pid_suffix = (char *)calloc((strlen(value) + 1), sizeof(char))) == NULL) {
 				return FALSE;
@@ -146,6 +155,14 @@ int config_load(char *filename)
 	}
 
 	strncpy(pid_process, buffer, strlen(buffer) + 1);
+
+	sprintf(buffer, "%s/%s", directory_script, process_file);
+
+	if ((process_file = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
+		return FALSE;
+	}
+
+	strncpy(process_file, buffer, strlen(buffer) + 1);
 
 	free(buffer);
 	free(key);

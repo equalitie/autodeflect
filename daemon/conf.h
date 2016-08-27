@@ -22,7 +22,7 @@
 // Processing programs
 /**********************************************************************/
 
-#define PROGRAM_PROCESS "autobrains_update.sh --smart --force"
+#define PROGRAM_PROCESS "autobrains_update.sh"
 
 /**********************************************************************/
 // External definitions
@@ -59,6 +59,7 @@ extern char *directory_run;
 extern char *pid_suffix;
 
 extern char *program_process;
+extern char *process_file;
 
 extern char *pid_process;
 
