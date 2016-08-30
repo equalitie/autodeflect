@@ -1,6 +1,12 @@
 # {{ no_edit_template }}
-{% for site, values in remap | dictsort %}
-{% if values["letsencrypt"] is defined and values["letsencrypt"] %}
-{{ site }}
+#
+# FIXME maybe: addition_domain_prefix is ignored here
+#
+{% for site in remap %}
+{% if remap[site]["letsencrypt"] is defined and remap[site]["letsencrypt"] %}
+{{site}} -d www.{{site}}
 {% endif %}
 {% endfor %}
+
+
+

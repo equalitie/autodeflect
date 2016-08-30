@@ -1,13 +1,32 @@
 ---
-- name: Create directory structure
-  file: path=/opt/{{item}}  state=directory mode=0755
-  with_items:
-    - autodeflect
-    - autodeflect/etc
-  tags:
-    - config
-    - letsencrypt
+ - name: Setup ats output base directory
+   file: path={{letsencrypt_output}} state=directory mode=0755
+   tags:
+     - letsencrypt
+     - setup
+
+- name: Create remote directory structure
+  file: path=/opt/autodeflect/{{item}}  state=directory mode=0755 recurse=yes
+  with_items: 
+    - etc
+    - le_certs
+    - bin
+  tags: letsencrypt
+
+- name: Synchronise Letsencrypt renewal bash script
+  copy: src=LE_renew_by_name.sh dest=/opt/autodeflect/bin/LE_renew_by_name.sh owner=root group=root mode=0744
+  tags: letsencrypt 
 
 - name: Create Letsencrypt site list
   template: src=letsencrypt-site.list.j2 dest=/opt/autodeflect/etc/letsencrypt-site.list
+  with_dict: remap
+  tags:
+    - letsencrypt 
+
+- name: execute remote LE renewals
+  command: /opt/autodeflect/bin/LE_renew_by_name.sh
+  tags: letsencrypt 
+
+- name: syncronise LE certificates
+  synchronize: src=/opt/autodeflect/le_certs dest={{letsencrypt_output}} mode=pull
   tags: letsencrypt 

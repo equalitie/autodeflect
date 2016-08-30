@@ -1,0 +1,15 @@
+# {{ no_edit_template }}
+# 
+{% for site in remap %}
+{% if remap[site]["letsencrypt"] is defined and remap[site]["letsencrypt"] -%} 
+# {{site}} 
+ssl_cert_name={{site}}.cert.crt ssl_key_name={{site}}.key ssl_ca_name={{site}}.chain.crt
+{% endif %}
+{% endif %}
+{% endfor %}
+
+# START include config/ssl_multicert.config.{{item.key}} 
+{% include "config/ssl_multicert.config." + item.key ignore missing %}
+
+# START include config/ssl_multicert.config.all
+{% include "config/ssl_multicert.config.all" + item.key ignore missing %}
