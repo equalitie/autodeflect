@@ -49,4 +49,4 @@
 - name: ssl cert config file for letsencrypt
   template: src=ssl_multicert.config.le.j2 dest={{ats_output}}/{{item.key}}/ssl_multicert.config
   with_dict: dnets
-  tags: ats
+  tags: atsdebug

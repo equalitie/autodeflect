@@ -28,5 +28,5 @@
   tags: letsencrypt 
 
 - name: syncronise LE certificates
-  synchronize: src=/opt/autodeflect/le_certs dest={{letsencrypt_output}} mode=pull
-  tags: letsencrypt 
+  synchronize: src=/opt/autodeflect/le_certs/ dest={{letsencrypt_output}} mode=pull
+  tags: letsencrypt

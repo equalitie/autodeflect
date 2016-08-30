@@ -4,7 +4,8 @@
 #
 {% for site in remap %}
 {% if remap[site]["letsencrypt"] is defined and remap[site]["letsencrypt"] %}
-{{site}} -d www.{{site}}
+{{site}}{% if remap[site]["no_www"] is not defined or remap[site]["no_www"] == false %} -d www.{{site}}{% endif %}
+
 {% endif %}
 {% endfor %}
 

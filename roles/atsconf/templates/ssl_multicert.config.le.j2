@@ -1,8 +1,11 @@
 # {{ no_edit_template }}
 # 
+# START letsencrypt certs
+
 {% for site in remap %}
+{% if  remap[site]["network"] == item.key %}
 {% if remap[site]["letsencrypt"] is defined and remap[site]["letsencrypt"] -%} 
-# {{site}} 
+# {{site}} - Let's Encrypt certs
 ssl_cert_name={{site}}.cert.crt ssl_key_name={{site}}.key ssl_ca_name={{site}}.chain.crt
 {% endif %}
 {% endif %}
@@ -12,4 +15,4 @@ ssl_cert_name={{site}}.cert.crt ssl_key_name={{site}}.key ssl_ca_name={{site}}.c
 {% include "config/ssl_multicert.config." + item.key ignore missing %}
 
 # START include config/ssl_multicert.config.all
-{% include "config/ssl_multicert.config.all" + item.key ignore missing %}
+{% include "config/ssl_multicert.config.all" ignore missing %}

@@ -771,6 +771,8 @@ function letsencrypt_update() {
 
   start_ssh_agent || exit
 
+  rm -rf {{letsencrypt_output}}
+
   if [ -n "$DEBUG" ]; then
     ansible-playbook {{playbook_dir}}/site.yml -l letsencrypt
     local exitcode=$?
