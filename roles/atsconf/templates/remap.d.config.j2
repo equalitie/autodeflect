@@ -4,7 +4,7 @@
 {% if remap[item.key]["letsencrypt"] is defined and remap[item.key]["letsencrypt"] == true %}
 ## Let's Encrypt!
 map http://{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
-map http://www{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
+map http://www.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
 {%- if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] -%}
 {%- for prefix in remap[item.key]["additional_domain_prefix"] %}
 map http://{{prefix}}.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
