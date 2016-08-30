@@ -1,9 +1,9 @@
 ---
 - name: Setup ats output base directory
-   file: path={{letsencrypt_output}} state=directory mode=0755
-   tags:
-     - letsencrypt
-     - setup
+  file: path={{letsencrypt_output}} state=directory mode=0755
+  tags:
+    - letsencrypt
+    - setup
 
 - name: Create remote directory structure
   file: path=/opt/autodeflect/{{item}}  state=directory mode=0755 recurse=yes
