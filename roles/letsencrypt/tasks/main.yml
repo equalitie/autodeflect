@@ -1,5 +1,5 @@
 ---
- - name: Setup ats output base directory
+- name: Setup ats output base directory
    file: path={{letsencrypt_output}} state=directory mode=0755
    tags:
      - letsencrypt
