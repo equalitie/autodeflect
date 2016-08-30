@@ -40,7 +40,7 @@ function renew_cert() {
 function populate_output_dir() {
   LE_PREFIX=/etc/letsencrypt/live/${DOMAIN_W_ARGS%% *}
   cp ${LE_PREFIX}/cert.pem ${LE_OUTPUT_DIR}/${DOMAIN_W_ARGS%% *}.cert.crt
-  cp ${LE_PREFIX}/chain.pem ${LE_OUTPUT_DIR}/${DOMAIN_W_ARGS%% *}.chaint.crt
+  cp ${LE_PREFIX}/chain.pem ${LE_OUTPUT_DIR}/${DOMAIN_W_ARGS%% *}.chain.crt
   cp ${LE_PREFIX}/privkey.pem ${LE_OUTPUT_DIR}/${DOMAIN_W_ARGS%% *}.key
 }
 
