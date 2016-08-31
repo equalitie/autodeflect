@@ -2,9 +2,12 @@
 #
 # FIXME maybe: addition_domain_prefix is ignored here
 #
+
 {% for site in remap %}
 {% if remap[site]["letsencrypt"] is defined and remap[site]["letsencrypt"] %}
-{{site}}{% if remap[site]["no_www"] is not defined or remap[site]["no_www"] == false %} -d www.{{site}}{% endif %}
+CERTS {{site}}{% if remap[site]["no_www"] is not defined or remap[site]["no_www"] == false %} -d www.{{site}}{% endif %}
+
+DNET {{ site }}:{{ remap[site]["network"] }}
 
 {% endif %}
 {% endfor %}

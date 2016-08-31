@@ -13,6 +13,11 @@
     - bin
   tags: letsencrypt
 
+- name: Create per-dnet certs dirs
+  file: path=/opt/autodeflect/le_certs/{{ item.key }} state=directory mode=0755 recurse=yes
+  with_dict: dnets
+  tags: letsencrypt
+
 - name: Synchronise Letsencrypt renewal bash script
   copy: src=LE_renew_by_name.sh dest=/opt/autodeflect/bin/LE_renew_by_name.sh owner=root group=root mode=0744
   tags: letsencrypt 
@@ -22,6 +27,7 @@
   with_dict: remap
   tags:
     - letsencrypt 
+    - ledebug
 
 - name: execute remote LE renewals
   command: /opt/autodeflect/bin/LE_renew_by_name.sh
