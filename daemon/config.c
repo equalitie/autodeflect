@@ -9,6 +9,7 @@ char *directory_daemon = NULL;
 char *directory_run = NULL;
 char *pid_suffix = NULL;
 char *process_file = NULL;
+char *ssh_agent = NULL;
 
 char *program_process = NULL;
 
@@ -37,6 +38,10 @@ int validate_core(void)
 	}
 
 	if (process_file == NULL) {
+		return FALSE;
+	}
+
+	if (ssh_agent == NULL) {
 		return FALSE;
 	}
 
@@ -93,6 +98,14 @@ int config_load(char *filename)
 			strncpy(sh_command, value, (strlen(value) + 1));
 		}
 
+		if (!strcasecmp(key, "ssh_agent")) {
+			if ((ssh_agent = (char *)calloc((strlen(value) + 1), sizeof(char))) == NULL) {
+				return FALSE;
+			}
+
+			strncpy(ssh_agent, value, (strlen(value) + 1));
+		}
+
 		if (!strcasecmp(key, "directory_script")) {
 			if ((directory_script = (char *)calloc((strlen(value) + 1), sizeof(char))) == NULL) {
 				return FALSE;
@@ -142,7 +155,7 @@ int config_load(char *filename)
 
 	fclose(fp);
 
-
+	// program_process
 	sprintf(buffer, "%s %s/%s", sh_command, directory_script, PROGRAM_PROCESS);
 
 	if ((program_process = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
@@ -151,7 +164,7 @@ int config_load(char *filename)
 
 	strncpy(program_process, buffer, strlen(buffer) + 1);
 
-
+	// pid_process
 	sprintf(buffer, "%s/%s%s.pid", directory_run, PROGRAM_NAME_PROCESS, pid_suffix);
 
 	if ((pid_process = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
@@ -160,13 +173,24 @@ int config_load(char *filename)
 
 	strncpy(pid_process, buffer, strlen(buffer) + 1);
 
-	sprintf(buffer, "%s/%s", directory_script, process_file);
+	// process_file
+	sprintf(buffer, "%s/%s%s", directory_script, process_file, pid_suffix);
 
 	if ((process_file = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
 		return FALSE;
 	}
 
 	strncpy(process_file, buffer, strlen(buffer) + 1);
+
+	// ssh_agent
+	sprintf(buffer, "%s -s -d -a %s/%s%s.sock", ssh_agent, directory_run, PROGRAM_SSH_KEY, pid_suffix);
+
+	if ((ssh_agent = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
+		return FALSE;
+	}
+
+	strncpy(ssh_agent, buffer, strlen(buffer) + 1);
+
 
 	free(buffer);
 	free(key);

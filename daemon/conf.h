@@ -4,9 +4,6 @@
 #ifndef _conf_h_
 #define _conf_h_
 
-#define DBH_DISCONNECT_SUCCESS	0
-#define DBH_DISCONNECT_FAILURE	1
-
 #define	FALSE	0
 #define TRUE	1
 
@@ -17,6 +14,7 @@
 /**********************************************************************/
 
 #define PROGRAM_NAME_PROCESS "ad2p"
+#define PROGRAM_SSH_KEY "ad2ssh"
 
 /**********************************************************************/
 // Processing programs
@@ -57,11 +55,10 @@ extern char *directory_script;
 extern char *directory_daemon;
 extern char *directory_run;
 extern char *pid_suffix;
-
 extern char *program_process;
 extern char *process_file;
-
 extern char *pid_process;
+extern char *ssh_agent;
 
 int config_load(char *filename);
 
