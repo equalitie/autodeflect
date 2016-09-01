@@ -58,6 +58,7 @@ extern char *pid_suffix;
 extern char *program_process;
 extern char *process_file;
 extern char *pid_process;
+extern char *ssh_agent_sock;
 extern char *ssh_agent;
 
 int config_load(char *filename);

@@ -89,6 +89,7 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 		show_configuration(filename);
+
 		exit(0);
 	}
 
@@ -268,6 +269,13 @@ void show_configuration(char *filename)
 	printf("Processing Program Command Line:\n");
 	printf("--------------------------------\n\n");
 	printf("Process Script:\t%s\n", program_process);
+	printf("\n");
+
+	printf("Set Environment(s):\n");
+	printf("------------------\n\n");
+
+	printf("SSH_AUTH_SOCK=%s\n", getenv("SSH_AUTH_SOCK"));
+
 	printf("\n\n");
 }
 

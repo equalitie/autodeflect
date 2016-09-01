@@ -10,10 +10,9 @@ char *directory_run = NULL;
 char *pid_suffix = NULL;
 char *process_file = NULL;
 char *ssh_agent = NULL;
-
 char *program_process = NULL;
-
 char *pid_process = NULL;
+char *ssh_agent_sock = NULL;
 
 int validate_core(void)
 {
@@ -156,7 +155,7 @@ int config_load(char *filename)
 	fclose(fp);
 
 	// program_process
-	sprintf(buffer, "%s %s/%s", sh_command, directory_script, PROGRAM_PROCESS);
+	sprintf(buffer, "%s %s/%s --smart --force", sh_command, directory_script, PROGRAM_PROCESS);
 
 	if ((program_process = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
 		return FALSE;
@@ -182,8 +181,17 @@ int config_load(char *filename)
 
 	strncpy(process_file, buffer, strlen(buffer) + 1);
 
+	//ssh_agent_sock
+	sprintf(buffer, "%s/%s%s.sock", directory_run, PROGRAM_SSH_KEY, pid_suffix);
+
+	if ((ssh_agent_sock = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
+		return FALSE;
+	}
+
+	strncpy(ssh_agent_sock, buffer, strlen(buffer) + 1);
+
 	// ssh_agent
-	sprintf(buffer, "%s -s -d -a %s/%s%s.sock", ssh_agent, directory_run, PROGRAM_SSH_KEY, pid_suffix);
+	sprintf(buffer, "%s -s -d -a %s", ssh_agent, ssh_agent_sock);
 
 	if ((ssh_agent = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
 		return FALSE;
@@ -195,6 +203,9 @@ int config_load(char *filename)
 	free(buffer);
 	free(key);
 	free(value);
+
+	// Setup Env
+	setenv("SSH_AUTH_SOCK", ssh_agent_sock, 0);
 
 	return TRUE;
 }

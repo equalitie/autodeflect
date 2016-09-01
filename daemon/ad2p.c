@@ -40,9 +40,10 @@ int main(int argc, char **argv)
 		}
 
 		if (access(process_file, F_OK) == 0) {
-			sprintf(command, "%s --smart --force", program_process);
+			sprintf(command, "%s", program_process);
 			printf("Running '%s'\n", command);
 			system(command);
+			// FIXME: unlink only is return success
 			unlink(process_file);
 
 			if (access(process_file, F_OK) == 0) {
