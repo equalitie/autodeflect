@@ -7,3 +7,4 @@ directory_run /run
 process_file .run
 ssh_agent /usr/bin/ssh-agent
 pid_suffix _autodeflect
+path /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/deflect/scripts 

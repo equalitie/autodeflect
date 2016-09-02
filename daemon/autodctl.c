@@ -237,6 +237,8 @@ int stop_program(const char *program_name, const char *pid_file)
 
 void show_configuration(char *filename)
 {
+	extern char **environ;
+	int i = 0;
 
 	if (!config_load(filename)) {
 		printf("Failed to load configuration file\n");
@@ -274,8 +276,9 @@ void show_configuration(char *filename)
 	printf("Set Environment(s):\n");
 	printf("------------------\n\n");
 
-	printf("SSH_AUTH_SOCK=%s\n", getenv("SSH_AUTH_SOCK"));
-
+	while(environ[i]) {
+		printf("%s\n", environ[i++]);
+	}
 	printf("\n\n");
 }
 

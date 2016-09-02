@@ -60,6 +60,7 @@ extern char *process_file;
 extern char *pid_process;
 extern char *ssh_agent_sock;
 extern char *ssh_agent;
+extern char *path;
 
 int config_load(char *filename);
 

@@ -13,6 +13,7 @@ char *ssh_agent = NULL;
 char *program_process = NULL;
 char *pid_process = NULL;
 char *ssh_agent_sock = NULL;
+char *path = NULL;
 
 int validate_core(void)
 {
@@ -41,6 +42,10 @@ int validate_core(void)
 	}
 
 	if (ssh_agent == NULL) {
+		return FALSE;
+	}
+
+	if (path == NULL) {
 		return FALSE;
 	}
 
@@ -145,6 +150,14 @@ int config_load(char *filename)
 			strncpy(pid_suffix, value, (strlen(value) + 1));
 		}
 
+		if (!strcasecmp(key, "path")) {
+			if ((path = (char *)calloc((strlen(value) + 1), sizeof(char))) == NULL) {
+				return FALSE;
+			}
+
+			strncpy(path, value, (strlen(value) + 1));
+		}
+
 
 	}
 
@@ -205,7 +218,9 @@ int config_load(char *filename)
 	free(value);
 
 	// Setup Env
-	setenv("SSH_AUTH_SOCK", ssh_agent_sock, 0);
+	clearenv();
+	setenv("SSH_AUTH_SOCK", ssh_agent_sock, 1);
+	setenv("PATH", path, 1);
 
 	return TRUE;
 }
