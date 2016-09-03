@@ -12,6 +12,7 @@ char *process_file = NULL;
 char *ssh_agent = NULL;
 char *program_process = NULL;
 char *pid_process = NULL;
+char *pid_ssh_key = NULL;
 char *ssh_agent_sock = NULL;
 char *path = NULL;
 
@@ -185,6 +186,15 @@ int config_load(char *filename)
 
 	strncpy(pid_process, buffer, strlen(buffer) + 1);
 
+	// pid_ssh_key
+	sprintf(buffer, "%s/%s%s.pid", directory_run, PROGRAM_NAME_SSH_KEY, pid_suffix);
+
+	if ((pid_ssh_key = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
+		return FALSE;
+	}
+
+	strncpy(pid_ssh_key, buffer, strlen(buffer) + 1);
+
 	// process_file
 	sprintf(buffer, "%s/%s%s", directory_script, process_file, pid_suffix);
 
@@ -194,8 +204,8 @@ int config_load(char *filename)
 
 	strncpy(process_file, buffer, strlen(buffer) + 1);
 
-	//ssh_agent_sock
-	sprintf(buffer, "%s/%s%s.sock", directory_run, PROGRAM_SSH_KEY, pid_suffix);
+	// ssh_agent_sock
+	sprintf(buffer, "%s/%s%s.sock", directory_run, PROGRAM_NAME_SSH_KEY, pid_suffix);
 
 	if ((ssh_agent_sock = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
 		return FALSE;

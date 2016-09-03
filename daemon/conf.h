@@ -14,7 +14,7 @@
 /**********************************************************************/
 
 #define PROGRAM_NAME_PROCESS "ad2p"
-#define PROGRAM_SSH_KEY "ad2ssh"
+#define PROGRAM_NAME_SSH_KEY "ad2ssh"
 
 /**********************************************************************/
 // Processing programs
@@ -58,6 +58,8 @@ extern char *pid_suffix;
 extern char *program_process;
 extern char *process_file;
 extern char *pid_process;
+extern char *pid_ssh_key;
+
 extern char *ssh_agent_sock;
 extern char *ssh_agent;
 extern char *path;

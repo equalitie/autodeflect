@@ -14,6 +14,7 @@
 
 #define PROGRAM_ACTION_NONE	0
 #define PROGRAM_ACTION_PROCESS	1
+#define PROGRAM_ACTION_SSH_KEY	2 
 
 void start_daemons(char *config_filename, int programs, int debug);
 void stop_daemons(char *config_filename, int programs);
@@ -42,6 +43,7 @@ int main(int argc, char **argv)
 			{"config", 1, 0, 0},
 			{"all", 0, 0, 0},
 			{"process", 0, 0, 0},
+			{"ssh-key", 0, 0, 0},
 			{"help", 0, 0, 0},
 			{"show-conf", 0, 0, 0},
 			{"version", 0, 0, 0},
@@ -65,7 +67,11 @@ int main(int argc, char **argv)
 				else if (!strcmp(long_options[option_index].name, "config"))
 					filename = optarg;
 				else if (!strcmp(long_options[option_index].name, "all"))
+					programs |= PROGRAM_ACTION_PROCESS | PROGRAM_ACTION_SSH_KEY;
+				else if (!strcmp(long_options[option_index].name, "process"))
 					programs |= PROGRAM_ACTION_PROCESS;
+				else if (!strcmp(long_options[option_index].name, "ssh-key"))
+					programs |= PROGRAM_ACTION_SSH_KEY;
 				else if (!strcmp(long_options[option_index].name, "version")) {
 					show_version();
 					exit(0);
@@ -136,6 +142,9 @@ void start_daemons(char *config_filename, int programs, int debug)
 		start_program(PROGRAM_NAME_PROCESS, pid_process, config_filename, debug);
 	}
 
+	if (programs & PROGRAM_ACTION_SSH_KEY) {
+		start_program(PROGRAM_NAME_SSH_KEY, pid_ssh_key, config_filename, debug);
+	}
 
 }
 
@@ -191,6 +200,10 @@ void stop_daemons(char *config_filename, int programs)
 
 	if (programs & PROGRAM_ACTION_PROCESS) {
 		stop_program(PROGRAM_NAME_PROCESS, pid_process);
+	}
+
+	if (programs & PROGRAM_ACTION_SSH_KEY) {
+		stop_program(PROGRAM_NAME_SSH_KEY, pid_ssh_key);
 	}
 
 }
@@ -265,6 +278,7 @@ void show_configuration(char *filename)
 	printf("PID Directory:\t\t%s\n", directory_run);
 	printf("PID File Suffix:\t%s\n", pid_suffix);
 	printf("PID File Process:\t%s\n", pid_process);
+	printf("PID File ssh-key:\t%s\n", pid_ssh_key);
 
 	printf("\n");
 
@@ -305,6 +319,7 @@ void autodctl_usage(void)
 	printf("\tDaemons:\n");
 	printf("\t\t--all:\t\tAll daemons\n");
 	printf("\t\t--process:\tProcess daemon\n");
+	printf("\t\t--ssh-key:\tssh-key daemon\n");
 
 	printf("\n");
 	printf("\tModifiers:\n");
@@ -317,4 +332,3 @@ void autodctl_usage(void)
 	printf("\t\t--show-conf:\tShow configuration information\n");
 	printf("\t\t--help:\t\tThis message\n");
 }
-

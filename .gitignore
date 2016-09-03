@@ -13,5 +13,6 @@ daemon/*.o
 daemon/cglobals.h
 daemon/autodctl
 daemon/ad2p
+daemon/ad2ssh
 bin/
 *.swp

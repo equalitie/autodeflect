@@ -4,8 +4,8 @@ LDFLAGS =
 
 prefix=..
 
-PROGRAMS = ad2p autodctl 
-C_PROGRAMS = ad2p 
+PROGRAMS = ad2p ad2ssh autodctl 
+C_PROGRAMS = ad2p ad2ssh
 
 ADMIN_PROGRAMS = autodctl
 
@@ -27,6 +27,10 @@ admin_programs: $(ADMIN_PROGRAMS)
 ad2p: $(C_COMMON_PREREQ)
 	$(CC) $(CFLAGS) -c ad2p.c
 	$(CC) $(CFLAGS) $(LDFLAGS) $(C_OBJS) ad2p.o -o ad2p
+
+ad2ssh: $(C_COMMON_PREREQ)
+	$(CC) $(CFLAGS) -c ad2ssh.c
+	$(CC) $(CFLAGS) $(LDFLAGS) $(C_OBJS) ad2ssh.o -o ad2ssh
 
 loadchk:
 	$(CC) $(CFLAGS) -c loadchk.c
@@ -58,6 +62,7 @@ distclean: clean
 install: $(PROGRAMS)  
 	install -s -m 0755 autodctl $(prefix)/bin
 	install -s -m 0755 ad2p $(prefix)/bin
+	install -s -m 0755 ad2ssh $(prefix)/bin
     
 .PHONY: install
 
