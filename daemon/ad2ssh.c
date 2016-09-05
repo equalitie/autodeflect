@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <libssh2.h>
 #include "conf.h"
 #include "cglobals.h"
 
@@ -14,12 +15,15 @@
 // FIXME: DO NOT USE THIS YET. WILL RUN OUT OF CONTROLL
 
 int check_ssh_agent_socket(char *socket_name);
+int check_need_agent(LIBSSH2_SESSION *session);
+pid_t run_agent(char *ssh_agent);
 
 int main(int argc, char **argv)
 {
 
-	pid_t ssh_agent_pid, ssh_add_pid;
-	int statval1, statval2;
+	pid_t ssh_agent_pid;
+
+	LIBSSH2_SESSION *session = NULL;
 
 	lib_common_option_handling(argc, argv);
 
@@ -30,54 +34,41 @@ int main(int argc, char **argv)
 
 	populate_globals();
 
-	if ((ssh_agent_pid=fork()) == -1) {
-		fprintf(stderr,"ssh_agent fork failed. Exiting.\n");
-		exit(1);        
-	}
+	session = libssh2_session_init();
 
-	if ((ssh_add_pid=fork())  == -1) {
-		fprintf(stderr,"ssh_add fork failed. Exiting.\n");
-		exit(1);       
+	if (!session) {
+		fprintf(stderr, "Failure establishing SSH session\n");
+		exit(1);
 	}
 
 	while (1) {
 		if (need_finish == TRUE)
 			break;
 
-		if (ssh_agent_pid == 0) {
-			printf("In ssh_agent_pid\n");
-			sleep(20);
-			// child 1
-			return(0);
+		if (!check_need_agent(session)) {
+			if (!check_ssh_agent_socket(ssh_agent_sock)) {
+				printf("We should start ssh-agent\n");
+				// This fuction should return -1 or pid
+				ssh_agent_pid = run_agent(ssh_agent);
+			} else {
+				fprintf(stderr, "Need ssh-agent but not safe to start\n");
+				break;
+			}
 		}
 
-		else if (ssh_add_pid == 0) {
-			// child 2
-			printf("In ssh_add_pid\n");
-			exit(0);
-		}
 
-		else {
-
-			// parent
-			printf("Start parent\n");
-			waitpid (ssh_agent_pid, &statval1, WUNTRACED
-				#ifdef WCONTINUED
-					| WCONTINUED
-				#endif
-				);
-
-			waitpid (ssh_add_pid, &statval2, WUNTRACED
-				#ifdef WCONTINUED
-					| WCONTINUED
-				#endif
-				);
-			sleep(4);
-			printf("End of parent\n");
-		}
+		printf("Hello\n");
+		sleep(5);
 
 	}
-	
+
+	if(session) {
+		libssh2_session_disconnect(session, "Shutdown ssh session");
+		libssh2_session_free(session);
+	}
+
+	if (ssh_agent_pid)
+		kill(ssh_agent_pid, SIGTERM);
 
 	return (0);
 }
@@ -89,20 +80,83 @@ int check_ssh_agent_socket(char *socket_name)
 {
 
 	struct stat buff;
+	int ret = FALSE;
 
 	if (stat(socket_name, &buff) == 0) {
-		printf("File %s exits", socket_name);
+		fprintf(stderr, "File %s exits", socket_name);
 		// if socket
 		if (S_ISSOCK(buff.st_mode)) {
 			printf(" and is a socket.\n");
-			return TRUE;
+			ret = TRUE;
 		}
 		printf(" and is not a socket. Why? Exiting.\n");
-		exit(0);
+		exit(1);
 	} else {
 		printf("File %s not created.\n", socket_name);
 	}
 
-	return FALSE;
+	return(ret);
 
 }
+
+/************************************************************************************************
+************************************************************************************************/
+
+int check_need_agent(LIBSSH2_SESSION *session) {
+
+	LIBSSH2_AGENT *agent = NULL;
+	int ret;
+
+	agent = libssh2_agent_init(session);
+
+	if (!agent) {
+		/* Not sure why this would ever happen, but bad if it does. */
+		fprintf(stderr, "Failure establishing ssh-agent session\n");
+		exit(1);
+	}
+
+
+	if (libssh2_agent_connect(agent)) 
+		ret = FALSE;
+	else
+		ret = TRUE;
+
+
+	libssh2_agent_disconnect(agent);
+	libssh2_agent_free(agent);
+
+	return(ret);
+
+}
+
+/************************************************************************************************
+************************************************************************************************/
+
+pid_t run_agent(char *ssh_agent) {
+
+	pid_t pid;
+	FILE *fp;
+	char *line = NULL;
+	size_t len = 0;
+	ssize_t read;
+
+	pid = -1;
+
+	fp = popen(ssh_agent, "r");
+
+	while ((read = getline(&line, &len, fp)) != -1) {
+		/** FIXME: find SSH_AGENT_PID=####  key=value  atoi value for pid **/
+		printf("%s", line);
+	}
+
+	free(line);
+	fclose(fp);
+
+	/** FIXME: force pid = -1 for now to make sure we do not kill while testing **/
+	pid = -1;
+	return(pid);
+
+}
+
+/************************************************************************************************
+************************************************************************************************/

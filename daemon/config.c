@@ -214,7 +214,7 @@ int config_load(char *filename)
 	strncpy(ssh_agent_sock, buffer, strlen(buffer) + 1);
 
 	// ssh_agent
-	sprintf(buffer, "%s -s -d -a %s", ssh_agent, ssh_agent_sock);
+	sprintf(buffer, "%s -s -a %s", ssh_agent, ssh_agent_sock);
 
 	if ((ssh_agent = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
 		return FALSE;
