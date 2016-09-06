@@ -57,7 +57,8 @@ int main(int argc, char **argv)
 		}
 
 
-		printf("Hello\n");
+		printf("EHLO\n");
+		printf("ssh_agent_pid: %d\n", ssh_agent_pid);
 		sleep(5);
 
 	}
@@ -133,29 +134,53 @@ int check_need_agent(LIBSSH2_SESSION *session) {
 ************************************************************************************************/
 
 pid_t run_agent(char *ssh_agent) {
-
-	pid_t pid;
+//ssh_agent
 	FILE *fp;
-	char *line = NULL;
-	size_t len = 0;
-	ssize_t read;
+	char *buffer, *ssh_agent_pid;
+	size_t bufsiz = 0;
+	ssize_t nbytes;
+	pid_t pid = -1;
 
-	pid = -1;
-
-	fp = popen(ssh_agent, "r");
-
-	while ((read = getline(&line, &len, fp)) != -1) {
-		/** FIXME: find SSH_AGENT_PID=####  key=value  atoi value for pid **/
-		printf("%s", line);
+	if (!(fp = popen(ssh_agent, "r"))) {
+		return pid;
 	}
 
-	free(line);
-	fclose(fp);
+	while ((nbytes = getline(&buffer, &bufsiz, fp) != -1)) {
+		if (buffer[strlen(buffer) -1] == '\n') {
+			buffer[strlen(buffer) -1] = 0;
+		}
 
-	/** FIXME: force pid = -1 for now to make sure we do not kill while testing **/
-	pid = -1;
-	return(pid);
+		if (!strlen(buffer)) {
+			continue;
+		}
 
+		strtok(buffer, ";");
+
+		char* value = strtok(buffer, "=");
+
+		if (!strcasecmp(buffer, "SSH_AGENT_PID")) {
+			while (value != NULL) {
+				value = strtok(NULL, "=");
+				if (value != NULL) {
+					if ((ssh_agent_pid = (char *)calloc((strlen(value) + 1), sizeof(char))) == NULL) {
+						break;
+					}
+
+					strncpy(ssh_agent_pid, value, (strlen(value) + 1));
+					strtok(NULL, "=");
+				}
+			}
+		}
+	}
+
+	if (!(pid = atoi(ssh_agent_pid)))
+		pid = -1;
+
+	free(buffer);
+	free(ssh_agent_pid);
+	pclose(fp);
+
+	return pid;
 }
 
 /************************************************************************************************
