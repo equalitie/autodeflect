@@ -12,6 +12,7 @@ LE_OUTPUT_DIR=${BASEDIR}/le_certs
 LE_DIR=/etc/letsencrypt
 RENEW_WINDOW=29days   # `man date` for format details
 RENEW_DATE=$(date -d "+$RENEW_WINDOW" +%s)
+NS_SERVER={{ authoritative_nameserver_grep }}
 
 function check_cert() {
   if [ -f ${LE_DIR}/live/${DOMAIN_W_ARGS%% *}/cert.pem ] ; then
@@ -32,7 +33,11 @@ return $STATUS
 }
 
 function renew_cert() {
-  echo certbot certonly --standalone --agree-tos --standalone-supported-challenges http-01 -m {{ le_email }} -n -d $DOMAIN_W_ARGS
+  certbot certonly --standalone --agree-tos --standalone-supported-challenges http-01 -m {{ le_email }} -n -d $DOMAIN_W_ARGS
+}
+
+function check_delegation() {
+  dig -t ns +short ${DOMAIN_W_ARGS%% *} | grep $NS_SERVER
 }
 
 function initialise_output_dir() {
@@ -55,9 +60,11 @@ function populate_output_dir() {
 # - place all the cert/key bundles into an easy dir to be synced
 #   to brains
 initialise_output_dir
-cat $LE_CERTS_CONFIG | while IFS='' read -r DOMAIN_W_ARGS ; do
-  check_cert || renew_cert 
-  populate_output_dir
+egrep -v '^$|^#' $LE_CERTS_CONFIG | while IFS='' read -r DOMAIN_W_ARGS ; do
+  if check_delegation ; then
+    check_cert || renew_cert 
+    populate_output_dir
+  fi
 done
 
 
