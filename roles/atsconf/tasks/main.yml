@@ -39,7 +39,7 @@
 - name: remap.d per-site config
   template: src=remap.d.config.j2 dest={{ats_output}}{{remap[item.key].network}}/remap.d/{{ item.key }}.config
   with_dict: remap
-  tags: atsdebug
+  tags: ats
 
 - name: cache.config 
   template: src=cache.config.j2 dest={{ats_output}}/{{item.key}}/cache.config
@@ -49,4 +49,4 @@
 - name: ssl_multicert.config for letsencrypt
   template: src=ssl_multicert.config.le.j2 dest={{ats_output}}/{{item.key}}/ssl_multicert.config
   with_dict: dnets
-  tags: atsdebug
+  tags: ats
