@@ -1,11 +1,12 @@
 ---
 - name: Setup ats output base directory
   file: path={{letsencrypt_output}} state=directory mode=0755
+  delegate_to: controller
   tags:
     - letsencrypt
     - setup
 
-- name: Create remote directory structure
+- name: Ensure remote directory structure exists
   file: path=/opt/autodeflect/{{item}}  state=directory mode=0755 recurse=yes
   with_items: 
     - etc
@@ -13,26 +14,19 @@
     - bin
   tags: letsencrypt
 
-- name: Create per-dnet certs dirs
-  file: path=/opt/autodeflect/le_certs/{{ item.key }} state=directory mode=0755 recurse=yes
-  with_dict: dnets
-  tags: letsencrypt
-
-- name: Synchronise Letsencrypt renewal bash script
-  copy: src=LE_renew_by_name.sh dest=/opt/autodeflect/bin/LE_renew_by_name.sh owner=root group=root mode=0744
+- name: Generate Letsencrypt renewal bash script
+  template: src=LE_renew_by_name.sh.j2 dest=/opt/autodeflect/bin/LE_renew_by_name.sh owner=root group=root mode=0744
   tags: letsencrypt 
 
-- name: Create Letsencrypt site list
+- name: Generate Letsencrypt site list
   template: src=letsencrypt-site.list.j2 dest=/opt/autodeflect/etc/letsencrypt-site.list
   with_dict: remap
-  tags:
-    - letsencrypt 
-    - ledebug
+  tags: letsencrypt 
 
-- name: execute remote LE renewals
+- name: Execute remote LE renewals
   command: /opt/autodeflect/bin/LE_renew_by_name.sh
   tags: letsencrypt 
 
-- name: syncronise LE certificates
+- name: Syncronise LE certificates to local path
   synchronize: src=/opt/autodeflect/le_certs/ dest={{letsencrypt_output}} mode=pull
   tags: letsencrypt

@@ -9,17 +9,12 @@
 BASEDIR=/opt/autodeflect/
 LE_SITE_LIST=${BASEDIR}/etc/letsencrypt-site.list
 LE_OUTPUT_DIR=${BASEDIR}/le_certs
+LE_DIR=/etc/letsencrypt
 RENEW_WINDOW=29days   # `man date` for format details
 RENEW_DATE=$(date -d "+$RENEW_WINDOW" +%s)
-LE_CERTS_CONFIG=${BASEDIR}/etc/letsencrypt-certs.auto
-LE_DNETS_CONFIG=${BASEDIR}/etc/letsencrypt-dnets.auto
-
-# split config into relevant sections
-grep '^CERTS' $LE_SITE_LIST | cut -d" " -f 2- > $LE_CERTS_CONFIG
-grep '^DNET' $LE_SITE_LIST | cut -d" " -f 2- > $LE_DNETS_CONFIG
 
 function check_cert() {
-  if [ -f /etc/letsencrypt/live/${DOMAIN_W_ARGS%% *}/cert.pem ] ; then
+  if [ -f ${LE_DIR}/live/${DOMAIN_W_ARGS%% *}/cert.pem ] ; then
     # found a cert - check it's expiry
     EXPIRY=$(date -d "$(openssl x509 -noout -dates -in /etc/letsencrypt/live/${DOMAIN_W_ARGS%% *}/cert.pem | awk -F'=' '/After/ {print $2}')" +%s)
     if [ $EXPIRY -gt $RENEW_DATE ]; then
@@ -37,14 +32,17 @@ return $STATUS
 }
 
 function renew_cert() {
-  echo certbot certonly --standalone --agree-tos --standalone-supported-challenges http-01 -m sysops@equalit.ie -n -d $DOMAIN_W_ARGS
+  echo certbot certonly --standalone --agree-tos --standalone-supported-challenges http-01 -m {{ le_email }} -n -d $DOMAIN_W_ARGS
+}
+
+function initialise_output_dir() {
+  [ -d $LE_OUTPUT_DIR ] && rm -rf ${LE_OUTPUT_DIR}/* || mkdir $LE_OUTPUT_DIR
 }
 
 function populate_output_dir() {
-  LE_PREFIX=/etc/letsencrypt/live/${SITEDNET%%:*}
-  cp ${LE_PREFIX}/cert.pem ${LE_OUTPUT_DIR}/${SITEDNET##*:}/${SITEDNET%%:*}.cert.crt
-  cp ${LE_PREFIX}/chain.pem ${LE_OUTPUT_DIR}/${SITEDNET##*:}/${SITEDNET%%:*}.chain.crt
-  cp ${LE_PREFIX}/privkey.pem ${LE_OUTPUT_DIR}/${SITEDNET##*:}/${SITEDNET%%:*}.key
+  cp ${LE_DIR}/live/${DOMAIN_W_ARGS%% *}/cert.pem ${LE_OUTPUT_DIR}/${DOMAIN_W_ARGS%% *}.cert.crt
+  cp ${LE_DIR}/live/${DOMAIN_W_ARGS%% *}/chain.pem ${LE_OUTPUT_DIR}/${DOMAIN_W_ARGS%% *}.chain.crt
+  cp ${LE_DIR}/live/${DOMAIN_W_ARGS%% *}/privkey.pem ${LE_OUTPUT_DIR}/${DOMAIN_W_ARGS%% *}.key
 }
 
 # This is a bit hard to read, so explained in detail:
@@ -56,12 +54,10 @@ function populate_output_dir() {
 #   domains that should be included)
 # - place all the cert/key bundles into an easy dir to be synced
 #   to brains
+initialise_output_dir
 cat $LE_CERTS_CONFIG | while IFS='' read -r DOMAIN_W_ARGS ; do
   check_cert || renew_cert 
-done
-
-initialise_output_dir
-
-cat $LE_DNETS_CONFIG | while IFS='' read -r SITEDNET ; do
   populate_output_dir
 done
+
+
