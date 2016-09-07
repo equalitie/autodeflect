@@ -274,7 +274,9 @@ void show_configuration(char *filename)
 	printf("Script Directory:\t%s\n", directory_script);
 	printf("Daemon Directory:\t%s\n", directory_daemon);
 	printf("Process File:\t\t%s\n", process_file);
-	printf("SSH_AGENT Command:\t%s\n", ssh_agent);
+	printf("ssh_agent Command:\t%s\n", ssh_agent);
+	printf("ssh_add:\t\t%s\n", ssh_add);
+	printf("ssh_key_file:\t\t%s\n", ssh_key_file);
 	printf("PID Directory:\t\t%s\n", directory_run);
 	printf("PID File Suffix:\t%s\n", pid_suffix);
 	printf("PID File Process:\t%s\n", pid_process);

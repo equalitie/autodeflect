@@ -10,6 +10,8 @@ char *directory_run = NULL;
 char *pid_suffix = NULL;
 char *process_file = NULL;
 char *ssh_agent = NULL;
+char *ssh_add = NULL;
+char *ssh_key_file = NULL;
 char *program_process = NULL;
 char *pid_process = NULL;
 char *pid_ssh_key = NULL;
@@ -43,6 +45,14 @@ int validate_core(void)
 	}
 
 	if (ssh_agent == NULL) {
+		return FALSE;
+	}
+
+	if (ssh_add == NULL) {
+		return FALSE;
+	}
+
+	if (ssh_key_file == NULL) {
 		return FALSE;
 	}
 
@@ -109,6 +119,22 @@ int config_load(char *filename)
 			}
 
 			strncpy(ssh_agent, value, (strlen(value) + 1));
+		}
+
+		if (!strcasecmp(key, "ssh_add")) {
+			if ((ssh_add = (char *)calloc((strlen(value) + 1), sizeof(char))) == NULL) {
+				return FALSE;
+			}
+
+			strncpy(ssh_add, value, (strlen(value) + 1));
+		}
+
+		if (!strcasecmp(key, "ssh_key_file")) {
+			if ((ssh_key_file = (char *)calloc((strlen(value) + 1), sizeof(char))) == NULL) {
+				return FALSE;
+			}
+
+			strncpy(ssh_key_file, value, (strlen(value) + 1));
 		}
 
 		if (!strcasecmp(key, "directory_script")) {
