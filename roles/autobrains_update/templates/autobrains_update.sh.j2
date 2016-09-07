@@ -310,6 +310,7 @@ function le_cert_bundle_diff_loop {
     then
       echo "ERROR: There was something wrong with the diff command"
     elif [ $RT -eq 1 ]
+    echo "file $i differs"
     then
       yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/ssl/$(basename $i)" 
       [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0

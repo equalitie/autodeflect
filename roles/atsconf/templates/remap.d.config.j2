@@ -27,10 +27,13 @@
 ## Let's Encrypt!
 map http://{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
 map http://www.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
-{% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}
-{% for prefix in remap[item.key]["additional_domain_prefix"] %}
-map http://{{additional_prefix}}.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
-{% endfor %} {% endif %}{% endif %}
+{# additional_domain_prefix is not being supported for LE 
+#{% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}
+#{% for prefix in remap[item.key]["additional_domain_prefix"] %}
+#map http://{{additional_domain__prefix}}.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
+#{% endfor %} {% endif %}
+#}
+{% endif %}
   {# END letsencrypt #}
 
   {# BEGIN include site-specific config from config/remap.d/ #}
@@ -41,17 +44,17 @@ map http://{{additional_prefix}}.{{item.key}}/.well-known/acme-challenge http://
   {# BEGIN remaps #}
 {% set http_type = remap[item.key]["http_type"] %}
   {# BEGIN http remaps #}
-{% if http_type == http_only or http_type == https %}
+{% if http_type == "http_only" or http_type == "https" %}
 map http://{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}
 map http://www.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}
-{% elseif remap[item.key]["http_type"] == https_redirect %}
+{% elif remap[item.key]["http_type"] == "https_redirect" %}
 redirect http://{{item.key}} https://{{item.key}}/
-redirect http://www.{{item.key}} https://www.{{item.key}/
+redirect http://www.{{item.key}} https://www.{{item.key}}/
 {% endif %}
   {# END http remaps #}
 
   {# BEGIN https remaps #}
-{% if http_type == https or http_type == https_only or http_type == https_redirect %}
+{% if http_type == "https" or http_type == "https_only" or http_type == "https_redirect" %}
 {% if remap[item.key]["origin_https_port"] is defined %}
 {% set target_https_port = ":" ~ remap[item.key]["origin_https_port"] %}
 {% else %} {% set target_https_port = "" %} {% endif %}
@@ -60,6 +63,5 @@ map https://www.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{tar
 {% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}{% for prefix in remap[item.key]["additional_domain_prefix"] %}
 map https://{{prefix}}.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}}
 {% endfor %} {% endif %} {% endif %}
-{% endif %}
   {# END https remaps #}
   {# END remaps #}
