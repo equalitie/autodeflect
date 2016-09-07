@@ -39,7 +39,7 @@
 - name: remap.d per-site config
   template: src=remap.d.config.j2 dest={{ats_output}}{{remap[item.key].network}}/remap.d/{{ item.key }}.config
   with_dict: remap
-  tags: ats
+  tags: atsdebug
 
 - name: cache.config 
   template: src=cache.config.j2 dest={{ats_output}}/{{item.key}}/cache.config

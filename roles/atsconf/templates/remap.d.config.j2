@@ -1,66 +1,78 @@
 # {{ no_edit_template }}
 
-  {# BEGIN variable definitions #}
-    {# define cachecontrol #}
+  {# BEGIN variable definitions -#}
+    {#- define cachecontrol -#}
 {% if remap[item.key]["cachecontrol"] is not defined or remap[item.key]["cachecontrol"] == false %}
 {% set target_cachetime = remap[item.key]["cache_time"] ~ "m" %}
 {% else %} {% set target_cachetime = "cachecontrol" %} {% endif %}
 
-    {# define dnet #}
+    {#- define dnet -#}
 {% if dnets[remap[item.key]["network"]] is defined and dnets[remap[item.key]["network"]] %}
 {% set target_dnet = dnets[remap[item.key]["network"]] %}
 {% else %} {% set target_dnet = dnets[default_dnet] %} {% endif %}
 
-    {# define port #}
+    {#- define port -#}
 {% if remap[item.key]["origin_http_port"] is defined %}
 {% set target_port = ":" ~ remap[item.key]["origin_http_port"] %}
 {% else %} {% set target_port = "" %} {% endif %}
 
-    {# define pluginconf #}
+    {#- define pluginconf -#}
 {% if remap[item.key]["confremap"] is defined and remap[item.key]["confremap"] %}
 {% set pluginconf = "@plugin=conf_remap.so @pparam=/usr/local/trafficserver/conf/conf.d/" ~ item.key ~ ".config" %}
 {% else %} {% set pluginconf = "" %} {% endif %}
-  {# END variable definition #}
+  {#- END variable definition -#}
 
-  {# BEGIN letsencrypt #}
-{% if remap[item.key]["letsencrypt"] is defined and remap[item.key]["letsencrypt"] == true %}
+  {#- BEGIN letsencrypt -#}
+{%- if remap[item.key]["letsencrypt"] is defined and remap[item.key]["letsencrypt"] == true %}
+
 ## Let's Encrypt!
 map http://{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
-map http://www.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
-{# additional_domain_prefix is not being supported for LE 
-#{% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}
-#{% for prefix in remap[item.key]["additional_domain_prefix"] %}
-#map http://{{additional_domain__prefix}}.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
-#{% endfor %} {% endif %}
-#}
-{% endif %}
-  {# END letsencrypt #}
+{% if remap[item.key]["no_www"] is not defined or remap[item.key]["no_www"] == false %}{% if remap[item.key]["dns_records"] is defined %}
+map http://www.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge {% endif %}{% endif %}
+{% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}
+{% for prefix in remap[item.key]["additional_domain_prefix"] %}
+map http://{{additional_domain_prefix}}.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
+{% endfor %} {% endif %}
+{%- endif -%}
+  {#- END letsencrypt -#}
 
-  {# BEGIN include site-specific config from config/remap.d/ #}
+  {#- BEGIN include site-specific config from config/remap.d/ #}
+
 # include config/remap.d/{{item.key}} if found
 {% include "config/remap.d/" ~ item.key ~ ".config" ignore missing %}
-  {# END include config/remap.d/ #} 
+  {#+ END include config/remap.d/ #} 
+# end include
 
   {# BEGIN remaps #}
-{% set http_type = remap[item.key]["http_type"] %}
   {# BEGIN http remaps #}
-{% if http_type == "http_only" or http_type == "https" %}
-map http://{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}
-map http://www.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}
-{% elif remap[item.key]["http_type"] == "https_redirect" %}
-redirect http://{{item.key}} https://{{item.key}}/
-redirect http://www.{{item.key}} https://www.{{item.key}}/
-{% endif %}
-  {# END http remaps #}
+{% if remap[item.key]["http_type"] == "http" or remap[item.key]["http_type"] == "https" %}
 
-  {# BEGIN https remaps #}
-{% if http_type == "https" or http_type == "https_only" or http_type == "https_redirect" %}
+map http://{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}
+{% if remap[item.key]["no_www"] is not defined or remap[item.key]["no_www"] == false %}{% if remap[item.key]["dns_records"] is defined %}
+map http://www.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}{% endif %}{% endif %}
+{% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}{% for prefix in remap[item.key]["additional_domain_prefix"] %}
+
+map http://{{prefix}}.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}
+{% endfor %}{% endif %}
+{% elif remap[item.key]["http_type"] == "https_redirect" %}
+
+redirect http://{{item.key}} https://{{item.key}}/
+{% if remap[item.key]["no_www"] is not defined or remap[item.key]["no_www"] == false %}{% if remap[item.key]["dns_records"] is defined %}
+redirect http://www.{{item.key}} https://www.{{item.key}}/{% endif %}{% endif %}
+{% endif -%}
+  {# END http remaps -#}
+
+  {#- BEGIN https remaps #}
+{% if remap[item.key]["http_type"] == "https" or remap[item.key]["http_type"] == "https_only" or remap[item.key]["http_type"] == "https_redirect" %}
 {% if remap[item.key]["origin_https_port"] is defined %}
 {% set target_https_port = ":" ~ remap[item.key]["origin_https_port"] %}
 {% else %} {% set target_https_port = "" %} {% endif %}
+
 map https://{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}}
-map https://www.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}}
+{% if remap[item.key]["no_www"] is not defined or remap[item.key]["no_www"] == false %}{% if remap[item.key]["dns_records"] is defined %}
+map https://www.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}}{% endif %}{% endif %}
 {% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}{% for prefix in remap[item.key]["additional_domain_prefix"] %}
+
 map https://{{prefix}}.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}}
 {% endfor %} {% endif %} {% endif %}
   {# END https remaps #}

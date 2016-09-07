@@ -6,7 +6,10 @@
 {% for site in remap %}
 {% if remap[site]["letsencrypt"] is defined and remap[site]["letsencrypt"] %}
 {# use the main site name, and add www if "no_www" is not defined OR if this is a subsite. subsites can be detected by complete lack of dns records #}
-{{site}}{% if remap[site]["no_www"] is not defined or remap[site]["no_www"] == false %}{% if remap[site]["dns_records"] is defined %} -d www.{{site}}{% endif %}{% endif %}
+{{site}}{% if remap[site]["no_www"] is not defined or remap[site]["no_www"] == false %}{% if remap[site]["dns_records"] is defined %} -d www.{{site}}{% endif %}{% endif %}{% if "additional_domain_prefix" in remap[site] and remap[site]["additional_domain_prefix"] %}{% for prefix in remap[site]["additional_domain_prefix"] %} -d {{prefix}}.{{site}}{% endfor %}{% endif %}
 
 {% endif %}
 {% endfor %}
+
+
+
