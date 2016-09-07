@@ -80,13 +80,13 @@ int main(int argc, char **argv)
 int check_ssh_agent_socket(char *socket_name)
 {
 
-	struct stat buff;
+	struct stat buffer;
 	int ret = FALSE;
 
-	if (stat(socket_name, &buff) == 0) {
+	if (stat(socket_name, &buffer) == 0) {
 		fprintf(stderr, "File %s exits", socket_name);
 		// if socket
-		if (S_ISSOCK(buff.st_mode)) {
+		if (S_ISSOCK(buffer.st_mode)) {
 			printf(" and is a socket.\n");
 			ret = TRUE;
 		}
