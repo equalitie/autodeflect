@@ -956,13 +956,13 @@ if [ -n "$SKIP_UPDATE" ]; then
   fi
 
   if [ -n "$MOST" ]; then
-    controller_update
     letsencrypt_update
+    controller_update
   else
-    yorn "Update (controller) config" "controller_update"
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
     yorn "Update (letsencrypt)" "letsencrypt_update"
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped
+    yorn "Update (controller) config" "controller_update"
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
   fi
   if [ -z "$MOST" ]; then
     AW_LASTRAN=$(date -d @$(cat {{playbook_dir}}/config/rundata/$AW_LASTRUN_FILE))
