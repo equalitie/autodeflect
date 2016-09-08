@@ -17,11 +17,15 @@
 int check_ssh_agent_socket(char *socket_name);
 int check_need_agent(LIBSSH2_SESSION *session);
 pid_t run_agent(char *ssh_agent);
+int check_loaded_key(char *ssh_key_fingerprint, char *ssh_add, LIBSSH2_SESSION *session);
 
 int main(int argc, char **argv)
 {
 
 	pid_t ssh_agent_pid;
+	extern char **environ;
+	int i = 0;
+	int fail = 0;
 
 	LIBSSH2_SESSION *session = NULL;
 
@@ -56,9 +60,24 @@ int main(int argc, char **argv)
 			}
 		}
 
+		if (!check_loaded_key(ssh_key_fingerprint, ssh_add, session)) {
+			printf("Need to load ssh-key file %s\n", ssh_key_file);
+			fail++;
+		}
+
+		if (fail > 5) {
+			fprintf(stderr, "Failed %d times. Fix problem and remove:\n%s Exiting\n", fail, pid_ssh_key);
+			break;
+		}
+
 
 		printf("EHLO\n");
 		printf("ssh_agent_pid: %d\n", ssh_agent_pid);
+		printf("pass: %s\n", passphrase);
+		while(environ[i]) {
+			printf("%s\n", environ[i++]);
+		}
+		i = 0;
 		sleep(5);
 
 	}
@@ -80,20 +99,20 @@ int main(int argc, char **argv)
 int check_ssh_agent_socket(char *socket_name)
 {
 
-	struct stat buff;
+	struct stat buffer;
 	int ret = FALSE;
 
-	if (stat(socket_name, &buff) == 0) {
+	if (stat(socket_name, &buffer) == 0) {
 		fprintf(stderr, "File %s exits", socket_name);
-		// if socket
-		if (S_ISSOCK(buff.st_mode)) {
+		/* if socket */
+		if (S_ISSOCK(buffer.st_mode)) {
 			printf(" and is a socket.\n");
 			ret = TRUE;
 		}
 		printf(" and is not a socket. Why? Exiting.\n");
 		exit(1);
 	} else {
-		printf("File %s not created.\n", socket_name);
+		printf("%s not found.\n", socket_name);
 	}
 
 	return(ret);
@@ -134,7 +153,7 @@ int check_need_agent(LIBSSH2_SESSION *session) {
 ************************************************************************************************/
 
 pid_t run_agent(char *ssh_agent) {
-//ssh_agent
+/* ssh_agent */
 	FILE *fp;
 	char *buffer, *ssh_agent_pid;
 	size_t bufsiz = 0;
@@ -185,3 +204,35 @@ pid_t run_agent(char *ssh_agent) {
 
 /************************************************************************************************
 ************************************************************************************************/
+
+int check_loaded_key(char *ssh_key_fingerprint, char *ssh_add, LIBSSH2_SESSION *session) {
+
+	FILE *fp;
+	char command[256];
+	char buffer[512];
+	int ret = FALSE;
+
+	if (!check_need_agent(session)) {
+		return(ret);
+	} 
+
+	sprintf(command, "%s -ls", ssh_add);
+        if (!(fp = popen(command, "r"))) {
+                return(ret);
+        }
+
+	while (fgets(buffer, 512, fp) != NULL) {
+		if ((strstr(buffer, ssh_key_fingerprint)) != NULL) {
+			ret = TRUE;
+			break;
+		} else {
+			continue;
+		}
+	}
+
+	if (fp) {
+		fclose(fp);
+	}
+
+	return(ret);
+}

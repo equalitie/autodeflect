@@ -12,11 +12,13 @@ char *process_file = NULL;
 char *ssh_agent = NULL;
 char *ssh_add = NULL;
 char *ssh_key_file = NULL;
+char *ssh_key_fingerprint = NULL;
 char *program_process = NULL;
 char *pid_process = NULL;
 char *pid_ssh_key = NULL;
 char *ssh_agent_sock = NULL;
 char *path = NULL;
+char *passphrase = NULL;
 
 int validate_core(void)
 {
@@ -53,6 +55,10 @@ int validate_core(void)
 	}
 
 	if (ssh_key_file == NULL) {
+		return FALSE;
+	}
+
+	if (ssh_key_fingerprint == NULL) {
 		return FALSE;
 	}
 
@@ -135,6 +141,14 @@ int config_load(char *filename)
 			}
 
 			strncpy(ssh_key_file, value, (strlen(value) + 1));
+		}
+
+		if (!strcasecmp(key, "ssh_key_fingerprint")) {
+			if ((ssh_key_fingerprint = (char *)calloc((strlen(value) + 1), sizeof(char))) == NULL) {
+				return FALSE;
+			}
+
+			strncpy(ssh_key_fingerprint, value, (strlen(value) + 1));
 		}
 
 		if (!strcasecmp(key, "directory_script")) {
@@ -248,6 +262,20 @@ int config_load(char *filename)
 
 	strncpy(ssh_agent, buffer, strlen(buffer) + 1);
 
+	if (getenv("PASSPHRASE")) {
+		sprintf(buffer, "%s", getenv("PASSPHRASE"));
+
+		if (buffer[strlen(buffer) -1] == '\n') {
+			buffer[strlen(buffer) -1] = 0;
+		}
+
+		if ((passphrase = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
+			return FALSE;
+		}
+
+		strncpy(passphrase, buffer, strlen(buffer) + 1);
+	}
+
 
 	free(buffer);
 	free(key);
@@ -257,6 +285,9 @@ int config_load(char *filename)
 	clearenv();
 	setenv("SSH_AUTH_SOCK", ssh_agent_sock, 1);
 	setenv("PATH", path, 1);
+	setenv("PWD", "/var/tmp", 1);
+	setenv("TERM", "vt100", 1);
+	setenv("SHELL", sh_command, 1);
 
 	return TRUE;
 }
