@@ -43,6 +43,7 @@ map http://{{prefix}}.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/
   {#+ END include config/remap.d/ #} 
 # end include
 
+{% if remap[item.key]["bypass_remap"] is not defined or remap[item.key]["bypass_remap"] == false %}
   {# BEGIN remaps #}
   {# BEGIN http remaps #}
 {% if remap[item.key]["http_type"] == "http" or remap[item.key]["http_type"] == "https" %}
@@ -78,3 +79,4 @@ map https://{{prefix}}.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origi
 {% endfor %} {% endif %} {% endif %}
   {# END https remaps #}
   {# END remaps #}
+{% endif %}
