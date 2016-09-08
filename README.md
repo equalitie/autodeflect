@@ -17,6 +17,7 @@ Deflect configuration. This comprises:
 * Bind-style zone file information (designed to be used with [Edgemanage](https://github.com/equalitie/edgemanage) for robust serving of content when servers experience instability or become unavailable). 
 * Nagios configuration for monitoring origin servers
 * Per-site configuration rules for the [Banjax](https://github.com/equalitie/banjax) mitigation platform - both the old-style libconfig-based file and the current YAML-based configuration. 
+* Scripted renewal of [Let's Encrypt](https://letsencrypt.org/) TLS certs
 
 Configuration 
 -------
