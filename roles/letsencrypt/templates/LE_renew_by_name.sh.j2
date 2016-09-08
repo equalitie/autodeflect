@@ -40,7 +40,11 @@ function renew_cert() {
 
 function check_delegation() {
   echo "checking ${DOMAIN_W_ARGS%% *} is delegated"
-  dig -t ns +short ${DOMAIN_W_ARGS%% *} | grep $NS_SERVER >/dev/null
+  dig -t ns +short ${DOMAIN_W_ARGS%% *} | egrep "$NS_SERVER" >/dev/null
+  if [ "$?" -ne 0 ] ; then
+    PARENT=$(echo ${DOMAIN_W_ARGS%% *} | awk -F'.' '{print $(NF-1) "." $(NF) }')
+    dig -t ns +short $PARENT | egrep "$NS_SERVER" >/dev/null
+  fi
 }
 
 function initialise_output_dir() {
