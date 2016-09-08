@@ -290,6 +290,36 @@ function remap_diff_loop {
 done 
 }
 
+function le_cert_bundle_diff_loop {
+  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  for i in {{letsencrypt_output}}/$DNET/*; do
+    ls $i > /dev/null 2>&1
+    RT=$?
+    if [ "$RT" -gt 0 ]; then
+      continue
+    fi
+    local test=$(match_bypass_file "$(basename $i)")
+    if [ $test -gt 0 ]; then 
+      echo -e "Bypassing file $(basename $i)" 
+      continue
+    fi
+    DIFF_FILES="$ATS_DIR/conf/ssl/$(basename $i) $i"
+    diff -q $DIFF_FILES
+    RT=$?
+    if [ $RT -eq 2 ]
+    then
+      echo "ERROR: There was something wrong with the diff command"
+    elif [ $RT -eq 1 ]
+    echo "file $i differs"
+    then
+      yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/ssl/$(basename $i)" 
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
+      echo -e $ECHO_SEPARATOR 
+  fi
+    
+done 
+}
+
 function banjax_diff_loop {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   for i in {{banjax_output}}$DNET/banjax.d/*.bconf; do
@@ -399,6 +429,26 @@ function logs_xml_diff {
   fi
 }
 
+function ssl_multicert_diff {
+  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  local test=$(match_bypass_file ssl_multicert.config)
+    if [ $test -gt 0 ]; then
+      echo "Bypassing file ssl_multicert.config"
+      return 
+    fi
+  diff -Ntu $ATS_DIR/conf/ssl_multicert.config {{ats_output}}$DNET/ssl_multicert.config
+  RT=$?
+  if [ $RT -eq 2 ]
+  then
+    echo "ERROR: There was something wrong with the diff command"
+  elif [ $RT -eq 1 ]
+  then 
+    yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/ssl_multicert.config $ATS_DIR/conf/ssl_multicert.config" 
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
+    echo -e $ECHO_SEPARATOR
+  fi
+}
+
 function remap_diff {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   local test=$(match_bypass_file remap.config)
@@ -463,10 +513,12 @@ for DNET in $DNETS; do
   banjax_new_diff
   banjax_diff_loop
   logs_xml_diff
+  ssl_multicert_diff
   remap_diff
   remap_diff_loop
   cache_diff
   zone_diff_loop
+  le_cert_bundle_diff_loop
 done
   bind_local_templated_diff
 }
@@ -750,6 +802,8 @@ function letsencrypt_update() {
 
   start_ssh_agent || exit
 
+  rm -rf {{letsencrypt_output}}
+
   if [ -n "$DEBUG" ]; then
     ansible-playbook {{playbook_dir}}/site.yml -l letsencrypt
     local exitcode=$?
@@ -902,13 +956,13 @@ if [ -n "$SKIP_UPDATE" ]; then
   fi
 
   if [ -n "$MOST" ]; then
-    controller_update
     letsencrypt_update
+    controller_update
   else
-    yorn "Update (controller) config" "controller_update"
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
     yorn "Update (letsencrypt)" "letsencrypt_update"
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped
+    yorn "Update (controller) config" "controller_update"
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
   fi
   if [ -z "$MOST" ]; then
     AW_LASTRAN=$(date -d @$(cat {{playbook_dir}}/config/rundata/$AW_LASTRUN_FILE))
