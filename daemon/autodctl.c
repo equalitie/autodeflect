@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 				else if (!strcmp(long_options[option_index].name, "config"))
 					filename = optarg;
 				else if (!strcmp(long_options[option_index].name, "all"))
-					programs |= PROGRAM_ACTION_PROCESS | PROGRAM_ACTION_SSH_KEY;
+					programs |= PROGRAM_ACTION_SSH_KEY | PROGRAM_ACTION_PROCESS;
 				else if (!strcmp(long_options[option_index].name, "process"))
 					programs |= PROGRAM_ACTION_PROCESS;
 				else if (!strcmp(long_options[option_index].name, "ssh-key"))
@@ -133,18 +133,26 @@ int main(int argc, char **argv)
 
 void start_daemons(char *config_filename, int programs, int debug)
 {
+
+	char passphrase[MAX_PASS_SIZE];
+
 	if (!config_load(config_filename)) {
 		printf("Failed to load configuration file\n");
 		exit(0);
+	}
+
+	if (programs & PROGRAM_ACTION_SSH_KEY) {
+		printf("passphrase to unlock your key: ");
+		fgets(passphrase,MAX_PASS_SIZE,stdin);
+		setenv("PASSPHRASE", passphrase, 1);
+		start_program(PROGRAM_NAME_SSH_KEY, pid_ssh_key, config_filename, debug);
+		unsetenv("PASSPHRASE");
 	}
 
 	if (programs & PROGRAM_ACTION_PROCESS) {
 		start_program(PROGRAM_NAME_PROCESS, pid_process, config_filename, debug);
 	}
 
-	if (programs & PROGRAM_ACTION_SSH_KEY) {
-		start_program(PROGRAM_NAME_SSH_KEY, pid_ssh_key, config_filename, debug);
-	}
 
 }
 
@@ -276,6 +284,7 @@ void show_configuration(char *filename)
 	printf("Process File:\t\t%s\n", process_file);
 	printf("ssh_agent Command:\t%s\n", ssh_agent);
 	printf("ssh_add:\t\t%s\n", ssh_add);
+	printf("ssh_key_fingerprint:\t%s\n", ssh_key_fingerprint);
 	printf("ssh_key_file:\t\t%s\n", ssh_key_file);
 	printf("PID Directory:\t\t%s\n", directory_run);
 	printf("PID File Suffix:\t%s\n", pid_suffix);

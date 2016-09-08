@@ -27,6 +27,8 @@
 /**********************************************************************/
 
 
+#define MAX_PASS_SIZE 1024
+
 // From loadchk.c
 int load_check(double *current_load);
 
@@ -62,8 +64,10 @@ extern char *pid_ssh_key;
 extern char *ssh_agent;
 extern char *ssh_key_file;
 extern char *ssh_add;
+extern char *ssh_key_fingerprint;
 extern char *ssh_agent_sock;
 extern char *path;
+extern char *passphrase;
 
 int config_load(char *filename);
 

@@ -7,6 +7,8 @@ directory_run /run
 process_file .run
 ssh_agent /usr/bin/ssh-agent
 ssh_add /usr/bin/ssh-add
-ssh_key_file /path/to/mykey.pem
-pid_suffix _autodeflect
+ssh_key_file /path/to/mykey_id
+# ssh-keygen -lf /path/to/mykey_id to find the key. No spaces. 
+ssh_key_fingerprint c1:8d:73:42:6d:8e:ec:7c:31:76:b6:4b:22:37:b4:41
 path /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/deflect/scripts 
+pid_suffix _autodeflect
