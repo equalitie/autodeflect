@@ -10,24 +10,21 @@
 #include "conf.h"
 #include "cglobals.h"
 
-// "ssh-key" daemon
+/* "ssh-key" daemon */
 
-// FIXME: DO NOT USE THIS YET. WILL RUN OUT OF CONTROLL
 
 int check_ssh_agent_socket(char *socket_name);
 int check_need_agent(LIBSSH2_SESSION *session);
 pid_t run_agent(char *ssh_agent);
 int check_loaded_key(char *ssh_key_fingerprint, char *ssh_add, LIBSSH2_SESSION *session);
+int load_ssh_key(char *ssh_add, char *ssh_key_file, char *passphrase);
 
 int main(int argc, char **argv)
 {
 
-	pid_t ssh_agent_pid;
-	extern char **environ;
-	int i = 0;
-	int fail = 0;
-
 	LIBSSH2_SESSION *session = NULL;
+	pid_t ssh_agent_pid;
+	int fail = 0;
 
 	lib_common_option_handling(argc, argv);
 
@@ -51,9 +48,12 @@ int main(int argc, char **argv)
 
 		if (!check_need_agent(session)) {
 			if (!check_ssh_agent_socket(ssh_agent_sock)) {
-				printf("We should start ssh-agent\n");
-				// This fuction should return -1 or pid
-				ssh_agent_pid = run_agent(ssh_agent);
+				printf ("We should start ssh-agent\n");
+				/* This fuction should return -1 or pid */
+				if (!(ssh_agent_pid = run_agent(ssh_agent))) {
+					fprintf(stderr, "ssh-agent would not start\n");
+					break;
+				}
 			} else {
 				fprintf(stderr, "Need ssh-agent but not safe to start\n");
 				break;
@@ -63,25 +63,24 @@ int main(int argc, char **argv)
 		if (!check_loaded_key(ssh_key_fingerprint, ssh_add, session)) {
 			printf("Need to load ssh-key file %s\n", ssh_key_file);
 			fail++;
+		} else {
+			fail = 0;
 		}
 
 		if (fail > 5) {
 			fprintf(stderr, "Failed %d times. Fix problem and remove:\n%s Exiting\n", fail, pid_ssh_key);
+			/* FIXME: We need to exit clean here., ie; remove .pid */
 			break;
 		}
 
 
 		printf("EHLO\n");
 		printf("ssh_agent_pid: %d\n", ssh_agent_pid);
-		printf("pass: %s\n", passphrase);
-		while(environ[i]) {
-			printf("%s\n", environ[i++]);
-		}
-		i = 0;
 		sleep(5);
 
 	}
 
+	/* Do some cleanup when break from while loop */
 	if(session) {
 		libssh2_session_disconnect(session, "Shutdown ssh session");
 		libssh2_session_free(session);
@@ -235,4 +234,49 @@ int check_loaded_key(char *ssh_key_fingerprint, char *ssh_add, LIBSSH2_SESSION *
 	}
 
 	return(ret);
+}
+
+/************************************************************************************************
+************************************************************************************************/
+
+int load_ssh_key(char *ssh_add, char *ssh_key_file, char *passphrase) {
+
+	pid_t pid;
+	int rv;
+	int extpipe[2];
+
+	pipe(extpipe);
+
+	if ((pid=fork()) == -1) {
+		fprintf(stderr, "Could not fork\n");
+		exit(1);
+	}
+
+	if (pid) {
+		/* We are parent */
+		dup2(extpipe[1],1);
+		close(extpipe[0]);
+		setvbuf(stdout,(char*)NULL,_IONBF,0);
+		sleep(5);
+		printf("%s\n", passphrase);
+		wait(&rv);
+		if (rv != 0) {
+			return(FALSE);
+		}
+	} else {
+		/* We are child */
+		dup2(extpipe[0],0);
+		close(extpipe[1]);
+		/* FIXME: Need to make this handler 
+		signal(SIGALARM, my_handle); */
+		alarm(10);
+		if (execl(ssh_add,ssh_add,ssh_key_file, (char*) NULL) == -1) {
+			fprintf(stderr, "ssh-add failed\n");
+			exit(1);
+		}
+		return(0);
+	}
+
+	return(TRUE);
+
 }

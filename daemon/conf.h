@@ -26,7 +26,6 @@
 // External definitions
 /**********************************************************************/
 
-
 #define MAX_PASS_SIZE 1024
 
 // From loadchk.c
@@ -76,11 +75,8 @@ int config_load(char *filename);
 /**********************************************************************/
 
 extern double max_load;
-
 extern int daemon_interval_high_load;
-
 extern int daemon_interval_generic;
-
 extern int daemon_interval_process;
 
 #endif
