@@ -291,22 +291,17 @@ function le_cert_bundle_diff_loop {
     if [ -f "$ATS_DIR/conf/ssl/$(basename $i)" ]
     then 
       DIFF_FILES="$ATS_DIR/conf/ssl/$(basename $i) $i"
-      diff -q $DIFF_FILES
+      diff -Nq $DIFF_FILES
       RT=$?
       if [ $RT -eq 2 ]
       then 
         echo "ERROR: There was something wrong with the diff command"
       elif [ $RT -eq 1 ]
       then 
-        yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/ssl/$(basename $i)" 
+        yorn "Do you want to install this file in $DNET" "install_file $i $ATS_DIR/conf/ssl/$(basename $i)" 
         [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
         echo -e $ECHO_SEPARATOR 
       fi   
-    else 
-      echo "file $(basename $i) not found in live config - not attempting to diff"
-      yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/ssl/$(basename $i)" 
-      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
-      echo -e $ECHO_SEPARATOR 
     fi   
     
 done
