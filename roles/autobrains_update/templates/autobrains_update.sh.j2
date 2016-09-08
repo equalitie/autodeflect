@@ -233,31 +233,16 @@ FILE=${OLD_FILE##*/}
 
 [ -d ${DIR}/old ] || mkdir ${DIR}/old || ( echo "error creating old directory -quitting" && exit )
 if [ -f ${OLD_FILE} ]; then
-  if [ -z "$YES" ]; then
-    echo "Anything you would like to say about this update?"
-    read explanation
-    test -z "$explanation" && echo "no explanation? naughty!"
-  else
-    explanation="Automode" 
-  fi
 
   cp ${OLD_FILE} ${DIR}/old/${FILE}-${DATE}-${UNAME}
   cp ${NEW_FILE} ${OLD_FILE}
   [ -f ${DIR}/old/${FILE}-latest ] && rm ${DIR}/old/${FILE}-latest
-  ( /bin/echo -e "$explanation\n${OLD_FILE}\n" ; diff -u ${DIR}/old/${FILE}-${DATE}-${UNAME} ${OLD_FILE} ) | tee ${LOGDIR}/${FILE}.${DATE} | notify_store ${OLD_FILE}
+  ( diff -u ${DIR}/old/${FILE}-${DATE}-${UNAME} ${OLD_FILE} ) | tee ${LOGDIR}/${FILE}.${DATE} | notify_store ${OLD_FILE}
   cp ${DIR}/${FILE} ${DIR}/old/${FILE}-latest
 else
   cp ${NEW_FILE} ${OLD_FILE}
   cp ${DIR}/${FILE} ${DIR}/old/${FILE}-latest
-  if [ -z "$YES" ]; then
-    echo "Anything you would like to say about this update?"
-    read explanation
-    test -z "$explanation" && echo "no explanation? naughty!"
-  else
-    explanation="Automode"  
-  fi
-
-  ( /bin/echo -e "$explanation\n${OLD_FILE}\n" ; echo "installed ${OLD_FILE}" ) | tee ${LOGDIR}/${FILE}.${DATE} | notify_store ${OLD_FILE}
+  ( echo "installed ${OLD_FILE}" ) | tee ${LOGDIR}/${FILE}.${DATE} | notify_store ${OLD_FILE}
 fi
 }
 
@@ -292,32 +277,40 @@ done
 
 function le_cert_bundle_diff_loop {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
-  for i in {{letsencrypt_output}}/$DNET/*; do
-    ls $i > /dev/null 2>&1
+  for i in {{letsencrypt_output}}*; do
+    ls $i > /dev/null 2>&1 
     RT=$?
-    if [ "$RT" -gt 0 ]; then
+    if [ "$RT" -gt 0 ]; then 
       continue
-    fi
+    fi   
     local test=$(match_bypass_file "$(basename $i)")
     if [ $test -gt 0 ]; then 
       echo -e "Bypassing file $(basename $i)" 
       continue
-    fi
-    DIFF_FILES="$ATS_DIR/conf/ssl/$(basename $i) $i"
-    diff -q $DIFF_FILES
-    RT=$?
-    if [ $RT -eq 2 ]
-    then
-      echo "ERROR: There was something wrong with the diff command"
-    elif [ $RT -eq 1 ]
-    echo "file $i differs"
-    then
+    fi   
+    if [ -f "$ATS_DIR/conf/ssl/$(basename $i)" ]
+    then 
+      DIFF_FILES="$ATS_DIR/conf/ssl/$(basename $i) $i"
+      diff -q $DIFF_FILES
+      RT=$?
+      if [ $RT -eq 2 ]
+      then 
+        echo "ERROR: There was something wrong with the diff command"
+      elif [ $RT -eq 1 ]
+      then 
+        yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/ssl/$(basename $i)" 
+        [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
+        echo -e $ECHO_SEPARATOR 
+      fi   
+    else 
+      echo "file $(basename $i) not found in live config - not attempting to diff"
       yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/ssl/$(basename $i)" 
       [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
       echo -e $ECHO_SEPARATOR 
-  fi
+    fi   
     
-done 
+done
+
 }
 
 function banjax_diff_loop {
