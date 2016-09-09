@@ -288,18 +288,23 @@ function le_cert_bundle_diff_loop {
       echo -e "Bypassing file $(basename $i)" 
       continue
     fi   
-    DIFF_FILES="$ATS_DIR/conf/ssl/$(basename $i) $i"
-    diff -Nq $DIFF_FILES
-    RT=$?
-    if [ $RT -eq 2 ]
-    then 
-      echo "ERROR: There was something wrong with the diff command"
-    elif [ $RT -eq 1 ]
-    then 
-      yorn "Do you want to install this file in $DNET" "install_file $i $ATS_DIR/conf/ssl/$(basename $i)" 
-      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
-      echo -e $ECHO_SEPARATOR 
-    fi   
+    SITENAME=$(echo $(basename $i) | sed -E 's%.chain.crt$|.cert.crt$|\.key$%%')
+    if [ -f $ATS_DIR/conf/remap.d/$SITENAME.config ] ; then
+      DIFF_FILES="$ATS_DIR/conf/ssl/$(basename $i) $i"
+      diff -Nq $DIFF_FILES
+      RT=$?
+      if [ $RT -eq 2 ]
+      then 
+        echo "ERROR: There was something wrong with the diff command"
+      elif [ $RT -eq 1 ]
+      then 
+        yorn "Do you want to install this file in $DNET" "install_file $i $ATS_DIR/conf/ssl/$(basename $i)" 
+        [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
+        echo -e $ECHO_SEPARATOR 
+      fi   
+    else
+      echo "$(basename $i) not found in remap.d/ for $DNET - skipping"
+    fi
     
 done
 
