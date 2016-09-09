@@ -302,8 +302,6 @@ function le_cert_bundle_diff_loop {
         [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
         echo -e $ECHO_SEPARATOR 
       fi   
-    else
-      echo "$(basename $i) not found in remap.d/ for $DNET - skipping"
     fi
     
 done
