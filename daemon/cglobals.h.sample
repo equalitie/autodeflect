@@ -1,7 +1,7 @@
 #ifndef _globals_h_
 #define _globals_h_
 
-double max_load = 15.00;
+double max_load = 10.00;
 
 int daemon_interval_high_load = 30;
 
