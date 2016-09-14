@@ -1,6 +1,8 @@
 CC = gcc
 CFLAGS = -O2 -Wall -DVERSION="\"`cat VERSION`\""
 LDFLAGS = 
+SSL = -lssl -lcrypto
+SSH = -lssh2
 
 prefix=..
 
@@ -30,7 +32,7 @@ ad2p: $(C_COMMON_PREREQ)
 
 ad2ssh: $(C_COMMON_PREREQ)
 	$(CC) $(CFLAGS) -c ad2ssh.c
-	$(CC) $(CFLAGS) $(LDFLAGS) $(C_OBJS) -lssh2 ad2ssh.o -o ad2ssh
+	$(CC) $(CFLAGS) $(LDFLAGS) $(C_OBJS) $(SSL) $(SSH) ad2ssh.o -o ad2ssh
 
 loadchk:
 	$(CC) $(CFLAGS) -c loadchk.c

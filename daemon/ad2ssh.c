@@ -5,8 +5,9 @@
 #include <getopt.h>
 #include <signal.h>
 #include <sys/stat.h>
-#include <sys/wait.h>
 #include <libssh2.h>
+#include <openssl/pem.h>
+#include <openssl/evp.h>
 #include "conf.h"
 #include "cglobals.h"
 
@@ -17,20 +18,21 @@ int check_ssh_agent_socket(char *socket_name);
 int check_need_agent(LIBSSH2_SESSION *session);
 pid_t run_agent(char *ssh_agent);
 int check_loaded_key(char *ssh_key_fingerprint, char *ssh_add, LIBSSH2_SESSION *session);
-int load_ssh_key(char *ssh_add, char *ssh_key_file, char *passphrase);
+int load_ssh_key(char *ssh_key_file, char *passphrase);
 
 int main(int argc, char **argv)
 {
 
 	LIBSSH2_SESSION *session = NULL;
-	pid_t ssh_agent_pid;
-	int fail = 0;
+	pid_t ssh_agent_pid = 0;
+	int fail = 0, ping = 0;
+	int err = EXIT_SUCCESS;
 
 	lib_common_option_handling(argc, argv);
 
 	if (!handle_pid_file_checks(pid_ssh_key, PROGRAM_NAME_SSH_KEY)) {
 		printf("handle_pid_file_checks indicates exit required\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	populate_globals();
@@ -39,29 +41,37 @@ int main(int argc, char **argv)
 
 	if (!session) {
 		fprintf(stderr, "Failure establishing SSH session\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	while (1) {
-		if (need_finish == TRUE)
+		if (need_finish == TRUE) {
 			break;
+		}
 
 		if (!check_need_agent(session)) {
 			if (!check_ssh_agent_socket(ssh_agent_sock)) {
-				printf ("We should start ssh-agent\n");
+				fprintf (stderr, "ssh-agent needs to be started\n");
 				/* This fuction should return -1 or pid */
 				if (!(ssh_agent_pid = run_agent(ssh_agent))) {
 					fprintf(stderr, "ssh-agent would not start\n");
+					err = EXIT_FAILURE;
 					break;
 				}
 			} else {
-				fprintf(stderr, "Need ssh-agent but not safe to start\n");
+				fprintf(stderr, "ssh-agent needs to be started but not safe\n");
+				err = EXIT_FAILURE;
 				break;
 			}
 		}
 
 		if (!check_loaded_key(ssh_key_fingerprint, ssh_add, session)) {
-			printf("Need to load ssh-key file %s\n", ssh_key_file);
+			fprintf(stderr, "Need to load ssh-key file %s\n", ssh_key_file);
+			if (!load_ssh_key(ssh_key_file, passphrase)) {
+				fprintf(stderr, "Could not load %s\n", ssh_key_file);
+			} else {
+				fprintf(stderr, "Loaded %s\n", ssh_key_file);
+			}
 			fail++;
 		} else {
 			fail = 0;
@@ -73,10 +83,13 @@ int main(int argc, char **argv)
 			break;
 		}
 
+		ping++;
+		if (ping > 24) {
+			fprintf(stderr, "ssh-key: ping\n");
+			ping = 0;
+		}
 
-		printf("EHLO\n");
-		printf("ssh_agent_pid: %d\n", ssh_agent_pid);
-		sleep(5);
+		sleep(daemon_interval_ssh_key);
 
 	}
 
@@ -89,7 +102,7 @@ int main(int argc, char **argv)
 	if (ssh_agent_pid)
 		kill(ssh_agent_pid, SIGTERM);
 
-	return (0);
+	exit(err);
 }
 
 /************************************************************************************************
@@ -103,15 +116,15 @@ int check_ssh_agent_socket(char *socket_name)
 
 	if (stat(socket_name, &buffer) == 0) {
 		fprintf(stderr, "File %s exits", socket_name);
+		ret = TRUE;
 		/* if socket */
 		if (S_ISSOCK(buffer.st_mode)) {
-			printf(" and is a socket.\n");
-			ret = TRUE;
+			fprintf(stderr, " and is a socket\n");
+		} else {
+			fprintf(stderr, " and is not a socket. Why?\n");
 		}
-		printf(" and is not a socket. Why? Exiting.\n");
-		exit(1);
 	} else {
-		printf("%s not found.\n", socket_name);
+		fprintf(stderr, "%s not found.\n", socket_name);
 	}
 
 	return(ret);
@@ -131,7 +144,7 @@ int check_need_agent(LIBSSH2_SESSION *session) {
 	if (!agent) {
 		/* Not sure why this would ever happen, but bad if it does. */
 		fprintf(stderr, "Failure establishing ssh-agent session\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 
@@ -206,77 +219,89 @@ pid_t run_agent(char *ssh_agent) {
 
 int check_loaded_key(char *ssh_key_fingerprint, char *ssh_add, LIBSSH2_SESSION *session) {
 
-	FILE *fp;
-	char command[256];
+	FILE *fp = NULL;
+	char cmd[256];
 	char buffer[512];
 	int ret = FALSE;
 
 	if (!check_need_agent(session)) {
-		return(ret);
+		fprintf(stderr, "Checking if key loaded but no agent session\n");
+		goto end;
 	} 
 
-	sprintf(command, "%s -ls", ssh_add);
-        if (!(fp = popen(command, "r"))) {
-                return(ret);
+	sprintf(cmd, "%s -ls", ssh_add);
+        if (!(fp = popen(cmd, "r"))) {
+		fprintf(stderr, "Could not run %s\n", ssh_add);
+		goto end;
         }
 
 	while (fgets(buffer, 512, fp) != NULL) {
 		if ((strstr(buffer, ssh_key_fingerprint)) != NULL) {
 			ret = TRUE;
 			break;
-		} else {
-			continue;
 		}
 	}
+
+end:
 
 	if (fp) {
 		fclose(fp);
 	}
 
-	return(ret);
+	return ret;
 }
 
 /************************************************************************************************
 ************************************************************************************************/
 
-int load_ssh_key(char *ssh_add, char *ssh_key_file, char *passphrase) {
+int load_ssh_key(char *ssh_key_file, char *passphrase) {
 
-	pid_t pid;
-	int rv;
-	int extpipe[2];
+	EVP_PKEY *privkey = NULL;
+	FILE *fp = NULL;
+	FILE *pCmd = NULL;
+	/* FIXME: 256 is probably overkill, fix later */
+	char cmd[256];
+	int ret = TRUE;
 
-	pipe(extpipe);
+	OpenSSL_add_all_algorithms();
+	privkey = EVP_PKEY_new();
 
-	if ((pid=fork()) == -1) {
-		fprintf(stderr, "Could not fork\n");
-		exit(1);
+	fp = fopen (ssh_key_file, "r");
+	if (!fp) {
+		fprintf(stderr, "Could not open %s\n", ssh_key_file);
+		ret = FALSE;
+		goto end;
 	}
 
-	if (pid) {
-		/* We are parent */
-		dup2(extpipe[1],1);
-		close(extpipe[0]);
-		setvbuf(stdout,(char*)NULL,_IONBF,0);
-		sleep(5);
-		printf("%s\n", passphrase);
-		wait(&rv);
-		if (rv != 0) {
-			return(FALSE);
-		}
-	} else {
-		/* We are child */
-		dup2(extpipe[0],0);
-		close(extpipe[1]);
-		/* FIXME: Need to make this handler 
-		signal(SIGALARM, my_handle); */
-		alarm(10);
-		if (execl(ssh_add,ssh_add,ssh_key_file, (char*) NULL) == -1) {
-			fprintf(stderr, "ssh-add failed\n");
-			exit(1);
-		}
-		return(0);
+	if (!PEM_read_PrivateKey(fp, &privkey, NULL, passphrase)) {
+		fprintf(stderr, "Could not create new private key. Passphrase?\n");
+		ret = FALSE;
+		goto end;
 	}
 
-	return(TRUE);
+	sprintf(cmd, "%s -", ssh_add);
+	pCmd = popen(cmd, "w");
+	if (pCmd == NULL) {
+		fprintf(stderr, "Could not run %s\n", cmd);
+		ret = FALSE;
+		goto end;
+	}
 
+	sleep(1);
+
+	if (!PEM_write_PrivateKey(pCmd, privkey, NULL, NULL, 0, 0, NULL)) {
+		fprintf(stderr, "Could not write new private key\n");
+		ret = FALSE;
+		goto end;
+	}
+
+end:
+	if (fp)
+		fclose(fp);
+	if (privkey)
+		EVP_PKEY_free(privkey);
+	if (pCmd)
+		pclose(pCmd);
+
+	return ret;
 }

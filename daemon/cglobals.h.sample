@@ -8,6 +8,6 @@ int daemon_interval_high_load = 30;
 // Generic interval for use with errors or reconnections
 int daemon_interval_generic = 20;
 int daemon_interval_process = 20;
-int reconnect_loops_normal = 360;
+int daemon_interval_ssh_key = 5;
 
 #endif

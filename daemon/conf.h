@@ -78,5 +78,6 @@ extern double max_load;
 extern int daemon_interval_high_load;
 extern int daemon_interval_generic;
 extern int daemon_interval_process;
+extern int daemon_interval_ssh_key;
 
 #endif
