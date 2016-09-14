@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -DVERSION="\"`cat VERSION`\""
+CFLAGS = -O2 -Wall -DVERSION="\"`cat VERSION`\""
 LDFLAGS = 
 
 prefix=..
