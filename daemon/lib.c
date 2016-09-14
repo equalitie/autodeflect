@@ -8,7 +8,7 @@
 void lib_common_option_handling(int argc, char **argv)
 {
 	int c, debug = 0;
-	char *filename;
+	char *filename = NULL;
 
 	while(1) {
 		int option_index = 0;
