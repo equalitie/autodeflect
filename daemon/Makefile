@@ -4,10 +4,10 @@ LDFLAGS =
 
 prefix=..
 
-PROGRAMS = ad2p ad2ssh autodctl 
+PROGRAMS = ad2p ad2ssh autodeflect 
 C_PROGRAMS = ad2p ad2ssh
 
-ADMIN_PROGRAMS = autodctl
+ADMIN_PROGRAMS = autodeflect
 
 C_OBJS = cdb.o loadchk.o pid.o signal.o config.o lib.o
 
@@ -50,8 +50,8 @@ lib:
 cdb:
 	$(CC) $(CFLAGS) -c cdb.c
 
-autodctl: $(ADMIN_PREREQ)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(ADMIN_OBJS) autodctl.c -o autodctl
+autodeflect: $(ADMIN_PREREQ)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(ADMIN_OBJS) autodeflect.c -o autodeflect
 
 clean:
 	rm -f core *.o *.c~ *.h~
@@ -60,7 +60,7 @@ distclean: clean
 	rm -f $(PROGRAMS)
 
 install: $(PROGRAMS)  
-	install -s -m 0755 autodctl $(prefix)/bin
+	install -s -m 0755 autodeflect $(prefix)/bin
 	install -s -m 0755 ad2p $(prefix)/bin
 	install -s -m 0755 ad2ssh $(prefix)/bin
     
