@@ -144,6 +144,7 @@ void start_daemons(char *config_filename, int programs, int debug)
 	if (programs & PROGRAM_ACTION_SSH_KEY) {
 		printf("passphrase to unlock your key: ");
 		fgets(passphrase,MAX_PASS_SIZE,stdin);
+		system ("clear");
 		setenv("PASSPHRASE", passphrase, 1);
 		start_program(PROGRAM_NAME_SSH_KEY, pid_ssh_key, config_filename, debug);
 		unsetenv("PASSPHRASE");
