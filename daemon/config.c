@@ -283,6 +283,7 @@ int config_load(char *filename)
 
 	// Setup Env
 	clearenv();
+	setenv("HOME", directory_script, 1); 
 	setenv("SSH_AUTH_SOCK", ssh_agent_sock, 1);
 	setenv("PATH", path, 1);
 	setenv("PWD", "/var/tmp", 1);
