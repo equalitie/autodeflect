@@ -12,7 +12,7 @@ autobrains_update.sh
 old/
 daemon/*.o
 daemon/cglobals.h
-daemon/autodctl
+daemon/autodeflect
 daemon/ad2p
 daemon/ad2ssh
 bin/
