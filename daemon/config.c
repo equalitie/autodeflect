@@ -287,7 +287,7 @@ int config_load(char *filename)
 	setenv("SSH_AUTH_SOCK", ssh_agent_sock, 1);
 	setenv("PATH", path, 1);
 	setenv("PWD", "/var/tmp", 1);
-	setenv("TERM", "vt100", 1);
+	setenv("TERM", "vanilla", 1);
 	setenv("SHELL", sh_command, 1);
 
 	return TRUE;
