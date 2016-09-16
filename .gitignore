@@ -15,5 +15,6 @@ daemon/cglobals.h
 daemon/autodeflect
 daemon/ad2p
 daemon/ad2ssh
+daemon/ad2runner
 bin/
 *.swp

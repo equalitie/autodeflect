@@ -6,8 +6,8 @@ SSH = -lssh2
 
 prefix=..
 
-PROGRAMS = ad2p ad2ssh autodeflect 
-C_PROGRAMS = ad2p ad2ssh
+PROGRAMS = ad2p ad2ssh ad2runner autodeflect 
+C_PROGRAMS = ad2p ad2ssh ad2runner
 
 ADMIN_PROGRAMS = autodeflect
 
@@ -33,6 +33,10 @@ ad2p: $(C_COMMON_PREREQ)
 ad2ssh: $(C_COMMON_PREREQ)
 	$(CC) $(CFLAGS) -c ad2ssh.c
 	$(CC) $(CFLAGS) $(LDFLAGS) $(C_OBJS) $(SSL) $(SSH) ad2ssh.o -o ad2ssh
+
+ad2runner: $(C_COMMON_PREREQ)
+	$(CC) $(CFLAGS) -c ad2runner.c
+	$(CC) $(CFLAGS) $(LDFLAGS) $(C_OBJS) $(SSL) $(SSH) ad2runner.o -o ad2runner
 
 loadchk:
 	$(CC) $(CFLAGS) -c loadchk.c
@@ -65,6 +69,7 @@ install: $(PROGRAMS)
 	install -s -m 0755 autodeflect $(prefix)/bin
 	install -s -m 0755 ad2p $(prefix)/bin
 	install -s -m 0755 ad2ssh $(prefix)/bin
+	install -s -m 0755 ad2runner $(prefix)/bin
     
 .PHONY: install
 
