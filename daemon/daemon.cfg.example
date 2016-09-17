@@ -12,3 +12,9 @@ ssh_key_file /path/to/mykey_id
 ssh_key_fingerprint c1:8d:73:42:6d:8e:ec:7c:31:76:b6:4b:22:37:b4:41
 path /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/deflect/scripts 
 pid_suffix _autodeflect
+
+dashboard_user dash 
+dashboard_host dashboard.example.co
+dashboard_port 22
+dashboard_client_yml /path/to/site.yml
+last_clients_yml /path/local/clients.yml-revisions/clients.yml-last_used

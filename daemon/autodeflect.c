@@ -15,6 +15,7 @@
 #define PROGRAM_ACTION_NONE	0
 #define PROGRAM_ACTION_PROCESS	1
 #define PROGRAM_ACTION_SSH_KEY	2 
+#define PROGRAM_ACTION_RUNNER	4
 
 void start_daemons(char *config_filename, int programs, int debug);
 void stop_daemons(char *config_filename, int programs);
@@ -43,7 +44,8 @@ int main(int argc, char **argv)
 			{"config", 1, 0, 0},
 			{"all", 0, 0, 0},
 			{"process", 0, 0, 0},
-			{"ssh-key", 0, 0, 0},
+			{"sshkey", 0, 0, 0},
+			{"runner", 0, 0, 0},
 			{"help", 0, 0, 0},
 			{"show-conf", 0, 0, 0},
 			{"version", 0, 0, 0},
@@ -67,11 +69,13 @@ int main(int argc, char **argv)
 				else if (!strcmp(long_options[option_index].name, "config"))
 					filename = optarg;
 				else if (!strcmp(long_options[option_index].name, "all"))
-					programs |= PROGRAM_ACTION_SSH_KEY | PROGRAM_ACTION_PROCESS;
+					programs |= PROGRAM_ACTION_SSH_KEY | PROGRAM_ACTION_PROCESS | PROGRAM_ACTION_RUNNER;
 				else if (!strcmp(long_options[option_index].name, "process"))
 					programs |= PROGRAM_ACTION_PROCESS;
-				else if (!strcmp(long_options[option_index].name, "ssh-key"))
+				else if (!strcmp(long_options[option_index].name, "sshkey"))
 					programs |= PROGRAM_ACTION_SSH_KEY;
+				else if (!strcmp(long_options[option_index].name, "runner"))
+					programs |= PROGRAM_ACTION_RUNNER;
 				else if (!strcmp(long_options[option_index].name, "version")) {
 					show_version();
 					exit(0);
@@ -155,6 +159,10 @@ void start_daemons(char *config_filename, int programs, int debug)
 		start_program(PROGRAM_NAME_PROCESS, pid_process, config_filename, debug);
 	}
 
+	if (programs & PROGRAM_ACTION_RUNNER) {
+		start_program(PROGRAM_NAME_RUNNER, pid_runner, config_filename, debug);
+	}
+
 
 }
 
@@ -214,6 +222,10 @@ void stop_daemons(char *config_filename, int programs)
 
 	if (programs & PROGRAM_ACTION_SSH_KEY) {
 		stop_program(PROGRAM_NAME_SSH_KEY, pid_ssh_key);
+	}
+
+	if (programs & PROGRAM_ACTION_RUNNER) {
+		stop_program(PROGRAM_NAME_RUNNER, pid_runner);
 	}
 
 }
@@ -288,10 +300,16 @@ void show_configuration(char *filename)
 	printf("ssh_add:\t\t%s\n", ssh_add);
 	printf("ssh_key_fingerprint:\t%s\n", ssh_key_fingerprint);
 	printf("ssh_key_file:\t\t%s\n", ssh_key_file);
+	printf("Dasboard Host:\t\t%s\n", dashboard_host); 
+	printf("Dasboard Port:\t\t%d\n", dashboard_port); 
+	printf("Dasboard User:\t\t%s\n", dashboard_user); 
+	printf("Dasboard Client.yml:\t%s\n", dashboard_client_yml); 
+	printf("Last Client.yml:\t%s\n", last_clients_yml); 
 	printf("PID Directory:\t\t%s\n", directory_run);
 	printf("PID File Suffix:\t%s\n", pid_suffix);
 	printf("PID File Process:\t%s\n", pid_process);
-	printf("PID File ssh-key:\t%s\n", pid_ssh_key);
+	printf("PID File sshkey:\t%s\n", pid_ssh_key);
+	printf("PID File runner:\t%s\n", pid_runner);
 
 	printf("\n");
 
@@ -332,7 +350,8 @@ void autodctl_usage(void)
 	printf("\tDaemons:\n");
 	printf("\t\t--all:\t\tAll daemons\n");
 	printf("\t\t--process:\tProcess daemon\n");
-	printf("\t\t--ssh-key:\tssh-key daemon\n");
+	printf("\t\t--sshkey:\tsshkey daemon\n");
+	printf("\t\t--runner:\trunner daemon\n");
 
 	printf("\n");
 	printf("\tModifiers:\n");

@@ -26,13 +26,16 @@ int md5sum_check(char * , unsigned char *);
 
 int main(int argc, char **argv)
 {
+
+	unsigned char c[MD5_DIGEST_LENGTH] = {0};
+
 	double current_load;
 
 	lib_common_option_handling(argc, argv);
 
-	if (!handle_pid_file_checks(pid_process, PROGRAM_NAME_PROCESS)) {
+	if (!handle_pid_file_checks(pid_runner, PROGRAM_NAME_RUNNER)) {
 		printf("handle_pid_file_checks indicates exit required\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	populate_globals();
@@ -55,12 +58,35 @@ int main(int argc, char **argv)
 
 
 		// Do work here;
+		int i = 0;
+		char outfile[] = "/tmp/autodeflectXXXXXX";
 
+		if (!open_ssh(dashboard_host, dashboard_user, dashboard_client_yml, dashboard_port, outfile)) {
+			fprintf(stderr, "Could not get remote file\n");
+			continue;
+		}
 
-		sleep(daemon_interval_process);
+		if (md5sum_check(outfile, c)) {
+
+		// tmp: testing
+			fprintf(stderr, "remote md5: ");
+			for (i = 0; i < MD5_DIGEST_LENGTH; i++) fprintf(stderr, "%02x", c[i]);
+			fprintf(stderr, "\n");
+
+			unlink(outfile);
+		}
+
+		if (md5sum_check(last_clients_yml, c)) {
+
+			fprintf(stderr, "local md5: ");
+			for (i = 0; i < MD5_DIGEST_LENGTH; i++) fprintf(stderr, "%02x", c[i]);
+			fprintf(stderr, "\n");
+		}
+
+		sleep(daemon_interval_generic);
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 
@@ -120,7 +146,7 @@ int get_ip(char * hostname , char* ip)
 int open_ssh(char * hostname, char * username , char * remotefile, int port, char * outfile) {
 
 	unsigned long hostaddr;
-	int sock = -1, i, rc;
+	int sock = -1, i, rc, tmpfile = 0;
 	char ip[100];
 	struct sockaddr_in sin;
 	const char *finprint;
@@ -262,7 +288,7 @@ int open_ssh(char * hostname, char * username , char * remotefile, int port, cha
 		}
 	} while (!channel);
 
-	int tmpfile = mkstemp(outfile);
+	tmpfile = mkstemp(outfile);
 
 	while(got < fileinfo.st_size) {
 	char mem[1024*24];
@@ -301,6 +327,11 @@ int open_ssh(char * hostname, char * username , char * remotefile, int port, cha
 
 
 end:
+
+	if (tmpfile > 0) {
+		close(tmpfile);
+	}
+
 	if (channel) {
 		libssh2_channel_free(channel);
 		channel = NULL;
@@ -362,7 +393,6 @@ static int waitsocket(int socket_fd, LIBSSH2_SESSION *session)
 ***************************************************************************************/
 
 int md5sum_check(char * filename, unsigned char c[MD5_DIGEST_LENGTH]) {
-//	int i;
 	FILE *inFile = fopen (filename, "rb");
 	MD5_CTX mdContext;
 	int bytes;
@@ -378,8 +408,6 @@ int md5sum_check(char * filename, unsigned char c[MD5_DIGEST_LENGTH]) {
 		MD5_Update (&mdContext, data, bytes);
 	}
 	MD5_Final (c,&mdContext);
-	//for(i = 0; i < MD5_DIGEST_LENGTH; i++) printf("%02x", c[i]);
-	//printf (" %s\n", filename);
 	fclose (inFile);
 	return TRUE;
 }

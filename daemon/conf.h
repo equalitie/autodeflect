@@ -15,6 +15,7 @@
 
 #define PROGRAM_NAME_PROCESS "ad2p"
 #define PROGRAM_NAME_SSH_KEY "ad2ssh"
+#define PROGRAM_NAME_RUNNER "ad2runner"
 
 /**********************************************************************/
 // Processing programs
@@ -60,6 +61,7 @@ extern char *program_process;
 extern char *process_file;
 extern char *pid_process;
 extern char *pid_ssh_key;
+extern char *pid_runner;
 extern char *ssh_agent;
 extern char *ssh_key_file;
 extern char *ssh_add;
@@ -67,6 +69,11 @@ extern char *ssh_key_fingerprint;
 extern char *ssh_agent_sock;
 extern char *path;
 extern char *passphrase;
+extern char *dashboard_user;
+extern char *dashboard_host; 
+extern char *dashboard_client_yml;
+extern char *last_clients_yml;
+extern int dashboard_port; 
 
 int config_load(char *filename);
 

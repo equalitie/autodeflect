@@ -11,7 +11,7 @@
 #include "conf.h"
 #include "cglobals.h"
 
-/* "ssh-key" daemon */
+/* "sshkey" daemon */
 
 
 int check_ssh_agent_socket(char *socket_name);
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 		}
 
 		if (!check_loaded_key(ssh_key_fingerprint, ssh_add, session)) {
-			fprintf(stderr, "Need to load ssh-key file %s\n", ssh_key_file);
+			fprintf(stderr, "Need to load sshkey file %s\n", ssh_key_file);
 			if (!load_ssh_key(ssh_key_file, passphrase)) {
 				fprintf(stderr, "Could not load %s\n", ssh_key_file);
 			} else {
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 
 		ping++;
 		if (ping > 24) {
-			fprintf(stderr, "ssh-key: ping\n");
+			fprintf(stderr, "sshkey: ping\n");
 			ping = 0;
 		}
 

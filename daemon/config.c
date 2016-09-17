@@ -16,9 +16,15 @@ char *ssh_key_fingerprint = NULL;
 char *program_process = NULL;
 char *pid_process = NULL;
 char *pid_ssh_key = NULL;
+char *pid_runner = NULL;
 char *ssh_agent_sock = NULL;
 char *path = NULL;
 char *passphrase = NULL;
+char *dashboard_user = NULL;
+char *dashboard_host = NULL;
+char *dashboard_client_yml = NULL;
+char *last_clients_yml = NULL;
+int dashboard_port = 0;
 
 int validate_core(void)
 {
@@ -63,6 +69,26 @@ int validate_core(void)
 	}
 
 	if (path == NULL) {
+		return FALSE;
+	}
+
+	if (dashboard_user == NULL) {
+		return FALSE;
+	}
+
+	if (dashboard_host == NULL) {
+		return FALSE;
+	}
+
+	if (dashboard_client_yml == NULL) {
+		return FALSE;
+	}
+
+	if (last_clients_yml == NULL) {
+		return FALSE;
+	}
+
+	if (dashboard_port == 0) {
 		return FALSE;
 	}
 
@@ -199,6 +225,42 @@ int config_load(char *filename)
 			strncpy(path, value, (strlen(value) + 1));
 		}
 
+		if (!strcasecmp(key, "dashboard_user")) {
+			if ((dashboard_user = (char *)calloc((strlen(value) + 1), sizeof(char))) == NULL) {
+				return FALSE;
+			}
+
+			strncpy(dashboard_user, value, (strlen(value) + 1));
+		}
+
+		if (!strcasecmp(key, "dashboard_host")) {
+			if ((dashboard_host = (char *)calloc((strlen(value) + 1), sizeof(char))) == NULL) {
+				return FALSE;
+			}
+
+			strncpy(dashboard_host, value, (strlen(value) + 1));
+		}
+
+		if (!strcasecmp(key, "dashboard_client_yml")) {
+			if ((dashboard_client_yml = (char *)calloc((strlen(value) + 1), sizeof(char))) == NULL) {
+				return FALSE;
+			}
+
+			strncpy(dashboard_client_yml, value, (strlen(value) + 1));
+		}
+
+		if (!strcasecmp(key, "last_clients_yml")) {
+			if ((last_clients_yml = (char *)calloc((strlen(value) + 1), sizeof(char))) == NULL) {
+				return FALSE;
+			}
+
+			strncpy(last_clients_yml, value, (strlen(value) + 1));
+		}
+
+		if (!strcasecmp(key, "dashboard_port")) {
+			dashboard_port = atoi(value);
+		}
+
 
 	}
 
@@ -234,6 +296,15 @@ int config_load(char *filename)
 	}
 
 	strncpy(pid_ssh_key, buffer, strlen(buffer) + 1);
+
+	// pid_runner
+	sprintf(buffer, "%s/%s%s.pid", directory_run, PROGRAM_NAME_RUNNER, pid_suffix);
+
+	if ((pid_runner = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
+		return FALSE;
+	}
+
+	strncpy(pid_runner, buffer, strlen(buffer) + 1);
 
 	// process_file
 	sprintf(buffer, "%s/%s%s", directory_script, process_file, pid_suffix);
@@ -287,7 +358,7 @@ int config_load(char *filename)
 	setenv("SSH_AUTH_SOCK", ssh_agent_sock, 1);
 	setenv("PATH", path, 1);
 	setenv("PWD", "/var/tmp", 1);
-	setenv("TERM", "vanilla", 1);
+	setenv("TERM", "vt100", 1);
 	setenv("SHELL", sh_command, 1);
 
 	return TRUE;
