@@ -27,7 +27,10 @@ int md5sum_check(char * , unsigned char *);
 int main(int argc, char **argv)
 {
 
-	unsigned char c[MD5_DIGEST_LENGTH] = {0};
+	unsigned char digest[MD5_DIGEST_LENGTH] = {0};
+	char *remote_md5 = (char*)malloc(33);
+	char *local_md5 = (char*)malloc(33);
+	int i = 0;
 
 	double current_load;
 
@@ -56,31 +59,59 @@ int main(int argc, char **argv)
 			continue;
 		}
 
+		if (access(process_file, F_OK) == 0) {
+			fprintf(stderr, "%s file already exists\n", process_file);
+			sleep(daemon_interval_generic);
+			continue;
+		}
 
-		// Do work here;
-		int i = 0;
 		char outfile[] = "/tmp/autodeflectXXXXXX";
 
 		if (!open_ssh(dashboard_host, dashboard_user, dashboard_client_yml, dashboard_port, outfile)) {
 			fprintf(stderr, "Could not get remote file\n");
+			sleep(daemon_interval_generic);
 			continue;
 		}
 
-		if (md5sum_check(outfile, c)) {
+		remote_md5[0] = 0;
+		local_md5[0] = 0;
+		digest[0] = 0;
 
-		// tmp: testing
-			fprintf(stderr, "remote md5: ");
-			for (i = 0; i < MD5_DIGEST_LENGTH; i++) fprintf(stderr, "%02x", c[i]);
-			fprintf(stderr, "\n");
+		if (md5sum_check(outfile, digest)) {
+
+			for (i = 0; i < MD5_DIGEST_LENGTH; ++i) {
+				snprintf(&(remote_md5[i*2]), 16*2, "%02x", (unsigned int)digest[i]);
+			}
+			fprintf(stderr, "remote_md5: %s\n", remote_md5);
 
 			unlink(outfile);
 		}
 
-		if (md5sum_check(last_clients_yml, c)) {
+		digest[0] = 0;
 
-			fprintf(stderr, "local md5: ");
-			for (i = 0; i < MD5_DIGEST_LENGTH; i++) fprintf(stderr, "%02x", c[i]);
-			fprintf(stderr, "\n");
+		if (md5sum_check(last_clients_yml, digest)) {
+
+			for (i = 0; i < MD5_DIGEST_LENGTH; ++i) {
+				snprintf(&(local_md5[i*2]), 16*2, "%02x", (unsigned int)digest[i]);
+			}
+			fprintf(stderr, "local_md5: %s\n", local_md5);
+		}
+
+
+		if ( (strlen(local_md5) == 32)  & (strlen(remote_md5) == 32) ) {
+			if ( (strcmp(local_md5, remote_md5) == 0) ) {
+				fprintf(stderr, "Local and Remote are same files\n");
+			} else {
+				fprintf(stderr, "Local and Remote are different files\n");
+				int processfd = open(process_file, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+				if (processfd != -1) {
+					close(processfd);
+				} else {
+					fprintf(stderr, "Problem writting %s\n", process_file);
+				}
+			}
+		} else {
+			fprintf(stderr, "Problem getting md5sum of files\n");
 		}
 
 		sleep(daemon_interval_generic);
@@ -89,35 +120,6 @@ int main(int argc, char **argv)
 	return EXIT_SUCCESS;
 }
 
-
-/* proto main 
-int main(int argc , char *argv[])
-{
-	char *hostname = "";
-	char *username = "";
-	char *remotefile = "";
-	int port = ;
-
-	char outfile[] = "/tmp/fileXXXXXX";
-	unsigned char c[MD5_DIGEST_LENGTH];
-	int i;
-
-	if (!open_ssh(hostname, username, remotefile, port, outfile)) {
-		exit(EXIT_FAILURE);
-	}
-
-	md5sum_check(outfile, c);
-
-	fprintf(stderr, "tmpfile: %s\n", outfile);
-
-	for (i = 0; i < MD5_DIGEST_LENGTH; i++) fprintf(stderr, "%02x", c[i]);
-	fprintf(stderr, "\n");
-	
-
-	exit(EXIT_SUCCESS);
-}
-
-*/
 /***************************************************************************************
 ***************************************************************************************/
  
