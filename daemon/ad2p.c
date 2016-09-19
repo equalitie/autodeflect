@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 	lib_common_option_handling(argc, argv);
 
 	if (!handle_pid_file_checks(pid_process, PROGRAM_NAME_PROCESS)) {
-		printf("handle_pid_file_checks indicates exit required\n");
+		fprintf(stderr, "handle_pid_file_checks indicates exit required\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -28,24 +28,24 @@ int main(int argc, char **argv)
 
 		if (load_check(&current_load)) {
 			if (current_load > max_load) {
-				printf("Load too high\n");
+				fprintf(stderr, "Load too high\n");
 				sleep(daemon_interval_high_load);
 				continue;
 			}
 		} else {
-			printf("Unable to check load\n");
+			fprintf(stderr, "Unable to check load\n");
 			sleep(daemon_interval_generic);
 			continue;
 		}
 
 		if (access(process_file, F_OK) == 0) {
-			printf("Running '%s'\n", program_process);
+			fprintf(stderr, "Running '%s'\n", program_process);
 			system(program_process);
-		/* FIXME: unlink only is return success */
+	/* FIXME: unlink only if return success */
 			unlink(process_file);
 
 			if (access(process_file, F_OK) == 0) {
-				printf("Could not remove '%s'. EXITING.\n", process_file);
+				fprintf(stderr, "Could not remove '%s'. EXITING.\n", process_file);
 				exit(EXIT_FAILURE);
 			}
 		}
