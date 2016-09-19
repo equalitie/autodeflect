@@ -353,7 +353,11 @@ int config_load(char *filename)
 	free(value);
 
 	// Setup Env
+	const char* u = getenv("USER");
 	clearenv();
+	if (u != NULL)
+		setenv("USER", u, 1);
+
 	setenv("HOME", directory_script, 1); 
 	setenv("SSH_AUTH_SOCK", ssh_agent_sock, 1);
 	setenv("PATH", path, 1);
