@@ -7,18 +7,17 @@
 #include "conf.h"
 #include "cglobals.h"
 
-// "process" daemon
+/* "process" daemon */
 
 int main(int argc, char **argv)
 {
 	double current_load;
-	char command[256];
 
 	lib_common_option_handling(argc, argv);
 
 	if (!handle_pid_file_checks(pid_process, PROGRAM_NAME_PROCESS)) {
 		printf("handle_pid_file_checks indicates exit required\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	populate_globals();
@@ -40,20 +39,19 @@ int main(int argc, char **argv)
 		}
 
 		if (access(process_file, F_OK) == 0) {
-			sprintf(command, "%s", program_process);
-			printf("Running '%s'\n", command);
-			system(command);
-			// FIXME: unlink only is return success
+			printf("Running '%s'\n", program_process);
+			system(program_process);
+		/* FIXME: unlink only is return success */
 			unlink(process_file);
 
 			if (access(process_file, F_OK) == 0) {
-				printf("Could not remove '%s'\n", process_file);
-				exit(-1);
+				printf("Could not remove '%s'. EXITING.\n", process_file);
+				exit(EXIT_FAILURE);
 			}
 		}
 
 		sleep(daemon_interval_process);
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }
