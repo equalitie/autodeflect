@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 	char *local_md5 = (char*)malloc(33);
 	int i = 0;
 	struct timeval tv;
-	char *etime = NULL;
+	char etime[21];
 
 	double current_load;
 
@@ -114,18 +114,11 @@ int main(int argc, char **argv)
 					unsigned long long epochtime = 
 						(unsigned long long)(tv.tv_sec) * 1000 +
 						(unsigned long long)(tv.tv_usec) / 1000;
-					size_t etimeSize = snprintf(NULL, 0, "%llu", epochtime);
+					size_t etimeSize = snprintf(NULL, 0 , "%llu", epochtime);
 
-					if ((etime = malloc((etimeSize + 1) * sizeof(char)))) {
-						snprintf(etime, etimeSize + 1, "%llu", epochtime);
-						write(processfd, etime, etimeSize + 1);
-					} else {
-						fprintf(stderr, "Could not allocate memory\n");
-					}
-					if (etime) {
-						free(etime);
-						etime[0] = 0;
-					}
+					snprintf(etime, etimeSize + 1, "%llu", epochtime);
+					write(processfd, etime, etimeSize + 1);
+
 					close(processfd);
 				} else {
 					fprintf(stderr, "Problem writting %s\n", process_file);
