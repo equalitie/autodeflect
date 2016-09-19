@@ -5,6 +5,7 @@
 #include <getopt.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <sys/time.h>
 #include "conf.h"
 #include "cglobals.h"
 
@@ -17,7 +18,7 @@
 
 #include <openssl/md5.h>
 
-// "runner" daemon
+/* "runner" daemon */
 
 int get_ip(char *  , char *);
 int open_ssh(char * , char * , char *, int , char *);
@@ -31,13 +32,15 @@ int main(int argc, char **argv)
 	char *remote_md5 = (char*)malloc(33);
 	char *local_md5 = (char*)malloc(33);
 	int i = 0;
+	struct timeval tv;
+	char *etime = NULL;
 
 	double current_load;
 
 	lib_common_option_handling(argc, argv);
 
 	if (!handle_pid_file_checks(pid_runner, PROGRAM_NAME_RUNNER)) {
-		printf("handle_pid_file_checks indicates exit required\n");
+		fprintf(stderr, "handle_pid_file_checks indicates exit required\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -49,12 +52,12 @@ int main(int argc, char **argv)
 
 		if (load_check(&current_load)) {
 			if (current_load > max_load) {
-				printf("Load too high\n");
+				fprintf(stderr, "Load too high\n");
 				sleep(daemon_interval_high_load);
 				continue;
 			}
 		} else {
-			printf("Unable to check load\n");
+			fprintf(stderr, "Unable to check load\n");
 			sleep(daemon_interval_generic);
 			continue;
 		}
@@ -65,6 +68,7 @@ int main(int argc, char **argv)
 			continue;
 		}
 
+		/* FIXME: Should we make this configurable? */
 		char outfile[] = "/tmp/autodeflectXXXXXX";
 
 		if (!open_ssh(dashboard_host, dashboard_user, dashboard_client_yml, dashboard_port, outfile)) {
@@ -73,6 +77,7 @@ int main(int argc, char **argv)
 			continue;
 		}
 
+		/* Clear content */
 		remote_md5[0] = 0;
 		local_md5[0] = 0;
 		digest[0] = 0;
@@ -105,6 +110,22 @@ int main(int argc, char **argv)
 				fprintf(stderr, "Local and Remote are different files\n");
 				int processfd = open(process_file, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 				if (processfd != -1) {
+					gettimeofday(&tv, NULL);
+					unsigned long long epochtime = 
+						(unsigned long long)(tv.tv_sec) * 1000 +
+						(unsigned long long)(tv.tv_usec) / 1000;
+					size_t etimeSize = snprintf(NULL, 0, "%llu", epochtime);
+
+					if ((etime = malloc((etimeSize + 1) * sizeof(char)))) {
+						snprintf(etime, etimeSize + 1, "%llu", epochtime);
+						write(processfd, etime, etimeSize + 1);
+					} else {
+						fprintf(stderr, "Could not allocate memory\n");
+					}
+					if (etime) {
+						free(etime);
+						etime[0] = 0;
+					}
 					close(processfd);
 				} else {
 					fprintf(stderr, "Problem writting %s\n", process_file);
@@ -161,8 +182,11 @@ int open_ssh(char * hostname, char * username , char * remotefile, int port, cha
 	int spin = 0;
 	size_t got =0;
 	size_t total = 0;
-	//libssh2_struct_stat_size got = 0;
-	//libssh2_struct_stat_size total = 0;
+	/* debian 7 does not have this in libssh2 yet */
+	/***********************************
+	libssh2_struct_stat_size got = 0;
+	libssh2_struct_stat_size total = 0;
+	************************************/
 
 	if (!get_ip(hostname , ip)) {
 		return FALSE;
@@ -276,6 +300,8 @@ int open_ssh(char * hostname, char * username , char * remotefile, int port, cha
 
 	do {
 
+		/* This function is DEPRECATED. Use libssh2_scp_recv2 instead! */
+		/* not in Debian 7 so used */
 		channel = libssh2_scp_recv(session, remotefile, &fileinfo);
 
 		if (!channel) {
@@ -410,6 +436,9 @@ int md5sum_check(char * filename, unsigned char c[MD5_DIGEST_LENGTH]) {
 		MD5_Update (&mdContext, data, bytes);
 	}
 	MD5_Final (c,&mdContext);
-	fclose (inFile);
+
+	if (inFile)
+		fclose (inFile);
+
 	return TRUE;
 }
