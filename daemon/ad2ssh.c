@@ -26,12 +26,12 @@ int main(int argc, char **argv)
 	LIBSSH2_SESSION *session = NULL;
 	pid_t ssh_agent_pid = 0;
 	int fail = 0, ping = 0;
-	int err = EXIT_SUCCESS;
+	int ex = EXIT_SUCCESS;
 
 	lib_common_option_handling(argc, argv);
 
 	if (!handle_pid_file_checks(pid_ssh_key, PROGRAM_NAME_SSH_KEY)) {
-		printf("handle_pid_file_checks indicates exit required\n");
+		fprintf(stderr, "handle_pid_file_checks indicates exit required\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 	session = libssh2_session_init();
 
 	if (!session) {
-		fprintf(stderr, "Failure establishing SSH session\n");
+		fprintf(stderr, "Failure establishing SSH session. EXITING\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -54,13 +54,13 @@ int main(int argc, char **argv)
 				fprintf (stderr, "ssh-agent needs to be started\n");
 				/* This fuction should return -1 or pid */
 				if (!(ssh_agent_pid = run_agent(ssh_agent))) {
-					fprintf(stderr, "ssh-agent would not start\n");
-					err = EXIT_FAILURE;
+					fprintf(stderr, "ssh-agent would not start. EXITING\n");
+					ex = EXIT_FAILURE;
 					break;
 				}
 			} else {
-				fprintf(stderr, "ssh-agent needs to be started but not safe\n");
-				err = EXIT_FAILURE;
+				fprintf(stderr, "ssh-agent needs to be started but not safe. EXITING\n");
+				ex = EXIT_FAILURE;
 				break;
 			}
 		}
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 		}
 
 		if (fail > 5) {
-			fprintf(stderr, "Failed %d times. Fix problem and remove:\n%s Exiting\n", fail, pid_ssh_key);
+			fprintf(stderr, "Failed %d times. Fix problem and remove:\n%s EXITING\n", fail, pid_ssh_key);
 			/* FIXME: We need to exit clean here., ie; remove .pid */
 			break;
 		}
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 	if (ssh_agent_pid)
 		kill(ssh_agent_pid, SIGTERM);
 
-	exit(err);
+	return ex;
 }
 
 /************************************************************************************************
@@ -127,7 +127,7 @@ int check_ssh_agent_socket(char *socket_name)
 		fprintf(stderr, "%s not found.\n", socket_name);
 	}
 
-	return(ret);
+	return ret;
 
 }
 
@@ -137,27 +137,26 @@ int check_ssh_agent_socket(char *socket_name)
 int check_need_agent(LIBSSH2_SESSION *session) {
 
 	LIBSSH2_AGENT *agent = NULL;
-	int ret;
+	int ret = TRUE;
 
 	agent = libssh2_agent_init(session);
 
 	if (!agent) {
 		/* Not sure why this would ever happen, but bad if it does. */
-		fprintf(stderr, "Failure establishing ssh-agent session\n");
+		fprintf(stderr, "Failure establishing ssh-agent session. EXITING\n");
 		exit(EXIT_FAILURE);
 	}
 
 
 	if (libssh2_agent_connect(agent)) 
 		ret = FALSE;
-	else
-		ret = TRUE;
 
+	if (agent) {
+		libssh2_agent_disconnect(agent);
+		libssh2_agent_free(agent);
+	}
 
-	libssh2_agent_disconnect(agent);
-	libssh2_agent_free(agent);
-
-	return(ret);
+	return ret;
 
 }
 
@@ -166,8 +165,8 @@ int check_need_agent(LIBSSH2_SESSION *session) {
 
 pid_t run_agent(char *ssh_agent) {
 /* ssh_agent */
-	FILE *fp;
-	char *buffer, *ssh_agent_pid;
+	FILE *fp = NULL;
+	char *buffer = NULL, *ssh_agent_pid = NULL;
 	size_t bufsiz = 0;
 	ssize_t nbytes;
 	pid_t pid = -1;
@@ -207,9 +206,14 @@ pid_t run_agent(char *ssh_agent) {
 	if (!(pid = atoi(ssh_agent_pid)))
 		pid = -1;
 
-	free(buffer);
-	free(ssh_agent_pid);
-	pclose(fp);
+	if (buffer)
+		free(buffer);
+
+	if (ssh_agent_pid)
+		free(ssh_agent_pid);
+
+	if (fp)
+		pclose(fp);
 
 	return pid;
 }
@@ -220,8 +224,8 @@ pid_t run_agent(char *ssh_agent) {
 int check_loaded_key(char *ssh_key_fingerprint, char *ssh_add, LIBSSH2_SESSION *session) {
 
 	FILE *fp = NULL;
-	char cmd[256];
-	char buffer[512];
+	char *cmd = NULL;
+	char buffer[256];
 	int ret = FALSE;
 
 	if (!check_need_agent(session)) {
@@ -229,13 +233,22 @@ int check_loaded_key(char *ssh_key_fingerprint, char *ssh_add, LIBSSH2_SESSION *
 		goto end;
 	} 
 
-	sprintf(cmd, "%s -ls", ssh_add);
-        if (!(fp = popen(cmd, "r"))) {
-		fprintf(stderr, "Could not run %s\n", ssh_add);
-		goto end;
-        }
+	size_t cmdSize = snprintf(NULL, 0, "%s -ls", ssh_add);
 
-	while (fgets(buffer, 512, fp) != NULL) {
+	if ((cmd = malloc((cmdSize + 1) * sizeof(char)))) {
+		snprintf(cmd, cmdSize + 1, "%s -ls", ssh_add);
+	} else {
+		fprintf(stderr, "Could not allocate memory\n");
+		goto end;
+	}
+	if (!(fp = popen(cmd, "r"))) {
+		fprintf(stderr, "Could not run %s\n", cmd);
+		goto end;
+	}
+
+	/* If key fingerprint size is over 256 this will probably fail */
+
+	while (fgets(buffer, 256, fp) != NULL) {
 		if ((strstr(buffer, ssh_key_fingerprint)) != NULL) {
 			ret = TRUE;
 			break;
@@ -244,9 +257,10 @@ int check_loaded_key(char *ssh_key_fingerprint, char *ssh_add, LIBSSH2_SESSION *
 
 end:
 
-	if (fp) {
+	if (fp)
 		fclose(fp);
-	}
+	if (cmd)
+		free(cmd);
 
 	return ret;
 }
@@ -259,8 +273,7 @@ int load_ssh_key(char *ssh_key_file, char *passphrase) {
 	EVP_PKEY *privkey = NULL;
 	FILE *fp = NULL;
 	FILE *pCmd = NULL;
-	/* FIXME: 256 is probably overkill, fix later */
-	char cmd[256];
+	char *cmd = NULL;
 	int ret = TRUE;
 
 	OpenSSL_add_all_algorithms();
@@ -279,15 +292,22 @@ int load_ssh_key(char *ssh_key_file, char *passphrase) {
 		goto end;
 	}
 
-	sprintf(cmd, "%s -", ssh_add);
+	size_t cmdSize = snprintf(NULL, 0, "%s -", ssh_add);
+
+        if ((cmd = malloc((cmdSize + 1) * sizeof(char)))) {
+                snprintf(cmd, cmdSize + 1, "%s -", ssh_add);
+	} else {
+		fprintf(stderr, "Could not allocate memory\n");
+		ret = FALSE;
+		goto end;
+	}
+
 	pCmd = popen(cmd, "w");
 	if (pCmd == NULL) {
 		fprintf(stderr, "Could not run %s\n", cmd);
 		ret = FALSE;
 		goto end;
 	}
-
-	sleep(1);
 
 	if (!PEM_write_PrivateKey(pCmd, privkey, NULL, NULL, 0, 0, NULL)) {
 		fprintf(stderr, "Could not write new private key\n");
@@ -302,6 +322,10 @@ end:
 		EVP_PKEY_free(privkey);
 	if (pCmd)
 		pclose(pCmd);
+	if (cmd)
+		free(cmd);
+
+	EVP_cleanup();
 
 	return ret;
 }
