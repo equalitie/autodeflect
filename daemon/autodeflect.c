@@ -364,7 +364,7 @@ void show_configuration(char *filename)
 
 void show_version(void)
 {
-	printf("autodctl Autodeflect Control Program v%s\n", VERSION);
+	printf("autodeflect Autodeflect Control Program v%s\n", VERSION);
 }
 
 /******************************************************************************/
@@ -372,7 +372,7 @@ void show_version(void)
 
 void autodctl_usage(void)
 {
-	printf("Usage: autodctl <options>\n\n");
+	printf("Usage: autodeflect <options>\n\n");
 	printf("Options:\n");
 	printf("\tMain Commands (Only one at a time):\n");
 	printf("\t\t--start:\tStart daemons\n");
