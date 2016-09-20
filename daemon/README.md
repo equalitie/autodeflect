@@ -27,15 +27,15 @@ After ansible has ran tag init 'ansible-playbook site.yml -l controller --tags i
 
 ## Usage 
 
-# daemon programs and 'autodeflect' control program lives in bin/ directory.
+### daemon programs and 'autodeflect' control program lives in bin/ directory.
 
 * autodeflect with no options
 * Typical start and stop
-** autodeflect --config daemon.cfg --all --start
-** autodeflect --config daemon.cfg --all --stop
+  * autodeflect --config daemon.cfg --all --start
+  * autodeflect --config daemon.cfg --all --stop
 * start or stop a single program
-** autodeflect --config daemon.cfg --sshkey --start
-** autodeflect --config daemon.cfg --sshkey --stop
+  * autodeflect --config daemon.cfg --sshkey --start
+  * autodeflect --config daemon.cfg --sshkey --stop
 
 ## Tests
 
@@ -43,8 +43,8 @@ You can run any of the program with the --debug flag and program will print usef
 
 ## Contributors
 
-* "Rodney Mosley (RamJett)" <rodney at equalit dot ie>
-* "Anonymous" <sparklinux>
+* "Rodney Mosley (RamJett)" 'rodney at equalit dot ie'
+* "Anonymous" 'sparklinux'
 
 * See: https://wiki.deflect.ca
 * Special contribution https://ramnic.com
