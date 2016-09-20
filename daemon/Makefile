@@ -57,7 +57,7 @@ cdb:
 	$(CC) $(CFLAGS) -c cdb.c
 
 autodeflect: $(ADMIN_PREREQ)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(ADMIN_OBJS) autodeflect.c -o autodeflect
+	$(CC) $(CFLAGS) $(LDFLAGS) $(ADMIN_OBJS) $(SSL) autodeflect.c -o autodeflect
 
 clean:
 	rm -f core *.o *.c~ *.h~
