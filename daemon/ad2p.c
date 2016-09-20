@@ -40,7 +40,8 @@ int main(int argc, char **argv)
 
 		if (access(process_file, F_OK) == 0) {
 			fprintf(stderr, "Running '%s'\n", program_process);
-			system(program_process);
+			int e = WEXITSTATUS(system(program_process));
+			fprintf(stderr, "Exit status of %s is %d\n", program_process, e);
 	/* FIXME: unlink only if return success */
 			unlink(process_file);
 

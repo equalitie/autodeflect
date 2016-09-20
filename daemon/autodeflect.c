@@ -7,6 +7,9 @@
 #include <errno.h>
 #include <signal.h>
 #include <getopt.h>
+#include <openssl/pem.h>
+#include <openssl/evp.h>
+#include <termios.h>
 #include "conf.h"
 
 #define MODE_START		1
@@ -24,6 +27,7 @@ int stop_program(const char *program_name, const char *pid_file);
 void show_configuration(char *filename);
 void show_version(void);
 void autodctl_usage(void);
+int check_key_passphrase(char *passphrase);
 
 
 int main(int argc, char **argv)
@@ -146,10 +150,38 @@ void start_daemons(char *config_filename, int programs, int debug)
 	}
 
 	if (programs & PROGRAM_ACTION_SSH_KEY) {
-		printf("passphrase to unlock your key: ");
-		fgets(passphrase,MAX_PASS_SIZE,stdin);
-		system ("clear");
-	/* FIXME: Need to do a check on this passphrase instead of just failing later when tried */
+
+		/* Turn off echo to screen */
+		struct termios tp, save;
+
+		if (tcgetattr(STDIN_FILENO, &tp) == -1) {
+			fprintf(stderr, "Could not get tcgetattr\n");
+			exit(EXIT_FAILURE);
+		}
+
+		save = tp;
+		tp.c_lflag &= ~ECHO;
+		if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tp) == -1) {
+			fprintf(stderr, "Could not screen echo off\n");
+			exit(EXIT_FAILURE);
+		}
+
+		do {
+
+			passphrase[0] = 0;
+
+			printf("passphrase to unlock your key: ");
+
+			fgets(passphrase, MAX_PASS_SIZE, stdin);
+			printf("\n");
+
+		} while (!check_key_passphrase(passphrase));
+
+		/* Restore echo */
+		if (tcsetattr(STDIN_FILENO, TCSANOW, &save) == -1)
+			fprintf(stderr, "Could not reset previous terminal setting\n");
+
+		/* FIXME: We probably should do this different */
 		setenv("PASSPHRASE", passphrase, 1);
 		start_program(PROGRAM_NAME_SSH_KEY, pid_ssh_key, config_filename, debug);
 		unsetenv("PASSPHRASE");
@@ -364,3 +396,53 @@ void autodctl_usage(void)
 	printf("\t\t--show-conf:\tShow configuration information\n");
 	printf("\t\t--help:\t\tThis message\n");
 }
+
+/******************************************************************************/
+/******************************************************************************/
+
+int check_key_passphrase(char *passphrase) {
+
+	if ((!passphrase) || strlen(passphrase) < 1) {
+		return FALSE;
+	}
+
+	if (passphrase[strlen(passphrase) -1] == '\n') {
+		passphrase[strlen(passphrase) -1] = 0;
+	}
+
+
+	EVP_PKEY *privkey = NULL;
+	FILE *fp = NULL;
+	int ret = TRUE;
+
+	OpenSSL_add_all_algorithms();
+	privkey = EVP_PKEY_new();
+
+	fp = fopen (ssh_key_file, "r");
+	if (!fp) {
+		fprintf(stderr, "Could not open %s\n", ssh_key_file);
+		ret = FALSE;
+		goto end;
+	}
+
+	if (!PEM_read_PrivateKey(fp, &privkey, NULL, passphrase)) {
+		fprintf(stderr, "Could not unlock private ssh-key.\n");
+		ret = FALSE;
+		goto end;
+	}
+
+end:
+
+	if (fp)
+		fclose(fp);
+	if (privkey)
+		EVP_PKEY_free(privkey);
+
+	EVP_cleanup();
+
+	return ret;
+
+}
+
+/******************************************************************************/
+/******************************************************************************/
