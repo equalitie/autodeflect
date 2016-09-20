@@ -78,58 +78,58 @@ int main(int argc, char **argv)
 					programs |= PROGRAM_ACTION_RUNNER;
 				else if (!strcmp(long_options[option_index].name, "version")) {
 					show_version();
-					exit(0);
+					exit(EXIT_SUCCESS);
 				} else if (!strcmp(long_options[option_index].name, "show-conf")) {
 					show_conf = 1;
 				} else {
 					autodctl_usage();
-					exit(0);
+					exit(EXIT_SUCCESS);
 				}
 				break;
 
 			default:
 				autodctl_usage();
-				exit(0);
+				exit(EXIT_SUCCESS);
 		}
 	}
 
 	if (show_conf) {
 		if (filename == NULL) {
 			autodctl_usage();
-			exit(0);
+			exit(EXIT_SUCCESS);
 		}
 		show_configuration(filename);
 
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	if (!mode) {
 		autodctl_usage();
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	if (programs == PROGRAM_ACTION_NONE) {
 		autodctl_usage();
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	if (mode == MODE_START) {
 		if (filename == NULL) {
 			autodctl_usage();
-			exit(0);
+			exit(EXIT_SUCCESS);
 		}
 
 		start_daemons(filename, programs, debug);
 	} else if (mode == MODE_STOP) {
 		if (filename == NULL) {
 			autodctl_usage();
-			exit(0);
+			exit(EXIT_SUCCESS);
 		}
 
 		stop_daemons(filename, programs);
 	}
 
-	return(0);
+	return(EXIT_SUCCESS);
 }
 
 /******************************************************************************/
@@ -142,7 +142,7 @@ void start_daemons(char *config_filename, int programs, int debug)
 
 	if (!config_load(config_filename)) {
 		printf("Failed to load configuration file\n");
-		exit(0);
+		exit(EXIT_FAILURE);
 	}
 
 	if (programs & PROGRAM_ACTION_SSH_KEY) {
@@ -213,7 +213,7 @@ void stop_daemons(char *config_filename, int programs)
 {
 	if (!config_load(config_filename)) {
 		printf("Failed to load configuration file\n");
-		exit(0);
+		exit(EXIT_FAILURE);
 	}
 
 	if (programs & PROGRAM_ACTION_PROCESS) {
@@ -277,7 +277,7 @@ void show_configuration(char *filename)
 
 	if (!config_load(filename)) {
 		printf("Failed to load configuration file\n");
-		exit(0);
+		exit(EXIT_FAILURE);
 	}
 
 	printf("------------------------------------\n");
