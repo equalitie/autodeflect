@@ -23,5 +23,6 @@ bin/
 !/http/logs/README.md
 /http/templates/cache/*
 !/http/templates/cache/README.md
+http/.gitignore
 .DS_STORE
 composer.lock
