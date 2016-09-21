@@ -18,3 +18,10 @@ daemon/ad2ssh
 daemon/ad2runner
 bin/
 *.swp
+/http/vendor/
+/http/logs/*
+!/http/logs/README.md
+/http/templates/cache/*
+!/http/templates/cache/README.md
+.DS_STORE
+composer.lock
