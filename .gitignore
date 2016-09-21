@@ -26,3 +26,4 @@ bin/
 http/.gitignore
 .DS_STORE
 composer.lock
+http/config.php

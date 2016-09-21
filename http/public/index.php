@@ -1,26 +1,28 @@
 <?php
 require '../vendor/autoload.php';
+require '../config.php';
 
-// Prepare app
 $app = new \Slim\Slim(array(
-    'templates.path' => '../templates',
-));
-
-// Prepare view
-$app->view(new \Slim\Views\Twig());
-$app->view->parserOptions = array(
-    'charset' => 'utf-8',
-    'cache' => realpath('../templates/cache'),
-    'auto_reload' => true,
-    'strict_variables' => false,
-    'autoescape' => true
+	'templates.path' => '../api',)
 );
-$app->view->parserExtensions = array(new \Slim\Views\TwigExtension());
 
 // Define routes
-$app->get('/', function () use ($app) {
-    // Render index view
-    $app->render('index.html');
+$app->get('/:route', function () use ($app) {
+	$app->view(new \Slim\Views\Twig());
+	$app->view->parserOptions = array(
+		'charset' => 'utf-8',
+		'auto_reload' => true,
+		'strict_variables' => false,
+		'autoescape' => true
+	);
+	$app->view->parserExtensions = array(new \Slim\Views\TwigExtension());
+	$app->render('index.html');
+})->conditions(array("route" => "(|api|api/)"));
+
+$app->get('/api/:name', function ($name) use ($app) {
+	$app->response()->header("Content-Type", "application/json");
+	$app->response()->header("Cache-Control", "no-cache");
+	$app->render('index.php', compact ('app',  'name'));
 });
 
 // Run app
