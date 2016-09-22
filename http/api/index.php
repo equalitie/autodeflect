@@ -1,5 +1,7 @@
 <?php
 
+require 'auth.php';
+
 switch ($name) {
 
 	case 'status':
