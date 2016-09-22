@@ -11,6 +11,10 @@ $app = new \Slim\Slim(array(
 // Define routes
 $app->get('/:route', function () use ($app) {
 	$app->view(new \Slim\Views\Twig());
+	$twig = $app->view->getInstance();
+	$loader = $twig->getLoader();
+	// This is a addition directory
+	$loader->addPath('../templates');
 	$app->view->parserOptions = array(
 		'charset' => 'utf-8',
 		'auto_reload' => true,
