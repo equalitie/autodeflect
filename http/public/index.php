@@ -3,7 +3,9 @@ require '../vendor/autoload.php';
 require '../config.php';
 
 $app = new \Slim\Slim(array(
-	'templates.path' => '../api',)
+	'templates.path' => '../api',
+	'debug' => false,
+	)
 );
 
 // Define routes
