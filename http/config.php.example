@@ -1,0 +1,8 @@
+<?php
+define('AUTODEFLECT_ROOT', '/usr/local/deflect/ansible/autodeflect');
+define('AUTODAEMON_CONF', '/bin/daemon.cfg');
+
+define('API_USER', 'user');
+define('API_PASS', 'changeme');
+
+?>
