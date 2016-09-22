@@ -13,8 +13,8 @@ Apache:
 
 example config:<pre>
 
-DocumentRoot /path/to/here
-<Directory /path/to/here>
+DocumentRoot /path/to/here/public
+<Directory /path/to/here/public>
     Options All
     AllowOverride All
     Order allow,deny
