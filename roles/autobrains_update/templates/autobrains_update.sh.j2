@@ -829,8 +829,16 @@ TSHA1HASH="$(git hash-object roles/autobrains_update/templates/autobrains_update
 LSHA1HASH="$(grep "^# Version hash:" autobrains_update.sh | cut -d' ' -f5)"
 
 if [ "$TSHA1HASH" != "$LSHA1HASH" ]; then
+
+	# Note: Hash is only updated on a git pull/checkout.
+	# only applies to commited files.
+	# example:
+	#  rm roles/autobrains_update/templates/autobrains_update.sh.j2
+	#  git checkout -- roles/autobrains_update/templates/autobrains_update.sh.j2
+	# This updates Version hash: 
+
 	echo -e "\n[WARNING]: autobrains_update.sh is out-of-date or not"
-	echo "commited into git repo. Update with"
+	echo "from a git pull/checkout. Update with"
 	echo -e "$0 -i --force\n"
 fi
 
