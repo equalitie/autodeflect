@@ -13,6 +13,7 @@
 # {{no_edit_template}}
 # {{no_edit_template}}
 
+
 # Version hash: $Id$
 
 ## This will be the loop variable DNETS 
@@ -22,6 +23,8 @@ DNETS='{% for dnet in dnets %}{{dnetspace()}}{{dnet}}{% endfor %}'
 EMAIL_NOTIFY='{{autobrains_config["email_notify"]}}'
 EMAIL_KEY_ID='{{autobrains_config["email_key_id"]}}'
 LOGDIR='{{autobrains_config["log_dir"]}}'
+EXIT_SUCCESS=0
+EXIT_FAILURE=1
 
 CUR_DIR="$(pwd)"
 LOCK_PREFIX='.autobrains_lock-'
@@ -820,6 +823,15 @@ if [ "$(pwd)" != "{{playbook_dir}}" ]; then
     echo "ERROR: Could not change to directory {{playbook_dir}}. Exiting"
     exit
   fi
+fi
+
+TSHA1HASH="$(git hash-object roles/autobrains_update/templates/autobrains_update.sh.j2)"
+LSHA1HASH="$(grep "^# Version hash:" autobrains_update.sh | cut -d' ' -f5)"
+
+if [ "$TSHA1HASH" != "$LSHA1HASH" ]; then
+	echo -e "\n[WARNING]: autobrains_update.sh is out-of-date or not"
+	echo "commited into git repo. Update with"
+	echo -e "$0 -i --force\n"
 fi
 
 # Create a lock file that also contains content for notify email when exiting
