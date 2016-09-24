@@ -173,7 +173,7 @@ int open_ssh(char * hostname, char * username , char * remotefile, int port, cha
 	struct libssh2_agent_publickey *identity, *prev_identity = NULL;
 	struct stat fileinfo;
 	int spin = 0;
-	size_t got =0;
+	size_t got = 0;
 	size_t total = 0;
 	/* debian 7 does not have this in libssh2 yet */
 	/***********************************
