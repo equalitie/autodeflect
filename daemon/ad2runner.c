@@ -29,8 +29,8 @@ int main(int argc, char **argv)
 {
 
 	unsigned char digest[MD5_DIGEST_LENGTH] = {0};
-	char *remote_md5 = (char*)malloc(33);
-	char *local_md5 = (char*)malloc(33);
+	char remote_md5[33];
+	char local_md5[33];
 	int i = 0;
 	struct timeval tv;
 	char etime[21];
