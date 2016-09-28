@@ -309,6 +309,8 @@ int config_load(char *filename)
 	// process_file
 	sprintf(buffer, "%s/%s%s", directory_script, process_file, pid_suffix);
 
+	free(process_file);
+
 	if ((process_file = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
 		return FALSE;
 	}
@@ -326,6 +328,8 @@ int config_load(char *filename)
 
 	// ssh_agent
 	sprintf(buffer, "%s -s -a %s", ssh_agent, ssh_agent_sock);
+
+	free(ssh_agent);
 
 	if ((ssh_agent = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
 		return FALSE;
