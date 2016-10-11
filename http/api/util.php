@@ -1,7 +1,5 @@
 <?php
 
-use Symfony\Component\Yaml\Yaml;
-
 /*******************************************************/
 
 function read_config($file) {
@@ -31,11 +29,26 @@ function read_config($file) {
 
 /*******************************************************/
 
-function read_site_yaml($file) {
+function read_yaml($file) {
 
-	$yaml = $value = Yaml::parse(file_get_contents($file));
+	$array = yaml_parse(file_get_contents($file));
 
-	return $yaml;
+	return $array;
+}
+
+/*******************************************************/
+
+function get_client_time($file) {
+
+	$array = read_yaml($file);
+
+	if (isset($array['timestamp']))
+		$ret = $array['timestamp'];
+	else
+		$ret = 0;
+
+	return $ret;
+
 }
 
 /*******************************************************/
