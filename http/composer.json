@@ -17,7 +17,6 @@
         "slim/slim": "2.*",
         "slim/views": "0.*",
         "twig/twig": "1.24.*",
-        "symfony/yaml": "^2.8",
         "components/bootstrap": "^3.3"
     }
 }
