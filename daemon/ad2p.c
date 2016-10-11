@@ -12,6 +12,7 @@
 int main(int argc, char **argv)
 {
 	double current_load;
+	int count = 0;
 
 	lib_common_option_handling(argc, argv);
 
@@ -39,6 +40,19 @@ int main(int argc, char **argv)
 		}
 
 		if (access(process_file, F_OK) == 0) {
+			fprintf(stderr, "Need to run '%s' but doing courtesy wait\n", program_process);
+			while (count <= 6) {
+				if (need_finish == TRUE)
+					break;
+				fprintf(stderr, "Courtesy sleep for %d sec. on loop count %d of 6\n", daemon_interval_generic, count);
+				sleep(daemon_interval_generic);
+				count++;
+			}
+			if (need_finish == TRUE)
+				continue;
+
+			count = 0;
+				
 			fprintf(stderr, "Running '%s'\n", program_process);
 			int e = WEXITSTATUS(system(program_process));
 			fprintf(stderr, "Exit status of %s is %d\n", program_process, e);
