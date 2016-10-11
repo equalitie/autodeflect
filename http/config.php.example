@@ -1,6 +1,8 @@
 <?php
+// All other paths are in realtion to this AUTODEFLECT_ROOT
 define('AUTODEFLECT_ROOT', '/usr/local/deflect/ansible/autodeflect');
 define('AUTODAEMON_CONF', '/bin/daemon.cfg');
+define('CLIENT_LAST_FILE','/clients.yml-revisions/clients.yml-last_used');
 
 define('API_USER', 'user');
 define('API_PASS', 'changeme');
