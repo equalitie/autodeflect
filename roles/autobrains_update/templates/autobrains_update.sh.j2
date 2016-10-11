@@ -731,9 +731,9 @@ for DNET in $DNETS; do
     if [ -n "$NONLIVESAFE" ]; then
       echo "Full deploy needed. Running \"deploy\" for \"$DNET\""
       if [ -n "$DEBUG" ]; then
-        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H ALL
+        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -l -H ALL
       else
-        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H ALL 2> /dev/null | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}' 
+        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -l -H ALL 2> /dev/null | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}' 
       fi
       # We set a variable array for this DNET has been deployed
       DEPLOYED[$DNET]=0
