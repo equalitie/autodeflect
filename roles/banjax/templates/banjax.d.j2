@@ -58,19 +58,19 @@ challenger:
 
 regex_banner:
 {%for rb in remap[item.key]["banjax_regex_banner"] %}
-  - rule: {{item.key}}_regex_banner_{{loop.index}}
+  - rule: '{{item.key}} m={{rb.regex.method}} p={{rb.regex.url}} u={{rb.regex.ua}} {{rb.hits_per_interval}}req/{{rb.interval}}sec'
     regex: '^{{rb.regex.method}}\ https?:\/\/{{rb.regex.url}}\ {{item.key | regex_replace('\.', '\\.')}}\ {{rb.regex.ua}}'
     interval: {{rb.interval}}
     hits_per_interval: {{rb.hits_per_interval}}
 
-  - rule: www.{{item.key}}_regex_banner_{{loop.index}}
+  - rule: 'www.{{item.key}} m={{rb.regex.method}} p={{rb.regex.url}} u={{rb.regex.ua}} {{rb.hits_per_interval}}req/{{rb.interval}}sec'
     regex: '^{{rb.regex.method}}\ https?:\/\/{{rb.regex.url}}\ www\.{{item.key | regex_replace('\.', '\\.')}}\ {{rb.regex.ua}}'
     interval: {{rb.interval}}
     hits_per_interval: {{rb.hits_per_interval}}
 {% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}
 {% for prefix in remap[item.key]["additional_domain_prefix"] %}
 
-  - rule: {{prefix}}.{{item.key}}_regex_banner_{{loop.index}}
+  - rule: '{{prefix}}.{{item.key}} m={{rb.regex.method}} p={{rb.regex.url}} u={{rb.regex.ua}} {{rb.hits_per_interval}}req/{{rb.interval}}sec'
     regex: '^{{rb.regex.method}}\ https?:\/\/{{rb.regex.url}}\ {{prefix}}\.{{item.key | regex_replace('\.', '\\.')}}\ {{rb.regex.ua}}'
     interval: {{rb.interval}}
     hits_per_interval: {{rb.hits_per_interval}}
