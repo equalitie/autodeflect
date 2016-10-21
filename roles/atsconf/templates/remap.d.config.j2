@@ -23,7 +23,7 @@
 
     {#- define HTTP methods -#}
 {% if remap[item.key]["allowed_http_methods"] is defined %}
-{% set http_methods = "@action=allow @method=" ~ remap[item.key]['allowed_http_methods']| join (' @method=') %}
+{% set http_methods = " @action=allow @method=" ~ remap[item.key]['allowed_http_methods']| join (' @method=') %}
 {% else %} {% set http_methods = "" %} {% endif %}
   {#- END variable definition -#}
 
@@ -53,12 +53,12 @@ map http://{{prefix}}.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/
   {# BEGIN http remaps #}
 {% if remap[item.key]["http_type"] == "http" or remap[item.key]["http_type"] == "https" %}
 
-map http://{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}} {{http_methods}}
+map http://{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}{{http_methods}}
 {% if remap[item.key]["no_www"] is not defined or remap[item.key]["no_www"] == false %}{% if remap[item.key]["dns_records"] is defined %}
-map http://www.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}} {{http_methods}}{% endif %}{% endif %}
+map http://www.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}{{http_methods}}{% endif %}{% endif %}
 {% if remap[item.key]["additional_domain_prefix"] is defined %}{% for prefix in remap[item.key]["additional_domain_prefix"] %}
 
-map http://{{prefix}}.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}} {{http_methods}}
+map http://{{prefix}}.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}{{http_methods}}
 {% endfor %}{% endif %}
 {% elif remap[item.key]["http_type"] == "https_redirect" %}
 
@@ -74,13 +74,13 @@ redirect http://www.{{item.key}} https://www.{{item.key}}/{% endif %}{% endif %}
 {% set target_https_port = ":" ~ remap[item.key]["origin_https_port"] %}
 {% else %} {% set target_https_port = "" %} {% endif %}
 
-map https://{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}} {{http_methods}}
+map https://{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}}{{http_methods}}
 {% if remap[item.key]["no_www"] is not defined or remap[item.key]["no_www"] == false %}{% if remap[item.key]["dns_records"] is defined %}
-map https://www.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}} {{http_methods}}{% endif %}{% endif %}
+map https://www.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}}{{http_methods}}{% endif %}{% endif %}
 {% if remap[item.key]["additional_domain_prefix"] is defined %}{% for prefix in remap[item.key]["additional_domain_prefix"] %}
 {# {% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}{% for prefix in remap[item.key]["additional_domain_prefix"] %} #}
 
-map https://{{prefix}}.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}} {{http_methods}}
+map https://{{prefix}}.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}}{{http_methods}}
 {% endfor %} {% endif %} {% endif %}
   {# END https remaps #}
   {# END remaps #}
