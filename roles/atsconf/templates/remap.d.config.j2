@@ -24,7 +24,7 @@
     {#- define HTTP methods -#}
 {% if remap[item.key]["allowed_http_methods"] is defined %}
 {% set http_methods = " @action=allow @method=" ~ remap[item.key]['allowed_http_methods']| join (' @method=') %}
-{% else %} {% set http_methods = "" %} {% endif %}
+{% else %}{% set http_methods = "" %}{% endif %}
   {#- END variable definition -#}
 
   {#- BEGIN letsencrypt -#}
