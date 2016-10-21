@@ -12,9 +12,18 @@
 ######      in the origin hostname (for easy grepping, to poll origins direct)
 ###############
 
+.definefilter disable_delete_push @action=deny @method=delete @method=push
+.activatefilter disable_delete_push
+
 {% for site in remap | sort %}
 {% if  remap[site]["network"] == item.key %}
+{% remap[site]["allow_http_delete_push"] | default(False) == True %}
+.deactivatefilter disable_delete_push
 .include	remap.d/{{site}}.config
+.activatefilter disable_delete_push
+{% else %}
+.include	remap.d/{{site}}.config
+{% endif %}
 {% endif %}
 {% endfor %}
 
