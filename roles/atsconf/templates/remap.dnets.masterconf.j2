@@ -17,7 +17,7 @@
 
 {% for site in remap | sort %}
 {% if  remap[site]["network"] == item.key %}
-{% remap[site]["allow_http_delete_push"] | default(False) == True %}
+{% if remap[site]["allow_http_delete_push"] | default(False) == True %}
 .deactivatefilter disable_delete_push
 .include	remap.d/{{site}}.config
 .activatefilter disable_delete_push
