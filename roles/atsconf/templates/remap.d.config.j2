@@ -20,6 +20,11 @@
 {% if remap[item.key]["confremap"] is defined and remap[item.key]["confremap"] %}
 {% set pluginconf = "@plugin=conf_remap.so @pparam=/usr/local/trafficserver/conf/conf.d/" ~ item.key ~ ".config" %}
 {% else %} {% set pluginconf = "" %} {% endif %}
+
+    {#- define HTTP methods -#}
+{% if remap[item.key]["allowed_http_methods"] is defined %}
+{% set http_methods = "@action=allow @method=" ~ remap[item.key]['allowed_http_methods']| join (' @method=') %}
+{% else %} {% set http_methods = "" %} {% endif %}
   {#- END variable definition -#}
 
   {#- BEGIN letsencrypt -#}
@@ -40,7 +45,7 @@ map http://{{prefix}}.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/
 
 # include config/remap.d/{{item.key}} if found
 {% include "config/remap.d/" ~ item.key ~ ".config" ignore missing %}
-  {#+ END include config/remap.d/ #} 
+  {# END include config/remap.d/ #} 
 # end include
 
 {% if remap[item.key]["bypass_remap"] is not defined or remap[item.key]["bypass_remap"] == false %}
@@ -48,12 +53,12 @@ map http://{{prefix}}.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/
   {# BEGIN http remaps #}
 {% if remap[item.key]["http_type"] == "http" or remap[item.key]["http_type"] == "https" %}
 
-map http://{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}
+map http://{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}} {{http_methods}}
 {% if remap[item.key]["no_www"] is not defined or remap[item.key]["no_www"] == false %}{% if remap[item.key]["dns_records"] is defined %}
-map http://www.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}{% endif %}{% endif %}
+map http://www.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}} {{http_methods}}{% endif %}{% endif %}
 {% if remap[item.key]["additional_domain_prefix"] is defined %}{% for prefix in remap[item.key]["additional_domain_prefix"] %}
 
-map http://{{prefix}}.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}
+map http://{{prefix}}.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}} {{http_methods}}
 {% endfor %}{% endif %}
 {% elif remap[item.key]["http_type"] == "https_redirect" %}
 
@@ -69,13 +74,13 @@ redirect http://www.{{item.key}} https://www.{{item.key}}/{% endif %}{% endif %}
 {% set target_https_port = ":" ~ remap[item.key]["origin_https_port"] %}
 {% else %} {% set target_https_port = "" %} {% endif %}
 
-map https://{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}}
+map https://{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}} {{http_methods}}
 {% if remap[item.key]["no_www"] is not defined or remap[item.key]["no_www"] == false %}{% if remap[item.key]["dns_records"] is defined %}
-map https://www.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}}{% endif %}{% endif %}
+map https://www.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}} {{http_methods}}{% endif %}{% endif %}
 {% if remap[item.key]["additional_domain_prefix"] is defined %}{% for prefix in remap[item.key]["additional_domain_prefix"] %}
 {# {% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}{% for prefix in remap[item.key]["additional_domain_prefix"] %} #}
 
-map https://{{prefix}}.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}}
+map https://{{prefix}}.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}} {{http_methods}}
 {% endfor %} {% endif %} {% endif %}
   {# END https remaps #}
   {# END remaps #}
