@@ -3,7 +3,7 @@ define service{
 	host_name			Deflect_Origins
 	servicegroups			DeflectOrigins
 	service_description		{{site}}
-	check_command			check_deflect_origin!{{site}}{% if "origin_object" in remap[site] %} -u "{{remap[site]["origin_object"]}}"{% endif %}!{{siteattrs["origin"]}}{% if remap[site]["http_type"] == "https" or remap[site]["http_type"] == "https_redirect" or remap[site]["http_type"] == "https_only" %} -S{% if remap[site]["origin_https_port"] is defined %} -p {{remap[site]["origin_https_port"]}}{% endif %}{% elif remap[site]["origin_http_port"] is defined %} -p {{remap[site]["origin_http_port"]}}{% endif %}
+	check_command			check_deflect_origin!{{site}}{% if "origin_object" in remap[site] %} -u "{{remap[site]["origin_object"]}}"{% endif %}!{{siteattrs["origin"]}}{% if remap[site]["http_type"] == "https_only" %} -S{% if remap[site]["origin_https_port"] is defined %} -p {{remap[site]["origin_https_port"]}}{% endif %}{% elif remap[site]["origin_http_port"] is defined %} -p {{remap[site]["origin_http_port"]}}{% endif %}
 
 	use				generic-service
 	normal_check_interval		10
