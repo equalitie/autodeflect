@@ -27,20 +27,6 @@
 {% else %}{% set http_methods = "" %}{% endif %}
   {#- END variable definition -#}
 
-  {#- BEGIN letsencrypt -#}
-{%- if remap[item.key]["letsencrypt"] is defined and remap[item.key]["letsencrypt"] == true %}
-
-## Let's Encrypt!
-map http://{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
-{% if remap[item.key]["no_www"] is not defined or remap[item.key]["no_www"] == false %}{% if remap[item.key]["dns_records"] is defined %}
-map http://www.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge {% endif %}{% endif %}
-{% if remap[item.key]["additional_domain_prefix"] is defined %}{% for prefix in remap[item.key]["additional_domain_prefix"] %}
-
-map http://{{prefix}}.{{item.key}}/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
-{% endfor %} {% endif %}
-{%- endif -%}
-  {#- END letsencrypt -#}
-
   {#- BEGIN include site-specific config from config/remap.d/ #}
 
 # include config/remap.d/{{item.key}} if found

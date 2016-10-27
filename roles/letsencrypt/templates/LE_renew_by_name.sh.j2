@@ -13,6 +13,7 @@ LE_DIR=/etc/letsencrypt
 RENEW_WINDOW=29days   # `man date` for format details
 RENEW_DATE=$(date -d "+$RENEW_WINDOW" +%s)
 NS_SERVER={{ authoritative_nameserver_grep }}
+unset NGINX_STOPPED
 
 function check_cert() {
   echo "checking local cert validity for ${DOMAIN_W_ARGS%% *}"
@@ -35,7 +36,9 @@ return $STATUS
 
 function renew_cert() {
   echo "requesting cert for ${DOMAIN_W_ARGS%% *}"
-  certbot certonly --standalone --agree-tos --standalone-supported-challenges http-01 -m {{ le_email }} -n -d $DOMAIN_W_ARGS
+  NGINX_STOPPED=true
+  [ "$NGINX_STOPPED" == "true" ] || service nginx stop
+  certbot certonly --standalone --agree-tos --standalone-supported-challenges http-01 -m sysops@equalit.ie -n -d $DOMAIN_W_ARGS
 }
 
 function check_delegation() {
@@ -78,5 +81,7 @@ egrep -v '^$|^#' $LE_SITE_LIST | while IFS='' read -r DOMAIN_W_ARGS ; do
     echo "${DOMAIN_W_ARGS%% *} does not appear delegated - skipping"
   fi
 done
+
+[ "$NGINX_STOPPED" == "true" ] && service nginx start
 
 
