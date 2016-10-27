@@ -16,6 +16,7 @@
 - name: Generate NGINX config
   template: src=letsencrypt_origins.conf.j2 dest=/etc/nginx/sites-available/letsencrypt_origins.conf owner=root group=root mode=0644
   tags: letsencrypt
+  notify: reload nginx
 
 - name: Generate Letsencrypt renewal bash script
   template: src=LE_renew_by_name.sh.j2 dest=/opt/autodeflect/bin/LE_renew_by_name.sh owner=root group=root mode=0744
