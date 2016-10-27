@@ -82,6 +82,6 @@ egrep -v '^$|^#' $LE_SITE_LIST | while IFS='' read -r DOMAIN_W_ARGS ; do
   fi
 done
 
-[ "$NGINX_STOPPED" == "true" ] && service nginx start
-
+# make sure nginx is running
+service nginx start
 
