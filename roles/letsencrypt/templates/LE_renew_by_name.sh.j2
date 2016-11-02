@@ -36,8 +36,8 @@ return $STATUS
 
 function renew_cert() {
   echo "requesting cert for ${DOMAIN_W_ARGS%% *}"
+  [ "$NGINX_STOPPED" == "true" ] || /usr/sbin/service nginx stop
   NGINX_STOPPED=true
-  [ "$NGINX_STOPPED" == "true" ] || service nginx stop
   certbot certonly --standalone --agree-tos --standalone-supported-challenges http-01 -m sysops@equalit.ie -n -d $DOMAIN_W_ARGS
 }
 
@@ -83,5 +83,5 @@ egrep -v '^$|^#' $LE_SITE_LIST | while IFS='' read -r DOMAIN_W_ARGS ; do
 done
 
 # make sure nginx is running
-service nginx start
+/usr/sbin/service nginx start
 
