@@ -38,7 +38,7 @@ function renew_cert() {
   echo "requesting cert for ${DOMAIN_W_ARGS%% *}"
   [ "$NGINX_STOPPED" == "true" ] || /usr/sbin/service nginx stop
   NGINX_STOPPED=true
-  certbot certonly --standalone --agree-tos --standalone-supported-challenges http-01 -m sysops@equalit.ie -n -d $DOMAIN_W_ARGS
+  certbot certonly --standalone --agree-tos --standalone-supported-challenges http-01 -m "{{le_email}}"  -n -d $DOMAIN_W_ARGS
 }
 
 function check_delegation() {
