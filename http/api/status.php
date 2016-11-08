@@ -16,7 +16,7 @@ if (file_exists($conf['directory_script'] . "/" . $conf['process_file'] . $conf[
 	$timestamp = file_get_contents($conf['directory_script'] . "/" . $conf['process_file'] . $conf['pid_suffix']); 
 	if (file_exists(AUTODEFLECT_ROOT . "/clients.yml")) {
 		$client_current = get_client_time(AUTODEFLECT_ROOT . "/clients.yml");
-		if (intval($out['client_last_success']) <= intval($client_current)) {
+		if (intval($out['client_last_success']) < intval($client_current)) {
 			$out['client_last_running'] = intval($client_current);
 		} else {
 			$out['client_last_running'] = 0;
