@@ -29,7 +29,7 @@
 
   {#- BEGIN include site-specific config from config/remap.d/ #}
 
-# include config/remap.d/{{item.key}} if found
+# include config/remap.d/{{item.key}}.config if found
 {% include "config/remap.d/" ~ item.key ~ ".config" ignore missing %}
   {# END include config/remap.d/ #} 
 # end include
