@@ -1,0 +1,17 @@
+{
+  "#": "{{ no_edit_template }}",
+  "sites": [
+{% for site, values in remap | dictsort %}
+    {
+      "site": "{{ site }}",
+      "network": "{{ values['network'] }}",
+      "https": "{{ values['https'] }}",
+      "origin": "{{ values['origin'] }}"
+{% if loop.last %}
+    }
+{% else %}
+    },
+{% endif %}
+{% endfor %}
+  ]
+}

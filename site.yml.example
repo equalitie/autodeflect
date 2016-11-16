@@ -47,6 +47,7 @@
     - {role: atsconf, tags: [ats]}
     - {role: banjax, tags: banjax}
     - {role: nagios, tags: nagios}
+    - {role: lists, tags: lists}
 
 - hosts: awstats
   vars:
