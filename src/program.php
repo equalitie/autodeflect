@@ -213,13 +213,25 @@ function site_check_array($site_obj, $dnet_obj, $mode = 0)
       case 56: // Failure with receiving network data. Output okay.
         break;
       case 255: // ssh probably failed if in mode=1
-        printf ("ERROR: %s exit returned\n", $s);
-        exit(1); 
+        printf ("ERROR: %s exit returned on site %s at edge %s\n", $s,$site_obj->site,$edge[0]);
+        $continue = 1; 
+        break;
+      case 6:
+        printf("ERROR: curl returned couldn't resolve site %s at edge %s\n", $site_obj->site,$edge[0]);
+        $continue = 1;
+        break;
       default:
-        printf("ERROR: Unknown error status %s from\n%s\n", $s,$cmd);
+        printf("ERROR: Unknown exit status %s on site %s at edge %s\n", $s,$site_obj->site,$edge[0]);
         if(VERBOSE > 1)
           print_r($out);
-        exit(1);
+        $continue = 1;
+        break;
+    }
+
+    if (isset($continue)) {
+      print "Skipping ..\n";
+      unset ($continue);
+      continue;
     }
 
     $out_array[$cnt]['@timestamp'] = (string)date("c");
