@@ -1,0 +1,5 @@
+/bin/
+composer.lock
+/vendor/
+/config/config.php
+/build/originhealth.phar
