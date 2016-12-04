@@ -195,7 +195,7 @@ function site_check_array($site_obj, $dnet_obj, $mode = 0)
       die("ERROR: SSH auth not available\n");
     }
 
-    $pre_cmd = "export SSH_AUTH_SOCK=\"".$config['ssh_auth_sock']."\" ; ".SSH. " -o ConnectTimeout=".$config['ssh_connect_t']." -o BatchMode=yes ".$config['ssh_user']."@".$edge[1]." ";
+    $pre_cmd = "export SSH_AUTH_SOCK=\"".$config['ssh_auth_sock']."\" ; ".SSH. " -q -o ConnectTimeout=".$config['ssh_connect_t']." -o BatchMode=yes ".$config['ssh_user']."@".$edge[1]." 2>/dev/null ";
     $post_cmd = addslashes(CURL." -k -I -s -L --max-redirs 5 --url $scheme://$site_obj->site/ --resolve $site_obj->site:$port:$site_obj->origin -A \"".$config['user_agent']."\" -m ".$config['max_t']." -w \"%{http_code}\\n%{time_total}\\n%{num_redirects}\\n%{url_effective}\\n\" -o /dev/null");
     $cmd = $pre_cmd."\"".$post_cmd."\"";
   } else {
@@ -213,7 +213,7 @@ function site_check_array($site_obj, $dnet_obj, $mode = 0)
       case 56: // Failure with receiving network data. Output okay.
         break;
       case 255: // ssh probably failed if in mode=1
-        printf ("ERROR: %s exit returned on site %s at edge %s\n", $s,$site_obj->site,$edge[0]);
+        printf ("ERROR: %s exit returned 'ssh connect or execution error' on site %s at edge %s\n", $s,$site_obj->site,$edge[0]);
         $continue = 1; 
         break;
       case 6:
@@ -222,8 +222,8 @@ function site_check_array($site_obj, $dnet_obj, $mode = 0)
         break;
       default:
         printf("ERROR: Unknown exit status %s on site %s at edge %s\n", $s,$site_obj->site,$edge[0]);
-        if(VERBOSE > 1)
-          print_r($out);
+        // Print this so we can add to above error catching
+        print_r($out);
         $continue = 1;
         break;
     }
