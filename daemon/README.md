@@ -24,6 +24,9 @@ After ansible has ran tag init 'ansible-playbook site.yml -l controller --tags i
 * cd ../bin
 * edit daemon.cfg
 * check daemon.cfg with 'autodeflect --config daemon.cfg --show-conf'
+* (optional) if trigger.sh exists and is executable in directory_script it will run and if a exit status of 200,
+  the process process file will trigger a run. This is meant to easily run external programs and exit a 200 if
+  need to run the update process. 
 
 ## Usage 
 
