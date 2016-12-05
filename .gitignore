@@ -28,3 +28,4 @@ http/.gitignore
 composer.lock
 http/config.php
 siteslist.json
+trigger.sh

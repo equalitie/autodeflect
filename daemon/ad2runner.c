@@ -68,6 +68,32 @@ int main(int argc, char **argv)
 			continue;
 		}
 
+		if (access(external_trigger, X_OK) == 0) {
+			fprintf(stderr, "External trigger script exists. Running %s\n", external_trigger);
+			/* run the optional trigger and trigger run if status 200 */
+                        int e = WEXITSTATUS(system(external_trigger));
+			if (e == 200) {
+				fprintf(stderr, "External trigger \n");
+				int processfd = open(process_file, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+				if (processfd != -1) {
+					gettimeofday(&tv, NULL);
+					unsigned long long epochtime =
+						(unsigned long long)(tv.tv_sec) * 1000 +
+						(unsigned long long)(tv.tv_usec) / 1000;
+					size_t etimeSize = snprintf(NULL, 0 , "%llu", epochtime);
+
+					snprintf(etime, etimeSize + 1, "%llu", epochtime);
+					write(processfd, etime, etimeSize + 1);
+
+					close(processfd);
+					continue;
+				} else {
+					fprintf(stderr, "Problem writting %s\n", process_file);
+				}
+				sleep(daemon_interval_generic);
+			}
+		}
+
 		/* FIXME: Should we make this configurable? */
 		char outfile[] = "/tmp/autodeflectXXXXXX";
 

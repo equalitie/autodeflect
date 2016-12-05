@@ -24,6 +24,7 @@ char *dashboard_user = NULL;
 char *dashboard_host = NULL;
 char *dashboard_client_yml = NULL;
 char *last_clients_yml = NULL;
+char *external_trigger = NULL;
 int dashboard_port = 0;
 
 int validate_core(void)
@@ -325,6 +326,15 @@ int config_load(char *filename)
 	}
 
 	strncpy(ssh_agent_sock, buffer, strlen(buffer) + 1);
+
+	// external_trigger
+	sprintf(buffer, "%s/%s", directory_script, EXTERNAL_TRIGGER);
+
+	if ((external_trigger = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
+		return FALSE;
+	}
+
+	strncpy(external_trigger, buffer, strlen(buffer) + 1);
 
 	// ssh_agent
 	sprintf(buffer, "%s -s -a %s", ssh_agent, ssh_agent_sock);

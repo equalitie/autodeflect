@@ -22,6 +22,7 @@
 /**********************************************************************/
 
 #define PROGRAM_PROCESS "autobrains_update.sh"
+#define EXTERNAL_TRIGGER "trigger.sh"
 
 /**********************************************************************/
 // External definitions
@@ -73,6 +74,7 @@ extern char *dashboard_user;
 extern char *dashboard_host; 
 extern char *dashboard_client_yml;
 extern char *last_clients_yml;
+extern char *external_trigger;
 extern int dashboard_port; 
 
 int config_load(char *filename);
