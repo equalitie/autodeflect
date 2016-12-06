@@ -207,18 +207,22 @@ function site_check_array($site_obj, $dnet_obj, $mode = 0)
     // https://curl.haxx.se/libcurl/c/libcurl-errors.html
     switch ($s) {
       case 0: // Success
+        break;
       case 7: // Failed to connect(). Output okay.
       case 28: // Operation timeout. Output okay.
       case 35: // SSL/TLS handshake problem. Output okay.
       case 56: // Failure with receiving network data. Output okay.
+        $out[0] = ((int)$s + 700);
         break;
       case 255: // ssh probably failed if in mode=1
-        printf ("ERROR: %s exit returned 'ssh connect or execution error' on site %s at edge %s\n", $s,$site_obj->site,$edge[0]);
-        $continue = 1; 
+        $out[0] = '000';
+        if (VERBOSE > 0)
+          printf ("ERROR: %s exit returned 'ssh connect or execution error' on site %s at edge %s\n", $s,$site_obj->site,$edge[0]);
         break;
       case 6:
-        printf("ERROR: curl returned couldn't resolve site %s at edge %s\n", $site_obj->site,$edge[0]);
-        $continue = 1;
+        $out[0] = ((int)$s + 700);
+        if (VERBOSE > 0)
+          printf("ERROR: curl returned couldn't resolve site %s at edge %s\n", $site_obj->site,$edge[0]);
         break;
       default:
         printf("ERROR: Unknown exit status %s on site %s at edge %s\n", $s,$site_obj->site,$edge[0]);
@@ -233,6 +237,19 @@ function site_check_array($site_obj, $dnet_obj, $mode = 0)
       unset ($continue);
       continue;
     }
+
+    if (!(isset($out[0]))) {
+      // Not sure how we got here. Print error and skip.
+      printf("ERROR: Should never get here. Exit status %s on site %s at edge %s. Skipping ...\n", $s,$site_obj->site,$edge[0]);
+      continue;
+    }
+
+    if (!(isset($out[1])))
+      $out[1] = '0.00';
+    if (!(isset($out[2])))
+      $out[1] = '0';
+    if (!(isset($out[3])))
+      $out[3] = 'N/A';
 
     $out_array[$cnt]['@timestamp'] = (string)date("c");
     $out_array[$cnt]['mode'] = (int)$mode;
@@ -473,6 +490,12 @@ function show_help($version)
 				mode=1 (run remote, on edges via ssh)
 				mode=2 (run image output mode)		
   --show-conf|-s	FIXME: Print out config and exit
+
+  Note: On many errors due to connections this program will modify the
+        json output. In most case just changing the "http_response_code":
+        to curl's exit code + 700. If in --mode=1 and ssh can not connect
+        to remote host (exit code 255) the output will change to
+        "http_response_code": 000 .
 
 EOT;
 
