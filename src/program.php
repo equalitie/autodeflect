@@ -14,6 +14,11 @@ if (isset($arg['help']) || isset($arg['h'])) {
   exit(0);
 }
 
+if (isset($arg['show-conf']) || isset($arg['s'])) {
+  show_conf($config);
+  exit(0);
+}
+
 // Set our verbose, default 0, ie; --verbose=1 or -v
 if (isset($arg['verbose']) || isset($arg['v'])) {
   if (@$arg['verbose'] > 1)
@@ -473,6 +478,18 @@ function output_image($site, $scheme)
 
 }
 
+function show_conf($config)
+{
+
+// FIXME: make this better in future
+
+  // Change ls_password. Still not secure, but better than just printing it here
+  $config['ls_password'] = 'xxxxxxxxxxxxxxxxxxxxxxxx';
+  print_r($config);
+  print "\n";
+
+}
+
 // help
 function show_help($version)
 {
@@ -489,7 +506,7 @@ function show_help($version)
   --mode=0|1|2		Default mode=0 (run local)
 				mode=1 (run remote, on edges via ssh)
 				mode=2 (run image output mode)		
-  --show-conf|-s	FIXME: Print out config and exit
+  --show-conf|-s	Print out config and exit
 
   Note: On many errors due to connections this program will modify the
         json output. In most case just changing the "http_response_code":
