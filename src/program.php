@@ -220,7 +220,7 @@ function site_check_array($site_obj, $dnet_obj, $mode = 0)
         $out[0] = ((int)$s + 700);
         break;
       case 255: // ssh probably failed if in mode=1
-        $out[0] = '000';
+        $out[0] = '700';
         if (VERBOSE > 0)
           printf ("ERROR: %s exit returned 'ssh connect or execution error' on site %s at edge %s\n", $s,$site_obj->site,$edge[0]);
         break;
@@ -512,7 +512,7 @@ function show_help($version)
         json output. In most case just changing the "http_response_code":
         to curl's exit code + 700. If in --mode=1 and ssh can not connect
         to remote host (exit code 255) the output will change to
-        "http_response_code": 000 .
+        "http_response_code": 700 .
 
 EOT;
 
