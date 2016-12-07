@@ -252,7 +252,7 @@ function site_check_array($site_obj, $dnet_obj, $mode = 0)
     if (!(isset($out[1])))
       $out[1] = '0.00';
     if (!(isset($out[2])))
-      $out[1] = '0';
+      $out[2] = '0';
     if (!(isset($out[3])))
       $out[3] = 'N/A';
 
