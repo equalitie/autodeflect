@@ -216,6 +216,7 @@ function site_check_array($site_obj, $dnet_obj, $mode = 0)
       case 7: // Failed to connect(). Output okay.
       case 28: // Operation timeout. Output okay.
       case 35: // SSL/TLS handshake problem. Output okay.
+      case 52: // Nothing was returned from the server and getting nothing is considered an error. 
       case 56: // Failure with receiving network data. Output okay.
         $out[0] = ((int)$s + 700);
         break;
