@@ -44,6 +44,25 @@ After ansible has ran tag init 'ansible-playbook site.yml -l controller --tags i
 
 You can run any of the program with the --debug flag and program will print useful information to screen while running.
 
+## Installing updates in production
+
+For example, to make a hard-coded config change, ie changing config.c, and get it live...
+
+Locally:
+* git clone/pull
+* vi daemon/config.c
+* git add daemon/config.c ; git commit -m "YOURMESSAGE"
+* git push
+
+Then in production:
+* cd /path/to/autodeflect
+* git pull
+* cd daemon
+* make ; make install
+* cd ../bin
+* ./autodeflect --config daemon.cfg --all --stop
+* ./autodeflect --config daemon.cfg --all --start
+
 ## Contributors
 
 * "Rodney Mosley (RamJett)" 'rodney at equalit dot ie'
