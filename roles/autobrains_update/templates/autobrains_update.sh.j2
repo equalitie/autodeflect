@@ -843,9 +843,6 @@ if [ "$TSHA1HASH" != "$LSHA1HASH" ]; then
 	echo -e "$0 -i --force\n"
 fi
 
-# Create a lock file that also contains content for notify email when exiting
-lock
-
 # Trap ctrl-c or exit so we unlock and clean up
 trap ctrl_c INT
 trap finish EXIT
@@ -922,6 +919,9 @@ case "$1" in
   ;;
 esac
 done
+
+# Create a lock file that also contains content for notify email when exiting
+lock
 
 if [ -n "$NO" ] && ( [ -n "$YES" ] || [ -n "$SMART" ] ); then
   [ -n "$SMART" ] && echo "-y|--yes implied with option --smart"
