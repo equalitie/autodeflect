@@ -272,7 +272,7 @@ int config_load(char *filename)
 	fclose(fp);
 
 	// program_process
-	sprintf(buffer, "%s %s/%s --smart --force", sh_command, directory_script, PROGRAM_PROCESS);
+	sprintf(buffer, "%s %s/%s --smart --force --auto", sh_command, directory_script, PROGRAM_PROCESS);
 
 	if ((program_process = (char *)calloc(strlen(buffer) + 1, sizeof(char))) == NULL) {
 		return FALSE;
