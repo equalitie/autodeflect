@@ -51,6 +51,7 @@ declare -A SKIPPED_INSTALL
 declare -A REMAP_TOUCHED
 declare -A DEPLOYED
 
+# UNAME may be clobbered later if "--auto" flag is detected
 if [ -n "$SUDO_USER" ]; then
   UNAME=$SUDO_USER ; else
   UNAME=$(id -nu)
@@ -907,6 +908,10 @@ case "$1" in
   ;;
   --force)
   FORCE=0
+  shift
+  ;;
+  --auto)
+  UNAME=auto
   shift
   ;;
   *)
