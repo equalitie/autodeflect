@@ -810,6 +810,11 @@ function letsencrypt_update() {
   fi
 }
 
+function sync_dashboard_tls() {
+  # get files uploaded manually to dashboard
+  rsync -e "ssh -p {{autobrains_config["dashadmin_ssh_port"]}}" {{autobrains_config["dashadmin_host"]}}:/{{autobrains_config["tls_bundles_path"]}} config/tls_bundles
+}
+
 #########
 ### MAIN
 
@@ -967,9 +972,12 @@ if [ -n "$SKIP_UPDATE" ]; then
 
   if [ -n "$MOST" ]; then
     letsencrypt_update
+    sync_dashboard_tls
     controller_update
   else
     yorn "Update (letsencrypt)" "letsencrypt_update"
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped
+    yorn "Update (sync_dashboard_tls)" "sync_dashboard_tls"
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped
     yorn "Update (controller) config" "controller_update"
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
