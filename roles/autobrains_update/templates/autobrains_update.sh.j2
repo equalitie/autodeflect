@@ -131,7 +131,7 @@ echo "$HELP" | less -EXR
 
 # set the encrypted mailer routine
 function notify() {
-gpg --homedir /root/.gnupg/ -e -a -r $EMAIL_KEY_ID | mailx -s "$UNAME updated w/ autobrains @ $DATE" ${EMAIL_NOTIFY} 
+gpg --homedir /root/.gnupg/ -e -a -r $EMAIL_KEY_ID | mailx -s "$UNAME updated w/ autobrains" ${EMAIL_NOTIFY} 
 }
 
 function notify_store() {
