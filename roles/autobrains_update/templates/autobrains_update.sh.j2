@@ -51,6 +51,7 @@ declare -A SKIPPED_INSTALL
 declare -A REMAP_TOUCHED
 declare -A DEPLOYED
 
+# UNAME may be clobbered later if "--auto" flag is detected
 if [ -n "$SUDO_USER" ]; then
   UNAME=$SUDO_USER ; else
   UNAME=$(id -nu)
@@ -103,6 +104,10 @@ HELP=$(cat <<EOF
 		must use --force with this and the
 		ssh-agent and ssh-add must be correctly
 		running before using this option.
+		
+--auto		For use by automated systems only.
+		Reports will be sent from "auto" rather
+		than the detected user (typically root)
 
 Some useful options:
 
@@ -126,7 +131,7 @@ echo "$HELP" | less -EXR
 
 # set the encrypted mailer routine
 function notify() {
-gpg --homedir /root/.gnupg/ -e -a -r $EMAIL_KEY_ID | mailx -s "$UNAME updated w/ autobrains @ $DATE" ${EMAIL_NOTIFY} 
+gpg --homedir /root/.gnupg/ -e -a -r $EMAIL_KEY_ID | mailx -s "$UNAME updated w/ autobrains" ${EMAIL_NOTIFY} 
 }
 
 function notify_store() {
@@ -847,9 +852,6 @@ if [ "$TSHA1HASH" != "$LSHA1HASH" ]; then
 	echo -e "$0 -i --force\n"
 fi
 
-# Create a lock file that also contains content for notify email when exiting
-lock
-
 # Trap ctrl-c or exit so we unlock and clean up
 trap ctrl_c INT
 trap finish EXIT
@@ -914,6 +916,10 @@ case "$1" in
   FORCE=0
   shift
   ;;
+  --auto)
+  UNAME=auto
+  shift
+  ;;
   *)
   # unknown option
   echo "Unknown option $1"
@@ -922,6 +928,9 @@ case "$1" in
   ;;
 esac
 done
+
+# Create a lock file that also contains content for notify email when exiting
+lock
 
 if [ -n "$NO" ] && ( [ -n "$YES" ] || [ -n "$SMART" ] ); then
   [ -n "$SMART" ] && echo "-y|--yes implied with option --smart"

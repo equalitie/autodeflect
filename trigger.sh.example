@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# This is a generic script that sole purpose is
+# to run other external program/scripts to evaluate
+# if autodeflect should run its update process. All
+# that is needed is for this script to return exit status
+# of 200. Anything else, nothing will be done. This script
+# runs every loop.
+
+# Just a example that will that will never trigger 
+if /bin/false ; then
+	exit 200;
+fi
+
+# Just a example that will always trigger if uncommented
+# if /bin/true ; then
+#	exit 200;
+#fi
+
+# default exit 0
+exit 0;
