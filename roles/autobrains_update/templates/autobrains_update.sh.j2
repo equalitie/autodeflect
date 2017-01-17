@@ -434,14 +434,14 @@ function dashboard_timestamp_diff {
       echo "Bypassing file dashboard.timestamp"
       return 
     fi
-  diff -Ntu $ATS_DIR/dashboard.timestamp {{ats_output}}$DNET/dashboard.timestamp
+  diff -Ntu $ATS_DIR/conf/dashboard.timestamp {{ats_output}}$DNET/dashboard.timestamp
   RT=$?
   if [ $RT -eq 2 ]
   then
     echo "ERROR: There was something wrong with the diff command"
   elif [ $RT -eq 1 ]
   then 
-    yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/dashboard.timestamp $ATS_DIR/dashboard.timestamp" 
+    yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/dashboard.timestamp $ATS_DIR/conf/dashboard.timestamp" 
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
     echo -e $ECHO_SEPARATOR
   fi
