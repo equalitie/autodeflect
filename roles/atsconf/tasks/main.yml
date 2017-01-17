@@ -54,6 +54,6 @@
 - name: write current timestamp to ats directory
   copy:
     dest: "{{ats_output}}/{{item.key}}/dashboard.timestamp"
-    content: "{{timestamp}}"
+    content: "{{timestamp}}\n"
   with_dict: dnets
   tags: ats
