@@ -1,5 +1,7 @@
 ; {{ no_edit_template }}
 {% include "config/networkzone." + item.key ignore missing %} 
+
+{{timestamp_record_name}} IN      TXT     {{timestamp}}
 ; END non-dashboard config
 {% for site, siteattrs in remap | dictsort %}
 {% if item.value is defined and item.value %}
