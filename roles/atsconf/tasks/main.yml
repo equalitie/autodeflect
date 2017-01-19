@@ -50,3 +50,10 @@
   template: src=ssl_multicert.config.j2 dest={{ats_output}}/{{item.key}}/ssl_multicert.config
   with_dict: dnets
   tags: ats
+
+- name: write current timestamp to ats directory
+  copy:
+    dest: "{{ats_output}}/{{item.key}}/dashboard.timestamp"
+    content: "{{timestamp}}\n"
+  with_dict: dnets
+  tags: ats
