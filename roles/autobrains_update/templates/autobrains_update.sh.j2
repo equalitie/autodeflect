@@ -442,7 +442,7 @@ function dashboard_timestamp_diff {
   elif [ $RT -eq 1 ]
   then 
     yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/dashboard.timestamp $ATS_DIR/conf/dashboard.timestamp" 
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
     echo -e $ECHO_SEPARATOR
   fi
 }
