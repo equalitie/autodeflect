@@ -26,6 +26,13 @@
     - ats
     - setup
 
+- name: Setup TLS upload output directory
+  file: path={{tls_home}}/output/{{item.key}} state=directory mode=0755
+  with_dict: dnets
+  tags:
+    - ats
+    - setup
+
 - name: Logging disabling
   template: src=logs_xml.config.j2 dest={{ats_output}}/{{item.key}}/logs_xml.config
   with_dict: dnets
@@ -50,6 +57,20 @@
   template: src=ssl_multicert.config.j2 dest={{ats_output}}/{{item.key}}/ssl_multicert.config
   with_dict: dnets
   tags: ats
+
+#- name: check that tls uploads are all installed
+#  stat: path=certs/{{item.key}}-{{item.value["tls_bundle"]}}.cert.crt
+#  with_dict: remap
+#  when: item.value["tls_bundle"] is defined
+#  register: tls_update
+#  tags: tomr
+
+- name: install uploaded certs
+  command: bin/tls_bundle_decrypt.sh {{item.key}} {{item.value["tls_bundle"]}} {{tls_home}} {{item.value.network}}
+  with_dict: remap
+  when: item.value["tls_bundle"] is defined
+# is defined and item.value["tls_bundle"] is defined
+  tags: tomr
 
 - name: write current timestamp to ats directory
   copy:
