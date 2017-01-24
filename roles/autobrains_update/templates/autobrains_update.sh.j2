@@ -871,7 +871,7 @@ function letsencrypt_update() {
 
 function sync_dashboard_tls() {
   # get files uploaded manually to dashboard
-  rsync -ae "ssh -p {{autobrains_config["dashadmin_ssh_port"]}}" {{autobrains_config["dashadmin_proxy"]}}:{{autobrains_config["tls_bundles_path"]}} {{tls_home}}/encrypted
+  rsync -ae "ssh -p {{autobrains_config["dashadmin_ssh_port"]}}" {{autobrains_config["dash_proxy"]}}:{{autobrains_config["tls_bundles_path"]}} {{tls_home}}/encrypted
 }
 
 #########
