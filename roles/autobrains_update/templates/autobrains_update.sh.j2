@@ -74,7 +74,7 @@ HELP=$(cat <<EOF
 
 -y|--yes	Alway answer yes to prompts.
 
--n|--n		Always answer no to prompts.
+-n|--no		Always answer no to prompts.
 
 -d|--debug	Run in debug mode. More output
 		printed to screen.
@@ -106,8 +106,8 @@ HELP=$(cat <<EOF
 		running before using this option.
 		
 --auto		For use by automated systems only.
-		Reports will be sent from "auto" rather
-		than the detected user (typically root)
+		Will not send notify email. This changes
+		the internal UNAME to "auto"
 
 Some useful options:
 
@@ -473,7 +473,7 @@ function dashboard_timestamp_diff {
   elif [ $RT -eq 1 ]
   then 
     yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/dashboard.timestamp $ATS_DIR/conf/dashboard.timestamp" 
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
     echo -e $ECHO_SEPARATOR
   fi
 }
@@ -602,7 +602,9 @@ function finish() {
   ((sec=el%60, el/=60, min=el%60, hrs=el/60))
   local timetook=$(printf "%d:%02d:%02d" $hrs $min $sec)
   if [ -s "config/rundata/$LOCK_PREFIX$UNAME" ]; then 
-    cat "config/rundata/$LOCK_PREFIX$UNAME" | notify
+    if [ "$UNAME" != "auto" ]; then
+      cat "config/rundata/$LOCK_PREFIX$UNAME" | notify
+    fi
     echo "[$(date -d @$EDATE)] $UNAME \"$COMMANDLINE\" [$timetook] - \"$(cat "config/rundata/$LOCK_PREFIX$UNAME")\"" >> config/logs/autodeflect-$(date +%Y%m%d).log
   else
     echo "[$(date -d @$EDATE)] $UNAME \"$COMMANDLINE\" [$timetook] - \"NO DIFF\"" >> config/logs/autodeflect-$(date +%Y%m%d).log
