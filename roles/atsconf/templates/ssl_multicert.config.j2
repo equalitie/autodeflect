@@ -23,7 +23,7 @@
 ssl_cert_name={{site}}.le.cert.crt ssl_key_name={{site}}.le.key ssl_ca_name={{site}}.le.chain.crt
 
 {# else, if tls_bundle is defined #}
-{% elseif remap[site]["tls_bundle"] is defined %}
+{% elif remap[site]["tls_bundle"] is defined %}
 
 # note: ATS gracefully handles a missing ca/chain cert, so we can
 # include it without worrying about whether it exists
