@@ -58,19 +58,10 @@
   with_dict: dnets
   tags: ats
 
-#- name: check that tls uploads are all installed
-#  stat: path=certs/{{item.key}}-{{item.value["tls_bundle"]}}.cert.crt
-#  with_dict: remap
-#  when: item.value["tls_bundle"] is defined
-#  register: tls_update
-#  tags: tomr
-
 - name: install uploaded certs
   command: bin/tls_bundle_decrypt.sh {{item.key}} {{item.value["tls_bundle"]}} {{tls_home}} {{item.value.network}}
   with_dict: remap
   when: item.value["tls_bundle"] is defined
-# is defined and item.value["tls_bundle"] is defined
-  tags: tomr
 
 - name: write current timestamp to ats directory
   copy:
