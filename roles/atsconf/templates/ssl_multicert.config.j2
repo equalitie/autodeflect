@@ -1,5 +1,7 @@
 # {{ no_edit_template }}
 # 
+# note: ATS gracefully handles a missing ca/chain cert, so we can
+# include it without worrying about whether it exists
 
 # include general ssl_multicert header if found
 {% include "config/ssl_multicert.d/header" ignore missing %}
@@ -7,35 +9,29 @@
 # include dnet-specific ssl_multicert header if found
 {% include "config/ssl_multicert.d/header." + item.key ignore missing %}
 
-{% for site, values in remap %}
+{% for site in remap -%}
 
-{# if site is in this dnet #}
-{% if item.key == values["network"] %}
+{#- if site is in this dnet -#}
+{%- if item.key == remap[site]["network"] -%}
 
-{# if https is on #}
-{% if remap[site]["http_type"] == "https" or remap[site]["http_type"] == "https_only" or remap[site]["http_type"] == "https_redirect" %}
+{#- if https is on -#}
+{%- if remap[site]["http_type"] == "https" or remap[site]["http_type"] == "https_only" or remap[site]["http_type"] == "https_redirect" -%}
 
 # {{site}} 
-
-{# if LE is in use #}
-{% if remap[site]["letsencrypt"] is defined and remap[site]["letsencrypt"] == true %}
-
+{# if LE is in use -#}
+{%- if remap[site]["letsencrypt"] is defined and remap[site]["letsencrypt"] == true %}
 ssl_cert_name={{site}}.le.cert.crt ssl_key_name={{site}}.le.key ssl_ca_name={{site}}.le.chain.crt
 
-{# else, if tls_bundle is defined #}
-{% elif remap[site]["tls_bundle"] is defined %}
+{# else, if tls_bundle is defined -#}
+{%- elif remap[site]["tls_bundle"] is defined -%}
 
-# note: ATS gracefully handles a missing ca/chain cert, so we can
-# include it without worrying about whether it exists
 ssl_cert_name={{site}}-{{remap[site]["tls_bundle"]}}.cert.crt ssl_key_name={{site}}-{{remap[site]["tls_bundle"]}}.key ssl_ca_name={{site}}-{{remap[site]["tls_bundle"]}}.chain.crt
 
-{# else, check for an include #}
-{% else %}{% include "config/ssl_multicert.d/{{site}}" ignore missing %}
-{% endif %}
+{# else, check for an include -#}
+{%- else -%}{%- include "config/ssl_multicert.d/" + site ignore missing %}
+ 
 
-{% endif %}
-{% endif %}
-{% endfor %}
+{% endif -%}{%- endif -%}{%- endif -%}{%- endfor %}
 
 # include dnet-specific ssl_multicert footer if found
 {% include "config/ssl_multicert.d/footer." + item.key ignore missing %}
