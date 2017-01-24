@@ -32,7 +32,7 @@
       email_key_id: sysops@example.local
       deflect_dir: /usr/local/deflect
       trafficserver_dir: /usr/local/trafficserver
-      dash_proxy: https://example-nocacheproxy.example.local
+      dash_proxy: example-nocacheproxy.example.local
       clients_yml_url: /brainsconfig/site.yml
       dashadmin_host: example-dashboard-admin.example.local
       dash_blacklist_url: /brainsconfig/blacklist.txt

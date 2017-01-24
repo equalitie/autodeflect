@@ -215,7 +215,7 @@ fi
 }
 
 function fetch_clients_yml() {
-  curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" {{autobrains_config["dash_proxy"]}}{{autobrains_config["clients_yml_url"]}} > {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} 2> /dev/null
+  curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" https://{{autobrains_config["dash_proxy"]}}{{autobrains_config["clients_yml_url"]}} > {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} 2> /dev/null
    # Do this here incase clients.yml does not exist or is broken
   rm {{playbook_dir}}/clients.yml
   ln -s clients.yml-revisions/clients.yml-${DATE} clients.yml
@@ -629,7 +629,7 @@ function dot_generated() {
 
 function cat_blacklist() {
   echo -e "The following are not included from\n{{autobrains_config["dashadmin_host"]}}\n## START BLACKLIST ##"
-  curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" {{autobrains_config["dash_proxy"]}}{{autobrains_config["dash_blacklist_url"]}}
+  curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" https://{{autobrains_config["dash_proxy"]}}{{autobrains_config["dash_blacklist_url"]}}
   echo -e "\n## END BLACKLIST ##"
 }
 
@@ -871,7 +871,7 @@ function letsencrypt_update() {
 
 function sync_dashboard_tls() {
   # get files uploaded manually to dashboard
-  rsync -ae "ssh -p {{autobrains_config["dashadmin_ssh_port"]}}" {{autobrains_config["dashadmin_host"]}}:{{autobrains_config["tls_bundles_path"]}} {{tls_home}}/encrypted
+  rsync -ae "ssh -p {{autobrains_config["dashadmin_ssh_port"]}}" {{autobrains_config["dashadmin_proxy"]}}:{{autobrains_config["tls_bundles_path"]}} {{tls_home}}/encrypted
 }
 
 #########
