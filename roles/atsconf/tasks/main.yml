@@ -27,7 +27,7 @@
     - setup
 
 - name: Setup TLS upload output directory
-  file: path={{tls_home}}/output/{{item.key}} state=directory mode=0755
+  file: path={{tls_home}}/output/{{item.key}} state=directory mode=0755 recurse=yes
   with_dict: dnets
   tags:
     - ats
