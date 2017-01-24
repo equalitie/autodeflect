@@ -8,9 +8,9 @@
     ats_output: "{{playbook_dir}}/ats/"
     banjax_output: "{{playbook_dir}}/banjax/"
     nagios_output: /etc/nagios3/autoconf.d/autobrains/
-    letsencrypt_output: "{{playbook_dir}}/certs/letsencrypt/"
-    tls_upload_master: "{{playbook_dir}}/certs/encrypted/"
-    tls_upload_output: "{{playbook_dir}}/certs/uploaded/"
+    tls_home: "{{playbook_dir}}/certs"
+    tls_gpghome: "{{playbook_dir}}/config/gpg"
+    letsencrypt_output: "{{tls_home}}/letsencrypt"
     default_dnet: example1
     dnets:
       example1: example.local

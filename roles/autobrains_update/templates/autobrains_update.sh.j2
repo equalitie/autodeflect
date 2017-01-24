@@ -320,7 +320,7 @@ done
 
 function uploaded_cert_bundle_diff_loop {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
-  for i in {{tls_upload_output}}$DNET/*; do
+  for i in {{tls_home}}/output/$DNET/*; do
     ls $i > /dev/null 2>&1 
     RT=$?
     if [ "$RT" -gt 0 ]; then 
@@ -636,7 +636,7 @@ function controller_update() {
   # Check to make sure override.yml does not have sites not in clients.yml
   check_override
 
-  rm -rf {{ats_output}} {{banjax_output}} {{bind_output}} {{tls_upload_output}}
+  rm -rf {{ats_output}} {{banjax_output}} {{bind_output}} {{tls_home}}/output
   if [ -n "$DEBUG" ]; then
     ansible-playbook {{playbook_dir}}/site.yml -l controller
     local exitcode=$?
@@ -870,7 +870,7 @@ function letsencrypt_update() {
 
 function sync_dashboard_tls() {
   # get files uploaded manually to dashboard
-  rsync -e "ssh -p {{autobrains_config["dashadmin_ssh_port"]}}" {{autobrains_config["dashadmin_host"]}}:/{{autobrains_config["tls_bundles_path"]}} {{tls_home}}/encrypted
+  rsync -ae "ssh -p {{autobrains_config["dashadmin_ssh_port"]}}" {{autobrains_config["dashadmin_host"]}}:{{autobrains_config["tls_bundles_path"]}} {{tls_home}}/encrypted
 }
 
 #########

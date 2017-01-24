@@ -59,7 +59,7 @@
   tags: ats
 
 - name: install uploaded certs
-  command: bin/tls_bundle_decrypt.sh {{item.key}} {{item.value["tls_bundle"]}} {{tls_home}} {{item.value.network}}
+  command: bin/tls_bundle_decrypt.sh {{item.key}} {{item.value["tls_bundle"]}} {{tls_home}} {{item.value.network}} {{tls_gpghome}}
   with_dict: remap
   when: item.value["tls_bundle"] is defined
 
