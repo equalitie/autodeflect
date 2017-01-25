@@ -53,6 +53,7 @@
   tags:
     - ats
     - tls
+    - tomr
 
 - name: install uploaded certs
   command: scripts/tls_bundle_decrypt.sh {{item.key}} {{item.value["tls_bundle"]}} {{tls_home}} {{item.value.network}} {{tls_gpghome}}

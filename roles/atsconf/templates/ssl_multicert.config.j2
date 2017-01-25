@@ -3,10 +3,10 @@
 # note: ATS gracefully handles a missing ca/chain cert, so we can
 # include it without worrying about whether it exists
 
-# include general ssl_multicert header if found
+# include general config/ssl_multicert.d/header if found
 {% include "config/ssl_multicert.d/header" ignore missing %}
 
-# include dnet-specific ssl_multicert header if found
+# include dnet-specific config/ssl_multiecert.d/header.{{item.key}} if found
 {% include "config/ssl_multicert.d/header." + item.key ignore missing %}
 
 {% for site in remap -%}
@@ -27,14 +27,15 @@ ssl_cert_name={{site}}.le.cert.crt ssl_key_name={{site}}.le.key ssl_ca_name={{si
 
 ssl_cert_name={{site}}-{{remap[site]["tls_bundle"]}}.cert.crt ssl_key_name={{site}}-{{remap[site]["tls_bundle"]}}.key ssl_ca_name={{site}}-{{remap[site]["tls_bundle"]}}.chain.crt
 
-{# else, check for an include -#}
-{%- else -%}{%- include "config/ssl_multicert.d/" + site ignore missing %}
+{# else, check for an include -#}{%- else %}
+# include config/ssl_multicert.d/{{site}} if found
+{% include "config/ssl_multicert.d/" + site ignore missing %}
  
 
 {% endif -%}{%- endif -%}{%- endif -%}{%- endfor %}
 
-# include dnet-specific ssl_multicert footer if found
+# include dnet-specific config/ssl_multicert/footer.{{item.key}} if found
 {% include "config/ssl_multicert.d/footer." + item.key ignore missing %}
 
-# include general ssl_multicert footer if found
+# include general config/ssl_multicert.d/footer if found
 {% include "config/ssl_multicert.d/footer" ignore missing %}

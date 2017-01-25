@@ -298,7 +298,7 @@ function le_cert_bundle_diff_loop {
       echo -e "Bypassing file $(basename $i)" 
       continue
     fi   
-    SITENAME=$(echo $(basename $i) | sed -E 's%.chain.crt$|.cert.crt$|\.key$%%')
+    SITENAME=$(echo $(basename $i) | sed -E 's%\.le\.chain\.crt$|\.le\.cert\.crt$|\.le\.key$%%')
     if [ -f $ATS_DIR/conf/remap.d/$SITENAME.config ] ; then
       DIFF_FILES="$ATS_DIR/conf/ssl/$(basename $i) $i"
       diff -Nq $DIFF_FILES

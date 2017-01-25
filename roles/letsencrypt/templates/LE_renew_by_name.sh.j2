@@ -57,9 +57,9 @@ function initialise_output_dir() {
 
 function populate_output_dir() {
   echo "populating output dir with cert bundle for ${DOMAIN_W_ARGS%% *}"
-  cp ${LE_DIR}/live/${DOMAIN_W_ARGS%% *}/cert.pem ${LE_OUTPUT_DIR}/${DOMAIN_W_ARGS%% *}.cert.crt
-  cp ${LE_DIR}/live/${DOMAIN_W_ARGS%% *}/chain.pem ${LE_OUTPUT_DIR}/${DOMAIN_W_ARGS%% *}.chain.crt
-  cp ${LE_DIR}/live/${DOMAIN_W_ARGS%% *}/privkey.pem ${LE_OUTPUT_DIR}/${DOMAIN_W_ARGS%% *}.key
+  cp ${LE_DIR}/live/${DOMAIN_W_ARGS%% *}/cert.pem ${LE_OUTPUT_DIR}/${DOMAIN_W_ARGS%% *}.le.cert.crt
+  cp ${LE_DIR}/live/${DOMAIN_W_ARGS%% *}/chain.pem ${LE_OUTPUT_DIR}/${DOMAIN_W_ARGS%% *}.le.chain.crt
+  cp ${LE_DIR}/live/${DOMAIN_W_ARGS%% *}/privkey.pem ${LE_OUTPUT_DIR}/${DOMAIN_W_ARGS%% *}.le.key
 }
 
 # This is a bit hard to read, so explained in detail:
