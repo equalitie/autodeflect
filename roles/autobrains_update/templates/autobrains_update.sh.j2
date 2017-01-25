@@ -287,7 +287,7 @@ done
 
 function le_cert_bundle_diff_loop {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
-  for i in {{letsencrypt_output}}*; do
+  for i in {{letsencrypt_output}}/*; do
     ls $i > /dev/null 2>&1 
     RT=$?
     if [ "$RT" -gt 0 ]; then 
