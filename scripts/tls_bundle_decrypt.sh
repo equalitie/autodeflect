@@ -22,7 +22,6 @@ if ! [ -f $TLS_HOME/decrypted/$TLS_CERT_NAME.cert.crt ] ; then
       # or possibly just rsync them all over
   #fi
   for FILETYPE in $FILETYPES ; do
-    echo "gpg --homedir $GPG_HOME -d --output $TLS_HOME/decrypted/${TLS_CERT_NAME}.$FILETYPE $TLS_HOME/encrypted/${TLS_CERT_NAME}.${FILETYPE}.gpg"
     gpg --homedir $GPG_HOME -d --output $TLS_HOME/decrypted/${TLS_CERT_NAME}.$FILETYPE $TLS_HOME/encrypted/${TLS_CERT_NAME}.${FILETYPE}.gpg
   done
 fi
