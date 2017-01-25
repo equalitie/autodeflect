@@ -7,7 +7,7 @@ config/
 bind/
 ats/
 banjax/
-letsencrypt/
+certs/
 autobrains_update.sh
 old/
 daemon/*.o

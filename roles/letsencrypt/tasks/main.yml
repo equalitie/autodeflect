@@ -1,6 +1,6 @@
 ---
 - name: Setup Letsencrypt output base directory
-  local_action: file path={{letsencrypt_output}} state=directory mode=0755
+  local_action: file path={{letsencrypt_output}} state=directory mode=0755 recurse=yes
   tags:
     - letsencrypt
     - setup
