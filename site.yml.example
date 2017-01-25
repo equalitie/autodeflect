@@ -10,7 +10,7 @@
     nagios_output: /etc/nagios3/autoconf.d/autobrains/
     tls_home: "{{playbook_dir}}/certs"
     tls_gpghome: "{{playbook_dir}}/config/gpg"
-    letsencrypt_output: "{{tls_home}}/letsencrypt"
+    letsencrypt_output: "{{playbook_dir}}/certs/letsencrypt"
     default_dnet: example1
     dnets:
       example1: example.local
