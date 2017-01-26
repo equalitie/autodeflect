@@ -106,8 +106,8 @@ HELP=$(cat <<EOF
 		running before using this option.
 		
 --auto		For use by automated systems only.
-		Reports will be sent from "auto" rather
-		than the detected user (typically root)
+		Will not send notify email. This changes
+		the internal UNAME to "auto"
 
 Some useful options:
 
@@ -215,7 +215,7 @@ fi
 }
 
 function fetch_clients_yml() {
-  curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" {{autobrains_config["dash_proxy"]}}{{autobrains_config["clients_yml_url"]}} > {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} 2> /dev/null
+  curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" https://{{autobrains_config["dash_proxy"]}}{{autobrains_config["clients_yml_url"]}} > {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} 2> /dev/null
    # Do this here incase clients.yml does not exist or is broken
   rm {{playbook_dir}}/clients.yml
   ln -s clients.yml-revisions/clients.yml-${DATE} clients.yml
@@ -287,7 +287,7 @@ done
 
 function le_cert_bundle_diff_loop {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
-  for i in {{letsencrypt_output}}*; do
+  for i in {{letsencrypt_output}}/*; do
     ls $i > /dev/null 2>&1 
     RT=$?
     if [ "$RT" -gt 0 ]; then 
@@ -298,7 +298,7 @@ function le_cert_bundle_diff_loop {
       echo -e "Bypassing file $(basename $i)" 
       continue
     fi   
-    SITENAME=$(echo $(basename $i) | sed -E 's%.chain.crt$|.cert.crt$|\.key$%%')
+    SITENAME=$(echo $(basename $i) | sed -E 's%\.le\.chain\.crt$|\.le\.cert\.crt$|\.le\.key$%%')
     if [ -f $ATS_DIR/conf/remap.d/$SITENAME.config ] ; then
       DIFF_FILES="$ATS_DIR/conf/ssl/$(basename $i) $i"
       diff -Nq $DIFF_FILES
@@ -313,6 +313,36 @@ function le_cert_bundle_diff_loop {
         echo -e $ECHO_SEPARATOR 
       fi   
     fi
+    
+done
+
+}
+
+function uploaded_cert_bundle_diff_loop {
+  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  for i in {{tls_home}}/output/$DNET/*; do
+    ls $i > /dev/null 2>&1 
+    RT=$?
+    if [ "$RT" -gt 0 ]; then 
+      continue
+    fi   
+    local test=$(match_bypass_file "$(basename $i)")
+    if [ $test -gt 0 ]; then 
+      echo -e "Bypassing file $(basename $i)" 
+      continue
+    fi   
+    DIFF_FILES="$ATS_DIR/conf/ssl/$(basename $i) $i"
+    diff -Nq $DIFF_FILES
+    RT=$?
+    if [ $RT -eq 2 ]
+    then 
+      echo "ERROR: There was something wrong with the diff command"
+    elif [ $RT -eq 1 ]
+    then 
+      yorn "Do you want to install this file in $DNET" "install_file $i $ATS_DIR/conf/ssl/$(basename $i)" 
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
+      echo -e $ECHO_SEPARATOR 
+    fi   
     
 done
 
@@ -537,6 +567,7 @@ for DNET in $DNETS; do
   cache_diff
   zone_diff_loop
   le_cert_bundle_diff_loop
+  uploaded_cert_bundle_diff_loop
   dashboard_timestamp_diff
 done
   bind_local_templated_diff
@@ -570,7 +601,9 @@ function finish() {
   ((sec=el%60, el/=60, min=el%60, hrs=el/60))
   local timetook=$(printf "%d:%02d:%02d" $hrs $min $sec)
   if [ -s "config/rundata/$LOCK_PREFIX$UNAME" ]; then 
-    cat "config/rundata/$LOCK_PREFIX$UNAME" | notify
+    if [ "$UNAME" != "auto" ]; then
+      cat "config/rundata/$LOCK_PREFIX$UNAME" | notify
+    fi
     echo "[$(date -d @$EDATE)] $UNAME \"$COMMANDLINE\" [$timetook] - \"$(cat "config/rundata/$LOCK_PREFIX$UNAME")\"" >> config/logs/autodeflect-$(date +%Y%m%d).log
   else
     echo "[$(date -d @$EDATE)] $UNAME \"$COMMANDLINE\" [$timetook] - \"NO DIFF\"" >> config/logs/autodeflect-$(date +%Y%m%d).log
@@ -596,7 +629,7 @@ function dot_generated() {
 
 function cat_blacklist() {
   echo -e "The following are not included from\n{{autobrains_config["dashadmin_host"]}}\n## START BLACKLIST ##"
-  curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" {{autobrains_config["dash_proxy"]}}{{autobrains_config["dash_blacklist_url"]}}
+  curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" https://{{autobrains_config["dash_proxy"]}}{{autobrains_config["dash_blacklist_url"]}}
   echo -e "\n## END BLACKLIST ##"
 }
 
@@ -604,7 +637,7 @@ function controller_update() {
   # Check to make sure override.yml does not have sites not in clients.yml
   check_override
 
-  rm -rf {{ats_output}} {{banjax_output}} {{bind_output}} 
+  rm -rf {{ats_output}} {{banjax_output}} {{bind_output}} {{tls_home}}/output
   if [ -n "$DEBUG" ]; then
     ansible-playbook {{playbook_dir}}/site.yml -l controller
     local exitcode=$?
@@ -836,6 +869,11 @@ function letsencrypt_update() {
   fi
 }
 
+function sync_dashboard_tls() {
+  # get files uploaded manually to dashboard
+  rsync -ae "ssh -p {{autobrains_config["dashadmin_ssh_port"]}}" {{autobrains_config["dash_proxy"]}}:{{autobrains_config["tls_bundles_path"]}}/ {{tls_home}}/encrypted
+}
+
 #########
 ### MAIN
 
@@ -997,9 +1035,12 @@ if [ -n "$SKIP_UPDATE" ]; then
 
   if [ -n "$MOST" ]; then
     letsencrypt_update
+    sync_dashboard_tls
     controller_update
   else
     yorn "Update (letsencrypt)" "letsencrypt_update"
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped
+    yorn "Update (sync_dashboard_tls)" "sync_dashboard_tls"
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped
     yorn "Update (controller) config" "controller_update"
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 

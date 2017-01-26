@@ -19,12 +19,13 @@
     - ats
     - setup
 
-- name: Setup ats dnet ssl directories
-  file: path={{ats_output}}{{item.key}}/ssl state=directory mode=0755
+- name: Setup TLS upload output directory
+  file: path={{tls_home}}/output/{{item.key}} state=directory mode=0755 recurse=yes
   with_dict: dnets
   tags:
     - ats
     - setup
+    - tls
 
 - name: Logging disabling
   template: src=logs_xml.config.j2 dest={{ats_output}}/{{item.key}}/logs_xml.config
@@ -46,10 +47,20 @@
   with_dict: dnets
   tags: ats
 
-- name: ssl_multicert.config for letsencrypt
-  template: src=ssl_multicert.config.le.j2 dest={{ats_output}}/{{item.key}}/ssl_multicert.config
+- name: ssl_multicert.config
+  template: src=ssl_multicert.config.j2 dest={{ats_output}}/{{item.key}}/ssl_multicert.config
   with_dict: dnets
-  tags: ats
+  tags:
+    - ats
+    - tls
+
+- name: install uploaded certs
+  command: scripts/tls_bundle_decrypt.sh {{item.key}} {{item.value["tls_bundle"]}} {{tls_home}} {{item.value.network}} {{tls_gpghome}}
+  with_dict: remap
+  when: item.value["tls_bundle"] is defined
+  tags:
+    - ats
+    - tls
 
 - name: write current timestamp to ats directory
   copy:
