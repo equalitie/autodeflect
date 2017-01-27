@@ -301,11 +301,11 @@ function le_cert_bundle_diff_loop {
     SITENAME=$(echo $(basename $i) | sed -E 's%\.le\.chain\.crt$|\.le\.cert\.crt$|\.le\.key$%%')
     if [ -f $ATS_DIR/conf/remap.d/$SITENAME.config ] ; then
       DIFF_FILES="$ATS_DIR/conf/ssl/$(basename $i) $i"
-      if [ -f "$ATS_DIR/conf/sssl$(basename $i)" ] ; then
+      if [ -f "$ATS_DIR/conf/ssl/$(basename $i)" ] ; then
         diff -Nq $DIFF_FILES
         RT=$?
       else
-        echo "file $i is new"
+        echo "new file for $ATS_DIR/conf/ssl/$(basename $i)"
         RT=1
       fi
       if [ $RT -eq 2 ]
