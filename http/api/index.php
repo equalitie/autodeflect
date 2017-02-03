@@ -16,6 +16,10 @@ switch ($name) {
 		require 'read-site-yml.php';
 		break;
 
+	case 'approval':
+		require 'approval.php';
+		break;
+
 	default:
 		header('HTTP/1.0 404 Not Found');
 		header("Content-Type: application/json");
