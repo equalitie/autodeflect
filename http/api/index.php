@@ -17,7 +17,10 @@ switch ($name) {
 		break;
 
 	default:
-		status(404);
+		header('HTTP/1.0 404 Not Found');
+		header("Content-Type: application/json");
+		echo "{ http_code: 404 }\n";
+		die();
 }
 
 ?>
