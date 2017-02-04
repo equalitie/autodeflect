@@ -432,8 +432,10 @@ function output_image($site, $scheme)
   global $config;
 
   if (!is_dir($config['image_dir']) || !is_writable($config['image_dir'])) {
-    printf("ERROR: Problem with %s\n", $config['image_dir']);
-    exit(1);
+    if (INSERT == 0) {
+      printf("ERROR: Problem with %s\n", $config['image_dir']);
+      exit(1);
+    }
   }
 
   $myfile = $config['image_dir']."/".$site."-".time().".".$config['image_type'];
@@ -451,7 +453,8 @@ function output_image($site, $scheme)
   $height = $config['image_height'];;
 
   $request = $client->getMessageFactory()->createCaptureRequest("$scheme://$site", 'GET');
-  $request->setOutputFile($myfile);
+  if (INSERT == 0)
+    $request->setOutputFile($myfile);
   $request->setViewportSize($width, $height);
   $request->setCaptureDimensions($width, $height, $top, $left);
 
