@@ -1,0 +1,27 @@
+{
+    "name": "ramjett/dedgesite",
+    "description": "Phar command line tool to check Deflect sites via list of edges",
+    "type": "project",
+    "require": {
+        "jakoch/phantomjs-installer": "^2.1",
+        "jonnyw/php-phantomjs": "4.*"
+    },
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "RamJett",
+            "email": "ramjett@ramnic.com"
+        }
+    ],
+    "config": {
+        "bin-dir": "bin"
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "PhantomInstaller\\Installer::installPhantomJS"
+        ],
+        "post-update-cmd": [
+            "PhantomInstaller\\Installer::installPhantomJS"
+        ]
+    }
+}
