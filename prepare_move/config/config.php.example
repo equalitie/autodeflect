@@ -1,0 +1,23 @@
+<?php
+return [
+    'max_t' => '15',
+    'max_async_check' => '20',
+    'siteslist' => '/usr/local/deflect/autobrains/siteslist.json',
+    'edgefiles' => '/etc/edgemanage/edges',
+    'user_agent' => 'Mozilla/5.0 (rv:1.0) Deflect-connectivity-test/1.0',
+    'ssh_user' => 'root',
+    'ssh_auth_sock' => '/tmp/ssh_auth.sock',
+    'ssh_key_fingerprint' => 'ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff',
+    'ssh_connect_t' => '15',
+    'ls_port' => '443',
+    'ls_path' => 'origin_health',
+    'ls_user' => 'logstash_tools',
+    'ls_password' => 'change_me_to_some_secure_password',
+    'ls_host' => 'logstash.example.co',
+    'ls_timeout' => '200',
+    'phantomjs' => '/usr/local/bin/phantomjs',
+    'image_type' => 'jpg',
+    'image_dir' => '/tmp/site_images',
+    'image_width' => '1024',
+    'image_height' => '768',
+];
