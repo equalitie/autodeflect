@@ -53,9 +53,8 @@ function get_client_time($file) {
 
 /*******************************************************/
 
-function site_deflect($site) {
+function site_deflect($file,$site) {
 	$ret = 0;
-	$file = AUTODEFLECT_ROOT . "/clients.yml";
 	if (file_exists($file)) {
 		$array = @read_yaml($file);
 		if (isset($array['remap'][$site])) 

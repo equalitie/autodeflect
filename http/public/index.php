@@ -1,7 +1,7 @@
 <?php
 require '../vendor/autoload.php';
 if (is_readable('../config.php')) {
-  require '../config.php';
+  $config = require( '../config.php' );
 } else {
   print "Not configured";
   exit;
