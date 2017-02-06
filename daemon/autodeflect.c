@@ -342,7 +342,7 @@ void show_configuration(char *filename)
 	printf("PID File Process:\t%s\n", pid_process);
 	printf("PID File sshkey:\t%s\n", pid_ssh_key);
 	printf("PID File runner:\t%s\n", pid_runner);
-	printf("extenral trigger:\t%s (optional)\n", external_trigger);
+	printf("external trigger:\t%s (optional)\n", external_trigger);
 
 	printf("\n");
 
