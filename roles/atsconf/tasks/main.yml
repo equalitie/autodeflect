@@ -61,6 +61,7 @@
   tags:
     - ats
     - tls
+  ignore_errors: yes
 
 - name: write current timestamp to ats directory
   copy:
