@@ -1,6 +1,12 @@
 <?php
 require '../vendor/autoload.php';
-require '../config.php';
+if (is_readable('../config.php')) {
+  $config = require( '../config.php' );
+} else {
+  print "Not configured";
+  exit;
+}
+
 
 $app = new \Slim\Slim(array(
 	'templates.path' => '../api',

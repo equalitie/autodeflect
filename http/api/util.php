@@ -53,4 +53,19 @@ function get_client_time($file) {
 
 /*******************************************************/
 
+function site_deflect($file,$site) {
+	$ret = 0;
+	if (file_exists($file)) {
+		$array = @read_yaml($file);
+		if (isset($array['remap'][$site])) 
+			$ret = 1;
+
+	}
+
+	return (int)$ret;
+}
+
+
+/*******************************************************/
+
 ?>

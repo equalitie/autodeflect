@@ -1,5 +1,8 @@
 <?php
 
+// be safe
+$config = require( '../config.php' );
+
 if(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
  
 	header("WWW-Authenticate: Basic realm=\"Secure Page\"");
@@ -24,8 +27,9 @@ if (simple_auth($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
 
 function simple_auth($user, $pass) {
 
-	require_once '../config.php';
-	if (htmlentities($user) == htmlentities(API_USER) && htmlentities($pass) == htmlentities(API_PASS)) 
+	global $config;
+
+	if (htmlentities($user) == htmlentities($config['api_user']) && htmlentities($pass) == htmlentities($config['api_pass'])) 
 		return 1;
 	else
 		return 0;
