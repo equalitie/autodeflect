@@ -17,7 +17,27 @@ challenger:
       challenge_type: "auth"
       challenge: "auth.html"
       password_hash: "{{remap[item.key]["banjax_password"]}}"
-      magic_word: "{{remap[item.key]["banjax_path"]}}"
+{% if remap[item.key]['banjax_path'] is not string %}
+      magic_word:
+{% for word in remap[item.key]['banjax_path'] %}
+       - "{{word}}" 
+{% endfor %}
+{% elif remap[item.key]['banjax_path'] is string %}
+      magic_word: "{{remap[item.key]['banjax_path']}}"
+{% else %}
+      magic_word: [] 
+{% endif %}
+{% if remap[item.key]['banjax_path_exceptions'] is defined and remap[item.key]['banjax_path_exceptions'] is not string and remap[item.key]['banjax_path_exceptions'] != '' %}
+      magic_word_exceptions:
+{% for word in remap[item.key]['banjax_path_exceptions'] %}
+       - "{{word}}"
+{% endfor %}
+{% elif remap[item.key]['banjax_path_exceptions'] is defined and remap[item.key]['banjax_path_exceptions'] is string and remap[item.key]['banjax_path_exceptions'] != '' %}
+      magic_word_exceptions:
+       - "{{remap[item.key]['banjax_path_exceptions']}}"
+{% else %}
+      magic_word_exceptions: [] 
+{% endif %}
       validity_period: 360000
       no_of_fails_to_ban: 10
 {% endif %}
