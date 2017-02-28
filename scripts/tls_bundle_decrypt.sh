@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# tls_bundle_decrypt.sh letstest.equalit.ie 1485240708 /tmp/tomr deflect1 /uld/ansible/autobrains/config/gpg
+# invocation:
+#  $(basename) <sitename> <timestamp> <tls_home> <dnet> <gpg_home>
 
 SITE=$1
 BUNDLE=$2
@@ -17,14 +18,19 @@ FILETYPES="cert.crt key chain.crt"
 
 # ensure that we have a decrypted copy
 if ! [ -f $TLS_HOME/decrypted/$TLS_CERT_NAME.cert.crt ] ; then
-  # if not, check that we have an encrypted version, or download
-  #if ! [ -f $TLS_HOME/encrypted/$TLS_CERT_NAME.cert.crt ] ; then
-      # or possibly just rsync them all over
-  #fi
   for FILETYPE in $FILETYPES ; do
     gpg --homedir $GPG_HOME -d --output $TLS_HOME/decrypted/${TLS_CERT_NAME}.$FILETYPE $TLS_HOME/encrypted/${TLS_CERT_NAME}.${FILETYPE}.gpg
   done
 fi
 
-# install the decrypted copy into the right dnet dir
-cp $TLS_HOME/decrypted/$TLS_CERT_NAME.* $OUTPUT_DIR
+# check that the decrypted cert and key match!
+# if so, install into dnet output dir. otherwise error
+openssl_md5() { openssl $1 -noout -modulus -in $2 | openssl md5 ; }
+md5sum_cert=$(openssl_md5 x509 $TLS_HOME/decrypted/TLS_CERT_NAME.cert.crt)
+md5sum_key=$(openssl_md5 rsa $TLS_HOME/decrypted/TLS_CERT_NAME.key)
+if [ "$md5sum_cert" == "$md5sum_key" ] ; then
+    cp $TLS_HOME/decrypted/$TLS_CERT_NAME.* $OUTPUT_DIR
+  else
+    echo "key and certificate for $TLS_CERT_NAME do not match - panic!"
+    exit 2
+fi
