@@ -10,6 +10,7 @@ OUTPUT_DIR=${TLS_HOME}/output/$4
 TLS_CERT_NAME=${SITE}-${BUNDLE}
 GPG_HOME=$5
 
+TLD_LIST="$(dirname $0)/effective_tld_names.dat"
 FILETYPES="cert.crt key chain.crt"
 
 # ensure our dirs exist
@@ -23,14 +24,50 @@ if ! [ -f $TLS_HOME/decrypted/$TLS_CERT_NAME.cert.crt ] ; then
   done
 fi
 
-# check that the decrypted cert and key match!
-# if so, install into dnet output dir. otherwise error
-openssl_md5() { openssl $1 -noout -modulus -in $2 | openssl md5 ; }
-md5sum_cert=$(openssl_md5 x509 $TLS_HOME/decrypted/TLS_CERT_NAME.cert.crt)
-md5sum_key=$(openssl_md5 rsa $TLS_HOME/decrypted/TLS_CERT_NAME.key)
+# check that the decrypted cert and key match, and that the cert contains
+# sensible SNI names only. if so, install into dnet output dir. otherwise
+# error and exit.
+function openssl_md5 {
+    openssl $1 -noout -modulus -in $2 | openssl md5
+}
+
+function sni_names {
+    openssl x509 -in $TLS_HOME/decrypted/$TLS_CERT_NAME.cert.crt -text -noout |\
+      egrep 'DNS:|Subject:' |\
+      sed -e 's%.*CN=%%' -e 's% *DNS:%%g' |\
+      tr ',' '\n'
+}
+
+function sni_wildcard {
+    WILDCARD=false
+    SITETMP=${SITE#*.}
+    until grep $SITETMP "$TLD_LIST" > /dev/null ; do
+        if sni_names | grep "\*\.$SITETMP" >/dev/null ; then
+            WILDCARD=true
+            break
+        fi
+        SITETMP=${SITETMP#*.}
+    done
+    if [ "$WILDCARD" == true ] ; then
+        true
+    else
+        false
+    fi
+}
+
+md5sum_cert=$(openssl_md5 x509 $TLS_HOME/decrypted/$TLS_CERT_NAME.cert.crt)
+md5sum_key=$(openssl_md5 rsa $TLS_HOME/decrypted/$TLS_CERT_NAME.key)
+
 if [ "$md5sum_cert" == "$md5sum_key" ] ; then
+    if sni_names | grep -v "^.*${SITE}$" >/dev/null; then
+        if ! sni_wildcard ; then
+            echo "names found do not match $SITE - not allowing. Found:"
+            sni_names
+            exit 2
+        fi
+    fi
     cp $TLS_HOME/decrypted/$TLS_CERT_NAME.* $OUTPUT_DIR
   else
-    echo "key and certificate for $TLS_CERT_NAME do not match - panic!"
+    echo "key and certificate for $TLS_CERT_NAME do not match - not installing"
     exit 2
 fi
