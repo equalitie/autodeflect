@@ -10,6 +10,7 @@ OUTPUT_DIR=${TLS_HOME}/output/$4
 TLS_CERT_NAME=${SITE}-${BUNDLE}
 GPG_HOME=$5
 
+# List of TLDs taken from https://publicsuffix.org/list/effective_tld_names.dat
 TLD_LIST="$(dirname $0)/effective_tld_names.dat"
 FILETYPES="cert.crt key chain.crt"
 
