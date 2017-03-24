@@ -14,7 +14,7 @@ return [
     'ls_user' => 'logstash_tools',
     'ls_password' => 'change_me_to_some_secure_password',
     'ls_host' => 'logstash.example.co',
-    'ls_timeout' => '200',
+    'ls_timeout' => '600',
     'phantomjs' => '/usr/local/bin/phantomjs',
     'image_type' => 'jpg',
     'image_dir' => '/tmp/site_images',
