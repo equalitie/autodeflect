@@ -10,12 +10,17 @@ remap:
     cache_time: 0
     cachecontrol: true
     confremap: true
-    banjax_sha_inv: true
-    banjax_captcha: true
     additional_domain_prefix:
       - "subdomain1"
       - "subdomain2"
     origin_object: '/ttx/'
+    banjax_sha_inv: true
+    banjax_captcha: true
+    banjax_path_exceptions:
+     - "wp-admin/admin-ajax.php"
+    banjax_path:
+     - "wp-admin"
+     - "wp-login.php"
     banjax_regex_banner:
       - { interval: 20,
           hits_per_interval: 6,
