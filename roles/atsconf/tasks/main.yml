@@ -30,7 +30,16 @@
 - name: Logging disabling
   template: src=logs_xml.config.j2 dest={{ats_output}}/{{item.key}}/logs_xml.config
   with_dict: dnets
-  tags: ats
+  tags:
+    - ats
+    - ats_logging
+
+- name: Logging disabling
+  template: src=logging.config.j2 dest={{ats_output}}/{{item.key}}/logging.config
+  with_dict: dnets
+  tags:
+    - ats
+    - ats_logging
 
 - name: remap master config
   template: src=remap.dnets.masterconf.j2 dest={{ats_output}}/{{item.key}}/remap.config

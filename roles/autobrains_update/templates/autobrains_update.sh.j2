@@ -462,6 +462,27 @@ function logs_xml_diff {
   fi
 }
 
+# Newer logging.config file for ATS 7
+function logging_diff {
+  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  local test=$(match_bypass_file logging.config)
+    if [ $test -gt 0 ]; then
+      echo "Bypassing file logging.config"
+      return 
+    fi
+  diff -Ntu $ATS_DIR/conf/logging.config {{ats_output}}$DNET/logging.config
+  RT=$?
+  if [ $RT -eq 2 ]
+  then
+    echo "ERROR: There was something wrong with the diff command"
+  elif [ $RT -eq 1 ]
+  then 
+    yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/logging.config $ATS_DIR/conf/logging.config" 
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
+    echo -e $ECHO_SEPARATOR
+  fi
+}
+
 function dashboard_timestamp_diff {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   local test=$(match_bypass_file dashboard.timestamp)
@@ -566,6 +587,7 @@ for DNET in $DNETS; do
   banjax_new_diff
   banjax_diff_loop
   logs_xml_diff
+  logging_diff
   ssl_multicert_diff
   remap_diff
   remap_diff_loop

@@ -1,0 +1,49 @@
+-- {{ no_edit_template }}
+-- chi = client ip
+-- caun = user name
+-- cqtn = client request timestamp
+-- cqhm = HTTP method
+-- cqup = Path component from the remapped client request
+-- cqhv = HTTP version 
+-- cqus = URL scheme
+-- cqh = named header from the client’s request
+-- pssc = HTTP response status code sent by Traffic Server proxy to the client
+-- pscl = Content body length of the Traffic Server proxy response
+-- crc = Cache Result Code
+-- psct
+-- pqsn
+-- ttms
+-- cquc
+
+deflect_log = format {
+  Format = '%<chi> %<caun> [%<cqtn>] \"%<cqhm> /%<cqup> %<cqhv>\" %<cqus> %<{Host}cqh> %<pssc> %<pscl> \"%<{User-Agent}cqh>\" %<crc> %<psct> %<pqsn> %<ttms> %<cquc>'
+}
+{% for site, attributes in remap | dictsort %}
+{% if attributes["disable_logging"] and (attributes["network"] == item.key) %}
+
+-- start {{site}}
+reject_{{site}} = filter.reject('{Host}cqh MATCH {{site}}')
+accept_{{site}} = filter.accept('{Host}cqh MATCH {{site}}')
+
+log.ascii {
+  Filenme = 'delete_{{site}}.log'
+  Format = 'deflect_log'
+  Filters = { accept_{{site}} }
+  RollingEnabled = '1'
+  RollingIntervalSec = '86400'
+  RollingOffsetHr = '0'
+}
+-- end {{site}}
+{% endif %}
+{% endfor %}
+
+log.ascii {
+  Filenme = 'deflect'
+  Format = 'deflect_log'
+{% set comma = joiner(", ") %}
+  Filters = { {% for site, attributes in remap | dictsort %}{% if attributes["disable_logging"] and (attributes["network"] == item.key) %}
+{{ comma() }}reject_{{site}}{% endif %}{% endfor %} }
+  RollingEnabled = '1'
+  RollingIntervalSec = '86400'
+  RollingOffsetHr = '0'
+}
