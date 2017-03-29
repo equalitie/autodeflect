@@ -10,10 +10,10 @@
 -- pssc = HTTP response status code sent by Traffic Server proxy to the client
 -- pscl = Content body length of the Traffic Server proxy response
 -- crc = Cache Result Code
--- psct
--- pqsn
--- ttms
--- cquc
+-- psct = Content type of the document
+-- pqsn = Host name from which Traffic Server issues the proxy request to the origin server
+-- ttms = Time in milliseconds spent by Traffic Server processing the entire client request
+-- cquc = Canonical URL from the client request to Traffic Server
 
 deflect_log = format {
   Format = '%<chi> %<caun> [%<cqtn>] \"%<cqhm> /%<cqup> %<cqhv>\" %<cqus> %<{Host}cqh> %<pssc> %<pscl> \"%<{User-Agent}cqh>\" %<crc> %<psct> %<pqsn> %<ttms> %<cquc>'
