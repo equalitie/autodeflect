@@ -22,15 +22,18 @@ deflect_log = format {
 {% if attributes["disable_logging"] and (attributes["network"] == item.key) %}
 
 -- start {{site}}
-reject_{{site}} = filter.reject('{Host}cqh MATCH {{site}}')
-accept_{{site}} = filter.accept('{Host}cqh MATCH {{site}}')
+reject_{{site}} = filter.reject('{Host}cqh CASE_INSENSITIVE_MATCH {{site}}')
+reject_www_{{site}} = filter.reject('{Host}cqh CASE_INSENSITIVE_MATCH www.{{site}}')
+accept_{{site}} = filter.accept('{Host}cqh CASE_INSENSITIVE_MATCH {{site}}')
+accept_www_{{site}} = filter.accept('{Host}cqh CASE_INSENSITIVE_MATCH www.{{site}}')
+
 
 log.ascii {
-  Filenme = 'delete_{{site}}.log'
-  Format = 'deflect_log'
-  Filters = { accept_{{site}} }
-  RollingEnabled = '1'
-  RollingIntervalSec = '86400'
+  Filenme = 'delete_{{site}}.log',
+  Format = 'deflect_log',
+  Filters = { accept_{{site}}, accept_www_{{site}} },
+  RollingEnabled = '1',
+  RollingIntervalSec = '86400',
   RollingOffsetHr = '0'
 }
 -- end {{site}}
@@ -38,12 +41,12 @@ log.ascii {
 {% endfor %}
 
 log.ascii {
-  Filenme = 'deflect'
-  Format = 'deflect_log'
+  Filenme = 'deflect',
+  Format = 'deflect_log',
 {% set comma = joiner(", ") %}
   Filters = { {% for site, attributes in remap | dictsort %}{% if attributes["disable_logging"] and (attributes["network"] == item.key) %}
-{{ comma() }}reject_{{site}}{% endif %}{% endfor %} }
-  RollingEnabled = '1'
-  RollingIntervalSec = '86400'
+{{ comma() }}reject_{{site}}, reject_www_{{site}}{% endif %}{% endfor %} },
+  RollingEnabled = '1',
+  RollingIntervalSec = '86400',
   RollingOffsetHr = '0'
 }
