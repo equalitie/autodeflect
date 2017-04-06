@@ -6,7 +6,7 @@
 -- cqup = Path component from the remapped client request
 -- cqhv = HTTP version 
 -- cqus = URL scheme
--- cqh = named header from the client’s request
+-- cqh = named header from the client's request
 -- pssc = HTTP response status code sent by Traffic Server proxy to the client
 -- pscl = Content body length of the Traffic Server proxy response
 -- crc = Cache Result Code
@@ -29,8 +29,8 @@ accept_www_{{site | regex_replace('\.', '_')}} = filter.accept('{Host}cqh CASE_I
 
 
 log.ascii {
-  Filenme = 'delete_{{site}}.log',
-  Format = 'deflect_log',
+  Filename = 'delete_{{site}}.log',
+  Format = deflect_log,
   Filters = { accept_{{site | regex_replace('\.', '_')}}, accept_www_{{site | regex_replace('\.', '_')}} },
   RollingEnabled = '1',
   RollingIntervalSec = '86400',
@@ -41,8 +41,8 @@ log.ascii {
 {% endfor %}
 
 log.ascii {
-  Filenme = 'deflect',
-  Format = 'deflect_log',
+  Filename = 'deflect',
+  Format = deflect_log,
 {% set comma = joiner(", ") %}
   Filters = { {% for site, attributes in remap | dictsort %}{% if attributes["disable_logging"] and (attributes["network"] == item.key) %}
 {{ comma() }}reject_{{site | regex_replace('\.', '_')}}, reject_www_{{site | regex_replace('\.', '_')}}{% endif %}{% endfor %} },
