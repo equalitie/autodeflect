@@ -14,47 +14,48 @@
 -- pqsn = Host name from which Traffic Server issues the proxy request to the origin server
 -- ttms = Time in milliseconds spent by Traffic Server processing the entire client request
 -- cquc = Canonical URL from the client request to Traffic Server
+{% set delete_sites %}
+{% set comma = joiner(",") %}
+{% for site, attributes in remap | dictsort %}{% if attributes["disable_logging"] and (attributes["network"] == item.key) %}
+{{ comma() }}{{site}},www.{{site}}{% endif %}{% endfor %}
+{% endset %}
 
 deflect_log = format {
   Format = '%<chi> %<caun> [%<cqtn>] \"%<cqhm> /%<cqup> %<cqhv>\" %<cqus> %<{Host}cqh> %<pssc> %<pscl> \"%<{User-Agent}cqh>\" %<crc> %<psct> %<pqsn> %<ttms> %<cquc>'
 }
-{% for site, attributes in remap | dictsort %}
-{% if attributes["disable_logging"] and (attributes["network"] == item.key) %}
 
--- start {{site}} and www.{{site}} no logging request.
-reject_{{site | regex_replace('\.', '_')}} = filter.reject('%<{Host}cqh> CASE_INSENSITIVE_MATCH {{site}}')
-reject_www_{{site | regex_replace('\.', '_')}} = filter.reject('%<{Host}cqh> CASE_INSENSITIVE_MATCH www.{{site}}')
-accept_{{site | regex_replace('\.', '_')}} = filter.accept('%<{Host}cqh> CASE_INSENSITIVE_MATCH {{site}}')
-accept_www_{{site | regex_replace('\.', '_')}} = filter.accept('%<{Host}cqh> CASE_INSENSITIVE_MATCH www.{{site}}')
+{% if delete_sites|length() > 0 %}
+-- delete logging filters, note: www. is added to all sites here also.
+
+reject_delete = filter.reject('%<{Host}cqh> CASE_INSENSITIVE_MATCH {{delete_sites}}')
+
+accept_delete = filter.accept('%<{Host}cqh> CASE_INSENSITIVE_MATCH {{delete_sites}}')
 
 log.ascii {
-  Filename = 'delete_{{site}}.log',
+  Filename = 'delete.log',
   Format = deflect_log,
-  Filters = { accept_{{site | regex_replace('\.', '_')}} },
+  Filters = { accept_delete },
   RollingEnabled = 1,
   RollingIntervalSec = 86400,
   RollingOffsetHr = 0
 }
-
-log.ascii {
-  Filename = 'delete_www.{{site}}.log}',
-  Format = deflect_log,
-  Filters = { accept_www_{{site | regex_replace('\.', '_')}} },
-  RollingEnabled = 1,
-  RollingIntervalSec = 86400,
-  RollingOffsetHr = 0
-}
--- end {{site}} and www.{{site}} no logging request.
-{% endif %}
-{% endfor %}
 
 log.ascii {
   Filename = 'deflect.log',
   Format = deflect_log,
-{% set comma = joiner(", ") %}
-  Filters = { {% for site, attributes in remap | dictsort %}{% if attributes["disable_logging"] and (attributes["network"] == item.key) %}
-{{ comma() }}reject_{{site | regex_replace('\.', '_')}}, reject_www_{{site | regex_replace('\.', '_')}}{% endif %}{% endfor %} },
+  Filters = { reject_delete }, 
   RollingEnabled = 1,
   RollingIntervalSec = 86400,
   RollingOffsetHr = 0
 }
+{% else %}
+-- no delete logging filtering for this dnet
+
+log.ascii {
+  Filename = 'deflect.log',
+  Format = deflect_log,
+  RollingEnabled = 1,
+  RollingIntervalSec = 86400,
+  RollingOffsetHr = 0
+}
+{% endif %}
