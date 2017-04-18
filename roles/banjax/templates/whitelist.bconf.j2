@@ -60,6 +60,8 @@ white_lister:
     - 204.15.20.0/22
     - 69.63.176.0/20
     - 66.220.144.0/20
+    # Letsencrypt Server - update as we see new
+    - 66.133.109.36/32
     ### END STATIC WHITELISTS 
 {% for site, siteattrs in remap | dictsort %}
 {% if remap[site]["network"] == item.key %}
