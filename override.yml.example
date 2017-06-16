@@ -13,6 +13,10 @@ remap:
     additional_domain_prefix:
       - "subdomain1"
       - "subdomain2"
+    add_banjax_whitelist:
+      - 192.168.4.66
+      - 192.168.70.30
+    banjax_whitelist_include_auth: true
     origin_object: '/ttx/'
     banjax_sha_inv: true
     banjax_captcha: true

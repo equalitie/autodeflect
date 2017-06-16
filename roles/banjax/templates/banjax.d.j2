@@ -15,6 +15,16 @@ challenger:
 {% endfor %}
 {% endif %}
       challenge_type: "auth"
+{% if remap[item.key]['banjax_whitelist_include_auth'] is defined and remap[item.key]['banjax_whitelist_include_auth'] %}
+      white_listed_ips:
+        - 127.0.0.1
+        - {{remap[item.key]['origin']}}
+{% if "add_banjax_whitelist" in remap[item.key] and remap[item.key]['add_banjax_whitelist'] %}
+{% for whitelist_ip in remap[item.key]['add_banjax_whitelist'] %}
+        - {{whitelist_ip}}
+{% endfor %}
+{% endif %}
+{% endif %}
       challenge: "auth.html"
       password_hash: "{{remap[item.key]['banjax_password']}}"
 {% if remap[item.key]['banjax_path'] is not string %}
@@ -53,6 +63,14 @@ challenger:
 {% endfor %}
 {% endif %}
       challenge_type: "sha_inverse"
+      white_listed_ips:
+        - 127.0.0.1
+        - {{remap[item.key]['origin']}}
+{% if "add_banjax_whitelist" in remap[item.key] and remap[item.key]['add_banjax_whitelist'] %}
+{% for whitelist_ip in remap[item.key]['add_banjax_whitelist'] %}
+        - {{whitelist_ip}}
+{% endfor %}
+{% endif %}
       challenge: "solver.html"
       no_of_fails_to_ban: 20
       validity_period: 86400
@@ -69,6 +87,14 @@ challenger:
 {% endfor %}
 {% endif %}
       challenge_type: "captcha"
+      white_listed_ips:
+        - 127.0.0.1
+        - {{remap[item.key]['origin']}}
+{% if "add_banjax_whitelist" in remap[item.key] and remap[item.key]['add_banjax_whitelist'] %}
+{% for whitelist_ip in remap[item.key]['add_banjax_whitelist'] %}
+        - {{whitelist_ip}}
+{% endfor %}
+{% endif %}
       challenge: "captcha.html"
       no_of_fails_to_ban: 20
       validity_period: 86400
