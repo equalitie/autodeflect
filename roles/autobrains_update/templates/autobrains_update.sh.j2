@@ -755,7 +755,7 @@ if [ $DNET ]; then
   count=5
   until [ $count -le 0 ]; do
     # This should return a array
-    edge=($(edge_query --dnet $DNET --health pass -s out -m available -q --format flat 2> /dev/null | cut -d' ' -f1 | cut -d'.' -f1 | tr '\r\n' ' '))
+    edge=($(edge_query --dnet $DNET --health pass_threshold -s out -m available -q --format flat 2> /dev/null | cut -d' ' -f1 | cut -d'.' -f1 | tr '\r\n' ' '))
     if [ "${#edge[@]}" -ge "1" ]; then
       count=0
     else
