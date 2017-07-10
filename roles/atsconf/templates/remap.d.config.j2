@@ -16,10 +16,15 @@
 {% set target_port = ":" ~ remap[item.key]["origin_http_port"] %}
 {% else %} {% set target_port = "" %} {% endif %}
 
-    {#- define pluginconf -#}
+    {#- define pluginconf0 / confremap -#}
 {% if remap[item.key]["confremap"] is defined and remap[item.key]["confremap"] %}
-{% set pluginconf = "@plugin=conf_remap.so @pparam=/usr/local/trafficserver/conf/conf.d/" ~ item.key ~ ".config" %}
-{% else %} {% set pluginconf = "" %} {% endif %}
+{% set pluginconf0 = "@plugin=conf_remap.so @pparam=/usr/local/trafficserver/conf/conf.d/" ~ item.key ~ ".config " %}
+{% else %} {% set pluginconf0 = "noconf " %} {% endif %}
+    {#- define pluginconf1 / cache key no-query-string -#}
+{% if remap[item.key]["cache_ignore_qs"] is defined and remap[item.key]["cache_ignore_qs"] %}
+{% set pluginconf1 = "@plugin=cachekey.so @pparam=--remove-all-params=true " %}
+{% else %} {% set pluginconf1 = "nocachekey " %} {% endif %}
+{% set pluginconf = pluginconf0 + pluginconf1 %}
 
     {#- define HTTP methods -#}
 {% if remap[item.key]["allowed_http_methods"] is defined %}

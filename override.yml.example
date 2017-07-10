@@ -10,6 +10,7 @@ remap:
     cache_time: 0
     cachecontrol: true
     confremap: true
+    cache_ignore_qs: true
     additional_domain_prefix:
       - "subdomain1"
       - "subdomain2"
