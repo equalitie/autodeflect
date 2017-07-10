@@ -26,7 +26,7 @@
 {% else %} {% set pluginconf1 = " " %} {% endif %}
 {% set pluginconf = pluginconf0 + pluginconf1 %}
     {#- define pluginconf2 / cache cookies -#}
-{% if remap[item.key]["cache_ignore_qs"] is defined and remap[item.key]["cache_ignore_qs"] %}
+{% if remap[item.key]["cache_cookies"] is defined and remap[item.key]["cache_cookies"] %}
 {% set pluginconf2 = "@plugin=conf_remap.so @pparam=/usr/local/trafficserver/conf/conf.d/cache_cookies.config " %}
 {% else %} {% set pluginconf2 = " " %} {% endif %}
 {% set pluginconf = pluginconf0 + pluginconf1 + pluginconf2%}
