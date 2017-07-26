@@ -21,14 +21,13 @@
 {% set pluginconf0 = "@plugin=conf_remap.so @pparam=/usr/local/trafficserver/conf/conf.d/" ~ item.key ~ ".config " %}
 {% else %} {% set pluginconf0 = " " %} {% endif %}
     {#- define pluginconf1 / cache key no-query-string -#}
-{% if remap[item.key]["cache_ignore_qs"] is defined and remap[item.key]["cache_ignore_qs"] %}
-{% set pluginconf1 = "@plugin=cachekey.so @pparam=--remove-all-params=true " %}
+{% if remap[item.key]["cachekey_param"] is defined and remap[item.key]["cachekey_param"] %}
+{% set pluginconf1 = "@plugin=cachekey.so @pparam=" ~ remap[item.key]["cachekey_param"] ~ " " %}
 {% else %} {% set pluginconf1 = " " %} {% endif %}
-{% set pluginconf = pluginconf0 + pluginconf1 %}
     {#- define pluginconf2 / cache cookies -#}
 {% if remap[item.key]["cache_cookies"] is defined and remap[item.key]["cache_cookies"] %}
 {% set pluginconf2 = "@plugin=conf_remap.so @pparam=/usr/local/trafficserver/conf/conf.d/cache_cookies.config " %}
-{% else %} {% set pluginconf2 = " " %} {% endif %}
+{% endif %}
 {% set pluginconf = pluginconf0 + pluginconf1 + pluginconf2%}
 
     {#- define HTTP methods -#}

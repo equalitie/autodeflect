@@ -38,7 +38,7 @@ touch clients.yml
 rsync $LIVEDIR/site.yml site.yml
 rsync $LIVEDIR/hosts.yml hosts.yml
 rsync $LIVEDIR/override.yml override.yml
-rsync -a $LIVEDIR/config/ config
+rsync --exclude "*gpg*" -a $LIVEDIR/config/ config
 rsync -a $LIVEDIR/clients.yml-revisions/ clients.yml-revisions
 
 ansible-playbook site.yml -l controller --tags init
