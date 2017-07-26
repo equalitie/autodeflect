@@ -27,7 +27,7 @@
     {#- define pluginconf2 / cache cookies -#}
 {% if remap[item.key]["cache_cookies"] is defined and remap[item.key]["cache_cookies"] %}
 {% set pluginconf2 = "@plugin=conf_remap.so @pparam=/usr/local/trafficserver/conf/conf.d/cache_cookies.config " %}
-{% else %}{% set pluginconf2 = "" }{% endif %}
+{% else %}{% set pluginconf2 = "" %}{% endif %}
 {% set pluginconf = pluginconf0 + pluginconf1 + pluginconf2%}
 
     {#- define HTTP methods -#}
