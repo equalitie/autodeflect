@@ -804,9 +804,9 @@ for DNET in $DNETS; do
     if [ $nonlive ]; then
       echo "Test config on $nonlive on $DNET"
       if [ -n "$DEBUG" ]; then
-        local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive)
+        local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive)
       else
-        local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -H $nonlive 2> /dev/null | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}') 
+        local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive 2> /dev/null | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}') 
       fi
       if echo "$test_run" | grep Via >/dev/null 2>&1; then 
         echo "Found Via header. Test config good"
@@ -1113,11 +1113,11 @@ for DNET in $DNETS; do
     echo "proxy config changes for \"$DNET\" detected"
     nonlive=$(get_nonlive_edge)
     if [ $nonlive ]; then
-      echo "deploy.sh -A $DNET -p ats -H $nonlive"
+      echo "deploy.sh -A $DNET -p ats -l -H $nonlive"
     else
       echo "ERROR: deploy.sh -A $DNET -p ats -H **missing**"
     fi
-    echo -e "deploy.sh -A $DNET -p ats -H ALL\n"
+    echo -e "deploy.sh -A $DNET -p ats -l -H ALL\n"
   else
     echo "No proxy config changes for \"$DNET\" detected"
     if [ -n "$NEWCLIENTS_YML" ] && [ -z "${SKIPPED_INSTALL[$DNET]}" ]; then 
