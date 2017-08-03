@@ -63,12 +63,14 @@ white_lister:
     # Letsencrypt Server - update as we see new
     - 66.133.109.36/32
     ### END STATIC WHITELISTS 
+    ### START ORIGIN WHITELISTS
 {% for site, siteattrs in remap | dictsort %}
 {% if remap[site]["network"] == item.key %}
-    ## {{site}}
-    - {{siteattrs["origin"]}}
+    - host: {{site}}
+      ip_range: {{siteattrs["origin"]}}/32
 {% endif %}
 {% endfor %}
+    ### END ORIGIN WHITELISTS
     ## include config/whitelist.all
 {% include "config/whitelist.all" ignore missing %}
 

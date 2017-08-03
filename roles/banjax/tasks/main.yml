@@ -41,4 +41,4 @@
 - name: Whitelists template 
   template: src=whitelist.bconf.j2 dest={{banjax_output}}/{{item.key}}/banjax.d/whitelist.bconf validate="python scripts/validate_yaml.py %s"
   with_dict: dnets
-  tags: banjax
+  tags: [banjax, banjax_whitelist]
