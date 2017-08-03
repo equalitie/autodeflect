@@ -68,6 +68,15 @@ white_lister:
 {% if remap[site]["network"] == item.key %}
     - host: {{site}}
       ip_range: {{siteattrs["origin"]}}/32
+    - host: www.{{site}}
+      ip_range: {{siteattrs["origin"]}}/32
+{% if remap[site]["additional_domain_prefix"] is defined %}
+{% for prefix in remap[site]["additional_domain_prefix"] %}
+    - host: {{prefix}}.{{site}}
+      ip_range: {{siteattrs["origin"]}}/32
+{% endfor %}
+{% else %}
+{% endif %}
 {% endif %}
 {% endfor %}
     ### END ORIGIN WHITELISTS
