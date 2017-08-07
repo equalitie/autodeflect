@@ -18,6 +18,7 @@ Install pecl yaml for php yaml support
 apt-get install php-pear libyaml-dev php5-dev
 pecl install yamL
 sh -c "echo 'extension=yaml.so' >> /etc/php5/mods-available/yaml.ini"
+sh -c "echo 'yaml.decode_php=0' >> /etc/php5/mods-available/yaml.ini"
 php5enmod yaml
 </pre>
 
@@ -37,7 +38,7 @@ DocumentRoot /path/to/here/public
 nginx:
 
 
-## Usage 
+## Usage
 
 ## Contributors
 

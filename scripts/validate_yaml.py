@@ -10,8 +10,8 @@ import yaml
 def main(filename): 
     try:
         file_content = open(filename).read()
-        yaml_data = yaml.load(file_content)
-    except Exception as e: 
+        yaml_data = yaml.safe_load(file_content)
+    except Exception as e:
         sys.stderr.write("Failed to load file %s - invalid YAML: %s \n" % (filename, str(e)))
         print file_content
         sys.exit(3)
