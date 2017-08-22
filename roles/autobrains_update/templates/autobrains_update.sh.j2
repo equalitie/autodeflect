@@ -163,11 +163,16 @@ fi
 ls -1 config/rundata/$MAINTENANCE_LOCK* > /dev/null 2>&1
 RT=$?
 if [ $RT -eq 0 ]; then
-  echo -e "\"$(ls -x config/rundata/$MAINTENANCE_LOCK* | sed -e "s/config\/rundata\/$MAINTENANCE_LOCK//g")\" put in maintenance mode. Remove file\n\"$(ls -x config/rundata/$MAINTENANCE_LOCK*)\" when done.\n\nUse $0 -b or $0 --bypass to run anyway."
+  echo -e "\"$(ls -x config/rundata/$MAINTENANCE_LOCK* | sed -e "s/config\/rundata\/$MAINTENANCE_LOCK//g")\" put in maintenance mode. Remove file\n\"$(ls -x config/rundata/$MAINTENANCE_LOCK*)\" when done.\nMaintenance lock details are:\n$(<config/rundata/$MAINTENANCE_LOCK*)\n\nUse $0 -b or $0 --bypass to run anyway.\n"
   exit
 fi
 
 if [ -n "$MAINT" ]; then
+  unset MAINTREASON
+  until [ -n "$MAINTREASON" ] ; do
+    echo "in case you get distracted... why maint mode? " ; read MAINTREASON
+  done
+  date "+%c             $MAINTREASON" > config/rundata/$MAINTENANCE_LOCK$UNAME || echo -e "Could not write $(pwd)/config/rundata/$MAINTENANCE_LOCK$UNAME\n\n"
   touch config/rundata/$MAINTENANCE_LOCK$UNAME || echo -e "Could not write $(pwd)/config/rundata/$MAINTENANCE_LOCK$UNAME\n\n"
   echo "Maintenance mode is now enabled. Use $0 -b or $0 --bypass"
   exit
