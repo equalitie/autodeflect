@@ -8,7 +8,7 @@ if(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
 	header("WWW-Authenticate: Basic realm=\"Secure Page\"");
 	header("HTTP\ 1.1 401 Unauthorized");
 	header("Content-Type: application/json");
-	echo '{ auth: 0 }';
+	echo '{ "auth": 0 }';
 	exit;
 }
 
@@ -19,7 +19,7 @@ if (simple_auth($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
 	header("WWW-Authenticate: Basic realm=\"Secure Page\"");
 	header("HTTP\ 1.1 401 Unauthorized");
 	header("Content-Type: application/json");
-	echo '{ auth: 0 }';
+	echo '{ "auth": 0 }';
 	exit;
 }
 
