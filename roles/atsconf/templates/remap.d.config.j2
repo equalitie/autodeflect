@@ -49,13 +49,13 @@
 {% if remap[item.key]["http_type"] == "http" or remap[item.key]["http_type"] == "https" %}
 
 {% if remap[item.key]["www_only"] is not defined or remap[item.key]["www_only"] == false %}
-map http://{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}{{http_methods}}
+map http://{{item.key}}/ http://{{remap[item.key]["origin"]}}{{target_port}}/ {{pluginconf}}{{http_methods}}
 {% endif %}
 {% if remap[item.key]["no_www"] is not defined or remap[item.key]["no_www"] == false %}{% if remap[item.key]["dns_records"] is defined %}
-map http://www.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}{{http_methods}}{% endif %}{% endif %}
+map http://www.{{item.key}}/ http://{{remap[item.key]["origin"]}}{{target_port}}/ {{pluginconf}}{{http_methods}}{% endif %}{% endif %}
 {% if remap[item.key]["additional_domain_prefix"] is defined %}{% for prefix in remap[item.key]["additional_domain_prefix"] %}
 
-map http://{{prefix}}.{{item.key}}/ http://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_port}}/ {{pluginconf}}{{http_methods}}
+map http://{{prefix}}.{{item.key}}/ http://{{remap[item.key]["origin"]}}{{target_port}}/ {{pluginconf}}{{http_methods}}
 {% endfor %}{% endif %}
 {% elif remap[item.key]["http_type"] == "https_redirect" %}
 
@@ -74,14 +74,14 @@ redirect http://www.{{item.key}} https://www.{{item.key}}/{% endif %}{% endif %}
 {% else %} {% set target_https_port = "" %} {% endif %}
 
 {% if remap[item.key]["www_only"] is not defined or remap[item.key]["www_only"] == false %}
-map https://{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}}{{http_methods}}
+map https://{{item.key}}/ https://{{remap[item.key]["origin"]}}{{target_https_port}}/ {{pluginconf}}{{http_methods}}
 {% endif %}
 {% if remap[item.key]["no_www"] is not defined or remap[item.key]["no_www"] == false %}{% if remap[item.key]["dns_records"] is defined %}
-map https://www.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}}{{http_methods}}{% endif %}{% endif %}
+map https://www.{{item.key}}/ https://{{remap[item.key]["origin"]}}{{target_https_port}}/ {{pluginconf}}{{http_methods}}{% endif %}{% endif %}
 {% if remap[item.key]["additional_domain_prefix"] is defined %}{% for prefix in remap[item.key]["additional_domain_prefix"] %}
 {# {% if "additional_domain_prefix" in remap[item.key] and remap[item.key]["additional_domain_prefix"] %}{% for prefix in remap[item.key]["additional_domain_prefix"] %} #}
 
-map https://{{prefix}}.{{item.key}}/ https://{{remap[item.key]["hidden"]}}.origin.{{target_cachetime}}.{{target_dnet}}{{target_https_port}}/ {{pluginconf}}{{http_methods}}
+map https://{{prefix}}.{{item.key}}/ https://{{remap[item.key]["origin"]}}{{target_https_port}}/ {{pluginconf}}{{http_methods}}
 {% endfor %} {% endif %} {% endif %}
   {# END https remaps #}
   {# END remaps #}

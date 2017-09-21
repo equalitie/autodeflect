@@ -49,12 +49,17 @@
 - name: remap.d per-site config
   template: src=remap.d.config.j2 dest={{ats_output}}{{remap[item.key].network}}/remap.d/{{ item.key }}.config
   with_dict: remap
-  tags: ats
+  tags:
+    - ats
+    - tomr
 
 - name: cache.config 
   template: src=cache.config.j2 dest={{ats_output}}/{{item.key}}/cache.config
   with_dict: dnets
-  tags: ats
+  tags: 
+    - ats
+    - tomr
+    - cache
 
 - name: ssl_multicert.config
   template: src=ssl_multicert.config.j2 dest={{ats_output}}/{{item.key}}/ssl_multicert.config
