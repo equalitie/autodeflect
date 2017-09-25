@@ -19,6 +19,7 @@ dest_ip={{remap[site]["origin"]}}	{{cache_action}}
 {% if remap[site]["cache_exceptions"] is defined %}
 # cache overrides for {{site}}:
 {% for rule in remap[site]["cache_exceptions"] %}
+{# NOTE: if (www\.)? is specified here, additional_domain_prefix must be caught #}
 url_regex={{rule.url_regex}}	{{rule.action}}
 {% endfor %}
 {% endif %}
