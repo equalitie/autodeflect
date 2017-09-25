@@ -4,18 +4,23 @@
 
 {% for site in remap %}
 {% if item.key == remap[site]["network"] %}
+
 # {{site}}
 {% if remap[site]["cachecontrol"] is not defined or remap[site]["cachecontrol"] == false %}
 {% if remap[site]["cache_time"] == 0 %}
 {% set cache_action = "action=never-cache" %}
 {% else %}
-{% set cache_action = "ttl-in-cache=" ~ remap[site]["cache_time"] %}
+{% set cache_action = "ttl-in-cache=" ~ remap[site]["cache_time"] ~ "m" %}
 {% endif %}
 dest_ip={{remap[site]["origin"]}}	{{cache_action}}
-
 {% else %}
 # cache_control
-
+{% endif %}
+{% if remap[site]["cache_exceptions"] is defined %}
+# cache overrides for {{site}}:
+{% for rule in remap[site]["cache_exceptions"] %}
+url_regex={{rule.url_regex}}	{{rule.action}}
+{% endfor %}
 {% endif %}
 {% endif %}
 {% endfor %}
