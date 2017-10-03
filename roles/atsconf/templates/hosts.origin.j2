@@ -1,0 +1,18 @@
+# {{ no_edit_template }}
+
+## 
+
+{% for site in remap %}
+{% if item.key == remap[site]["network"] %}
+
+# {{site}}
+{{remap[site]["origin"]}}	{{site}}.origin
+{% endif %}
+{% endfor %}
+
+# include config/hosts.origin.all
+{% include "config/hosts.origin.all" ignore missing %}
+
+# include config/hosts.origin.{{item.key}}
+{% include "config/hosts.origin." + item.key ignore missing %}
+

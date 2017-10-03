@@ -61,6 +61,15 @@
     - tomr
     - cache
 
+- name: hosts.origin
+  template: src=hosts.origin.j2 dest={{ats_output}}/{{item.key}}/hosts.origin
+  with_dict: dnets
+  tags: 
+    - ats
+    - tomr
+    - cache
+    - hosts
+
 - name: ssl_multicert.config
   template: src=ssl_multicert.config.j2 dest={{ats_output}}/{{item.key}}/ssl_multicert.config
   with_dict: dnets

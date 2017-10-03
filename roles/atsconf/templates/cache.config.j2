@@ -1,6 +1,7 @@
 # {{ no_edit_template }}
 
-## nb. includes are placed last, so they take priority over auto-generated rules
+## nb. includes are placed last to take priority over auto-generated rules.
+##     exceptions are placed below a site's main rule for the same reasons.
 
 {% for site in remap %}
 {% if item.key == remap[site]["network"] %}
@@ -12,14 +13,14 @@
 {% else %}
 {% set cache_action = "ttl-in-cache=" ~ remap[site]["cache_time"] ~ "m" %}
 {% endif %}
-dest_ip={{remap[site]["origin"]}}	{{cache_action}}
+dest_domain={{site}}.origin	{{cache_action}}
 {% else %}
 # cache_control
 {% endif %}
 {% if remap[site]["cache_exceptions"] is defined %}
 # cache overrides for {{site}}:
 {% for rule in remap[site]["cache_exceptions"] %}
-{# NOTE: if (www\.)? is specified here, additional_domain_prefix must be caught #}
+{# NOTE: if (www\.)? is templated here, additional_domain_prefix must be caught #}
 url_regex={{rule.url_regex}}	{{rule.action}}
 {% endfor %}
 {% endif %}
