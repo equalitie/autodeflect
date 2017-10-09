@@ -21,7 +21,7 @@ dest_domain={{site}}.origin	{{cache_action}}
 # cache overrides for {{site}}:
 {% for rule in remap[site]["cache_exceptions"] %}
 {# NOTE: if (www\.)? is templated here, additional_domain_prefix must be caught #}
-url_regex={{rule.url_regex}}	{{rule.action}}
+{{rule}}
 {% endfor %}
 {% endif %}
 {% endif %}
