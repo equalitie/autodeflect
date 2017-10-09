@@ -261,35 +261,6 @@ else
 fi
 }
 
-function remap_diff_loop {
-  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
-  for i in {{ats_output}}$DNET/remap.d/*.config; do
-    ls $i > /dev/null 2>&1
-    RT=$?
-    if [ "$RT" -gt 0 ]; then
-      continue
-    fi
-    local test=$(match_bypass_file "$(basename $i)")
-    if [ $test -gt 0 ]; then 
-      echo -e "Bypassing file $(basename $i)" 
-      continue
-    fi
-    DIFF_FILES="$ATS_DIR/conf/remap.d/$(basename $i) $i"
-    diff -Ntu $DIFF_FILES
-    RT=$?
-    if [ $RT -eq 2 ]
-    then
-      echo "ERROR: There was something wrong with the diff command"
-    elif [ $RT -eq 1 ]
-    then
-      yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/remap.d/$(basename $i)" 
-      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
-      echo -e $ECHO_SEPARATOR 
-  fi
-    
-done 
-}
-
 function le_cert_bundle_diff_loop {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   for i in {{letsencrypt_output}}/*; do
@@ -304,7 +275,7 @@ function le_cert_bundle_diff_loop {
       continue
     fi   
     SITENAME=$(echo $(basename $i) | sed -E 's%\.le\.chain\.crt$|\.le\.cert\.crt$|\.le\.key$%%')
-    if [ -f $ATS_DIR/conf/remap.d/$SITENAME.config ] ; then
+    if grep "^## BEGIN $SITENAME$" $ATS_DIR/conf/remap.config > /dev/null ; then
       DIFF_FILES="$ATS_DIR/conf/ssl/$(basename $i) $i"
       if [ -f "$ATS_DIR/conf/ssl/$(basename $i)" ] ; then
         diff -Nq $DIFF_FILES
@@ -313,11 +284,9 @@ function le_cert_bundle_diff_loop {
         echo "new file for $ATS_DIR/conf/ssl/$(basename $i)"
         RT=1
       fi
-      if [ $RT -eq 2 ]
-      then 
+      if [ $RT -eq 2 ] ; then 
         echo "ERROR: There was something wrong with the diff command"
-      elif [ $RT -eq 1 ]
-      then 
+      elif [ $RT -eq 1 ] ; then 
         yorn "Do you want to install this file in $DNET" "install_file $i $ATS_DIR/conf/ssl/$(basename $i)" 
         [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
         echo -e $ECHO_SEPARATOR 
@@ -548,6 +517,26 @@ function remap_diff {
   fi 
 }
 
+function hosts_diff {
+  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  local test=$(match_bypass_file hosts.origin)
+    if [ $test -gt 0 ]; then
+      echo "Bypassing file hosts.origin"
+      return 
+    fi
+  diff -Ntu $ATS_DIR/conf/hosts.origin {{ats_output}}$DNET/hosts.origin
+  RT=$?
+  if [ $RT -eq 2 ]
+  then
+    echo "ERROR: There was something wrong with the diff command"
+  elif [ $RT -eq 1 ]
+  then  
+    yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/hosts.origin $ATS_DIR/conf/hosts.origin"
+    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
+    echo -e $ECHO_SEPARATOR
+  fi 
+}
+
 function cache_diff {
   ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
   local test=$(match_bypass_file cache.config)
@@ -595,7 +584,7 @@ for DNET in $DNETS; do
   logging_diff
   ssl_multicert_diff
   remap_diff
-  remap_diff_loop
+  hosts_diff
   cache_diff
   zone_diff_loop
   le_cert_bundle_diff_loop
