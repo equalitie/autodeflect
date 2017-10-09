@@ -1,23 +1,39 @@
 # {{ no_edit_template }}
+
+## nb. includes are placed last to take priority over auto-generated rules.
+##     exceptions are placed below a site's main rule for the same reasons.
+
+{% for site in remap %}
+{% if item.key == remap[site]["network"] %}
+
+# {{site}}
+{% if remap[site]["cachecontrol"] is not defined or remap[site]["cachecontrol"] == false %}
+{% if remap[site]["cache_time"] == 0 %}
+{% set cache_action = "action=never-cache" %}
+{% else %}
+{% set cache_action = "ttl-in-cache=" ~ remap[site]["cache_time"] ~ "m" %}
+{% endif %}
+dest_domain={{site}}.origin	{{cache_action}}
+{% else %}
+# cache_control
+{% endif %}
+{% if remap[site]["cache_exceptions"] is defined %}
+# cache overrides for {{site}}:
+{% for rule in remap[site]["cache_exceptions"] %}
+{# NOTE: if (www\.)? is templated here, additional_domain_prefix must be caught #}
+url_regex={{rule.url_regex}}	{{rule.action}}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% endfor %}
+
 # include config/cache.config.all
 {% include "config/cache.config.all" ignore missing %}
+
 
 # include config/cache.config.{{item.key}}
 {% include "config/cache.config." + item.key ignore missing %}
 
-{% if item.value is defined and item.value %}
-{% set domain = item.value %}
-{% else %}
-{% set domain = dnets[default_dnet] %}
-{% endif %}
 
 # Allow LetsEncrypt endpoints through
-url_regex=^.*/.well-known/acme-challenge$       action=never-cache
-
-dest_domain=0m.{{domain}}	action=never-cache
-{% for id in range(1,30) %}
-dest_domain={{id}}m.{{domain}}	ttl-in-cache={{ id }}m
-{% endfor %}
-{% for id in range(30,2890,10) %}
-dest_domain={{id}}m.{{domain}}	ttl-in-cache={{ id }}m
-{% endfor %}
+url_regex=^.*/.well-known/acme-challenge	action=never-cache

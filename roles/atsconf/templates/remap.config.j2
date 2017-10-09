@@ -1,0 +1,99 @@
+# {{ no_edit_template }}
+
+# forward all Let's Encrypt requests to our LE server
+# (which may forward them to origin)
+regex_map http://.*/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
+
+# include config/remap.config.all if found
+{% include "config/remap.config.all" ignore missing %}
+
+# include config/remap.config.{{item.key}} if found
+{% include "config/remap.config." + item.key ignore missing %}
+
+.definefilter disable_delete_push @action=deny @method=delete @method=push
+.activatefilter disable_delete_push
+
+{% for site in remap | sort %}{% if  remap[site]["network"] == item.key %}
+
+## BEGIN {{site}}
+{% if remap[site]["allow_http_delete_push"] | default(False) == True %}
+.deactivatefilter disable_delete_push
+{% endif -%}
+  {#- BEGIN variable definitions -#}
+    {#- define cachecontrol -#}
+{%- if remap[site]["cachecontrol"] is not defined or remap[site]["cachecontrol"] == false -%}
+{%- set target_cachetime = remap[site]["cache_time"] ~ "m" -%}
+{%- else -%}{%- set target_cachetime = "cachecontrol" -%}{%- endif -%}
+    {#- define port -#}
+{%- if remap[site]["origin_http_port"] is defined -%}
+{%- set target_port = ":" ~ remap[site]["origin_http_port"] -%}
+{%- else -%}{%- set target_port = "" -%}{%- endif -%}
+    {#- define pluginconf0 / confremap -#}
+{%- if remap[site]["confremap"] is defined and remap[site]["confremap"] -%}
+{%- set pluginconf0 = "@plugin=conf_remap.so @pparam=/usr/local/trafficserver/conf/conf.d/" ~ site ~ ".config " -%}
+{%- else -%}{%- set pluginconf0 = " " -%}{%- endif -%}
+    {#- define pluginconf1 / cache key no-query-string -#}
+{%- if remap[site]["cachekey_param"] is defined and remap[site]["cachekey_param"] -%}
+{%- set pluginconf1 = "@plugin=cachekey.so @pparam=" ~ remap[site]["cachekey_param"] ~ " " -%}
+{%- else -%}{%- set pluginconf1 = " " -%}{%- endif -%}
+    {#- define pluginconf2 / cache cookies -#}
+{%- if remap[site]["cache_cookies"] is defined and remap[site]["cache_cookies"] -%}
+{%- set pluginconf2 = "@plugin=conf_remap.so @pparam=/usr/local/trafficserver/conf/conf.d/cache_cookies.config " -%}
+{%- else -%}{%- set pluginconf2 = "" -%}{%- endif -%}
+{%- set pluginconf = pluginconf0 + pluginconf1 + pluginconf2 -%}
+    {#- define HTTP methods -#}
+{%- if remap[site]["allowed_http_methods"] is defined -%}
+{%- set http_methods = " @action=allow @method=" ~ remap[site]['allowed_http_methods']| join (' @method=') -%}
+{%- else -%}{%- set http_methods = "" -%}{%- endif -%}
+  {#- END variable definition #}
+# include config/remap.d/{{site}}.config if found
+{% include "config/remap.d/" ~ site ~ ".config" ignore missing with context %}
+
+{% if remap[site]["bypass_remap"] is not defined or remap[site]["bypass_remap"] == false -%}
+  {#- BEGIN remaps -#}
+  {#- BEGIN http remaps -#}
+{%- if remap[site]["http_type"] == "http" or remap[site]["http_type"] == "https" -%}
+{%- if remap[site]["www_only"] is not defined or remap[site]["www_only"] == false %}
+map	http://{{site}}/	http://{{site}}.origin{{target_port}}/	{{pluginconf}}{{http_methods}}
+{% endif %}
+{%- if remap[site]["no_www"] is not defined or remap[site]["no_www"] == false %}{% if remap[site]["dns_records"] is defined %}
+map	http://www.{{site}}/	http://{{site}}.origin{{target_port}}/	{{pluginconf}}{{http_methods}}
+{% endif -%}{%- endif -%}
+{%- if remap[site]["additional_domain_prefix"] is defined %}{% for prefix in remap[site]["additional_domain_prefix"] %}
+map	http://{{prefix}}.{{site}}/	http://{{site}}.origin{{target_port}}/	{{pluginconf}}{{http_methods}}
+{% endfor -%}{%- endif -%}
+{%- elif remap[site]["http_type"] == "https_redirect" %}
+{%- if remap[site]["www_only"] is not defined or remap[site]["www_only"] == false %}
+redirect	http://{{site}}/	https://{{site}}/
+{% endif -%}
+{%- if remap[site]["no_www"] is not defined or remap[site]["no_www"] == false %}{% if remap[site]["dns_records"] is defined %}
+redirect	http://www.{{site}}	https://www.{{site}}/
+{% endif -%}
+{%- if remap[site]["additional_domain_prefix"] is defined %}{% for prefix in remap[site]["additional_domain_prefix"] %}
+redirect	http://{{prefix}}.{{site}}/	https://{{prefix}}.{{site}}/
+{% endfor -%}{%- endif -%}{%- endif -%}{%- endif -%}
+  {#- END http remaps -#}
+  {#- BEGIN https remaps #}
+{%- if remap[site]["http_type"] == "https" or remap[site]["http_type"] == "https_only" or remap[site]["http_type"] == "https_redirect" -%}
+{%- if remap[site]["origin_https_port"] is defined -%}
+{%- set target_https_port = ":" ~ remap[site]["origin_https_port"] -%}
+{%- else -%}{% set target_https_port = "" -%}{% endif -%}
+{%- if remap[site]["www_only"] is not defined or remap[site]["www_only"] == false %}
+map	https://{{site}}/	https://{{site}}.origin{{target_https_port}}/	{{pluginconf}}{{http_methods}}
+{% endif -%}
+{%- if remap[site]["no_www"] is not defined or remap[site]["no_www"] == false -%}{%- if remap[site]["dns_records"] is defined %}
+map	https://www.{{site}}/	https://{{site}}.origin{{target_https_port}}/	{{pluginconf}}{{http_methods}}
+{% endif -%}{%- endif -%}
+{%- if remap[site]["additional_domain_prefix"] is defined -%}{%- for prefix in remap[site]["additional_domain_prefix"] -%}
+map	https://{{prefix}}.{{site}}/	https://{{site}}.origin{{target_https_port}}/	{{pluginconf}}{{http_methods}}
+{% endfor -%}{%- endif -%}{%- endif -%}
+  {#- END https remaps -#}
+  {#- END remaps -#}
+{%- endif -%}
+{%- if remap[site]["allow_http_delete_push"] | default(False) == True %}
+.activatefilter disable_delete_push
+{% endif -%}
+{%- endif -%}
+{%- endfor %}
+
+###################################################################

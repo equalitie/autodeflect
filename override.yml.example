@@ -9,8 +9,11 @@ remap:
     remove_http_map: true
     cache_time: 0
     cachecontrol: true
-    confremap: true
     cache_ignore_qs: true
+    cache_exceptions:
+      - { url_regex: '(www\.)?site.com',
+          action: ttl-in-cache=1h30m }
+    confremap: true
     additional_domain_prefix:
       - "subdomain1"
       - "subdomain2"
