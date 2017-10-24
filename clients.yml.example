@@ -50,9 +50,14 @@ remap:
     # nodes. This will be obsolete in the next release of
     # Autodeflect. The string should be random and long.
     hidden: CHANGEME
-    # Use HTTPS? Autodeflect assumes that human invervention will be
-    # used to decrypt and install the SSL certificates for sites.
-    https: true
+    # Use HTTPS? There are 4 options for "http_type". A certificate
+    # bundle must be present (probably uploaded by the client) for
+    # https options to work.
+    #   - http_type: http	<= plain http only
+    #   - http_type: https	<= both plain http and https
+    #   - http_type: https_redirect  <= return 301s for plain http to https
+    #   - http_type: https_only	<= disable plain http altogether
+    http_type: https_redirect
     # The network to install the site on. Should be one of the dnets
     # in site.yml.
     network: mydnet
