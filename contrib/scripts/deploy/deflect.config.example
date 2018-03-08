@@ -1,0 +1,113 @@
+
+[default]
+# Must use -A. This is a good idea. If you only want to setup one config and ALWAYS use default you can
+# comment FORCE_ALT out or set to anything other than 1. Do not confuse yourself, only use in default.
+FORCE_ALT=1
+# This file is read in from top to bottom. Leave [default] at top so any variable over writting can happen
+### local things
+# Deflect root
+DBASE=/usr/local/deflect
+# Edge root for pushing files
+EDGEBASE=${DBASE}/edges/default
+# File list of ALL edges (live and non-live)
+EDGES=${DBASE}/etc/edges/edges.default
+# File list of ALL LIVE edges
+EDGES_LIVE=${DBASE}/etc/edges/edges.default.live
+# Private key for user root (used on edges)
+ROOTPRIVKEY=${DBASE}/etc/edge_id
+# Public key for user root (used on edges) 
+ROOTPUBKEY=${DBASE}/etc/edge_id.pub
+# Private key for user of traffic server
+TSPRIVKEY=${DBASE}/etc/id_rsa
+# Public key for traffic server
+TSPUBKEY=${DBASE}/etc/id_rsa.pub
+# The program name that called this
+MYNAME=`basename $0`
+# Deploy log file
+DPLOGFILE=/var/log/deploy.log
+# Bind zone file template location
+ZTEMPLATE_DIR=${DBASE}/etc/zones/default
+# Current UNIX time. (Seconds elapsed since January 1, 1970 00:00:00 GMT) Used
+# to plot serial numbers in bind zones
+TIME_S="`date +%s`"
+# Default proxied domain to test
+DHOST=deflect.ca
+# Bind (Main Zone Template File)
+BIND_MZTFILE=${ZTEMPLATE_DIR}/deflect.ca.zone
+# Bind live directory
+BIND_LDIR=/var/named
+# Bind (Main Zone File)
+BIND_MZFILE=${BIND_LDIR}/deflect.ca.zone
+#Bind SOA record
+BIND_SOA="@    300    IN    SOA   dns0.mydnsprovider.com. zone.mydnsprovider.com.  $TIME_S   43200  10800  1209600  300"
+#Bind NS definitions. If need more edit zonegen.sh and all more here 
+#BIND_NS_1="@               IN      NS      dns1.mydnsprovider.com."
+#BIND_NS_2="@               IN      NS      dns2.mydnsprovider.net."
+#BIND_NS_3="@               IN      NS      dns3.mydnsprovider.ca."
+BIND_NS_1="@		IN	NS	adns1.mydnsprovider.com."
+BIND_NS_2="@		IN      NS      adns2.mydnsprovider.com."
+#BIND_NS_3="@		IN	NS	dns2.mydnsprovider.net."
+#BIND_NS_4="@		IN	NS	dns3.mydnsprovider.org."
+BIND_NS_3=";;;"
+BIND_NS_4=";;;"
+BIND_NS_5=";;;"
+BIND_NS_6=";;;"
+# Location of ATS remap.config file in controller push directory
+ATS_RMAP=${EDGESBASE}/usr/local/trafficserver/config/remap.config
+#Nagios Host Template File 
+NAG_HTEMPLATE=${DBASE}/etc/nagios/host.template.cfg
+# Nagios Host Group Template
+NAG_HGTEMPLATE=${DBASE}/etc/nagios/hostgroups_template.cfg
+# File to be read in for nagios monitoring 
+NAG_EDGES=${DBASE}/etc/hosts.monitor
+
+# remote things
+# ATS UID
+TSUSER=trafserv
+TSUID=99
+# ATS GID
+TSGROUP=trafserv
+TSGID=99
+# Location of ATS installed director on edge
+TSPATH=/usr/local/trafficserver
+# Our network domain of edges
+DEFLECT_DOM=deflect.ca
+# edge CNAME definition to include all our live edges in DNS
+DEFLECT_EDGE=edge
+# various prereqs for ATS
+TSPREREQS="autoconf automake libtool g++ libssl-dev tcl-dev expat libexpat1-dev libpcre3-dev libcap-dev libhwloc-dev libncurses5-dev libcurl4-openssl-dev libre2-dev libzmq1 libconfig9 libconfig++9 libyaml-cpp0.5 libspdylay7"
+# various prereqs for nagios 
+NAGIOS="nagios-plugins nagios-nrpe-server libnagios-plugin-perl libreadonly-perl bc"
+# various prereqs for fail2ban 
+FAIL2BAN=""
+# various prereqs for misc. Add anythis extra we want installed here
+MISC="sudo rsync ntp iftop tcpdump virt-what ufw secure-delete rsyslog python-pip psmisc python-dev curl log-courier dnsutils cron curl"
+REPOSTRING_deflect="deb http://users.deflect.ca/repo/ wheezy main"
+# Note the double \\n here.
+REPOSTRING_rsyslog=$(/bin/echo -e "deb http://debian.adiscon.com/v8-stable wheezy/\\ndeb-src http://debian.adiscon.com/v8-stable wheezy/")
+
+# Location on misc in push directory
+MISC_PATHS="etc/cron.d etc/cron.hourly etc/sudoers etc/ssh etc/apt etc/rsyslog.d usr/local/bin"
+# Use ENCfs for the trafficserver directory? 
+ENCFS=0
+# The passphrase for encfs
+ENCFS_PASS="xxxxxxxxxxxxxxxxxxxxxxxxxxxsomepassphrasexxxxxxxxxxxxxxxxxxxxxx"
+
+# email address for reports
+MAILRCPT="report@example.co"
+
+# Main Deflect Network
+[deflect_example]
+# Location for deflect1 
+EDGEBASE=${DBASE}/edges/deflect_example
+EDGES=/etc/edgemanage/edges/deflect_example
+EDGES_LIVE=${DBASE}/etc/edges/edges.deflect_example.live
+ATS_RMAP=${EDGESBASE}/usr/local/trafficserver/config/remap.config
+ZTEMPLATE_DIR=${DBASE}/etc/zones/deflect_example
+BIND_MZTFILE=${ZTEMPLATE_DIR}/deflect.ca.zone
+
+# Do not put anythin here. So we can push default to a edge. Like for testing. 
+[bypass]
+# Need at least one var
+bypassed=1
+
