@@ -1,0 +1,94 @@
+#!/usr/bin/expect -f
+# Before using this script, you should create the directories required
+# and also check that the share isn't mounted yet
+#
+# Usage: this_script $host $ENCFS_PASS /usr/local/.trafficserver/ /usr/local/trafficserver/
+#
+set force_conservative 1  ;# set to 1 pausing briefly before sending each character
+
+if {$force_conservative} {
+  set send_slow {1 .1}
+  proc send {ignore arg} {
+    sleep .1
+    exp_send -s -- $arg
+  }
+}
+
+set timeout 20 
+exp_internal 0
+match_max 100000
+log_user 0
+
+set env(TERM) vt100
+set HOST [lindex $argv 0];
+set ENCFS_PASS [lindex $argv 1];
+set encdir [lindex $argv 2];
+set encmount [lindex $argv 3]; 
+
+set myhost [exec "/bin/hostname"]
+
+#send_user "\nPass is $ENCFS_PASS\n"
+send_user "ENC directory is $encdir\n"
+send_user "ENC mount is $encmount\n\n"
+
+spawn ssh -l root $HOST
+# TODO: how do we detect failed login?
+expect "# "
+send -- "encfs --public $encdir $encmount\r"
+
+expect {
+sleep 2
+  "?> " {
+	send_user "building ENCfs in expert mode\n"
+	send -- "x\r"
+	expect -exact "choice: "
+	send -- "1\r"
+	expect -exact "size: "
+	send -- "256\r"
+	expect -exact "size: "
+	send -- "1024\r"
+	expect -exact "choice: "
+	send -- "1\r"
+	expect -exact "Yes: "
+	send -- "y\r"
+	expect -exact "Yes: "
+	send -- "y\r"
+	expect -exact "No: "
+	send -- "n\r"
+	expect -exact "No: "
+	send -- "n\r"
+	expect -exact "8: "
+	send -- "0\r"
+	expect -exact "Yes: "
+	send -- "y\r"
+	send_user "setting ENCfs password\n"
+	expect -exact "assword: "
+	send -- ${ENCFS_PASS}\r
+	expect -exact "assword: "
+	send -- ${ENCFS_PASS}\r
+	expect "# "
+	send -- "exit\r"
+	}
+  "assword: " {
+	send_user "mount English ENCfs $encmount\n" 
+	send -- ${ENCFS_PASS}\r
+	expect "# "
+	send -- "exit\r"
+	}
+  "passe: " {
+	send_user "mount French ENCfs $encmount\n"
+	send -- ${ENCFS_PASS}\r
+	expect "# "
+	send -- "exit\r"
+	}
+  "created? (y,n) " {
+	send_user "\nOne of the needed directories\n"
+	send_user "$encmount\n\tor\n$encdir\ndo not exist, exiting\n\n"
+	send -- "n\r"
+	expect "# "
+	send -- "exit\r"
+	}
+
+}
+send_user "Done with ENCfs\n"
+expect eof
