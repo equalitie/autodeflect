@@ -3,6 +3,7 @@
 import os
 import glob
 import socket
+import sys
 
 FAKE_LIST="/usr/local/deflect/etc/whitelist.extra"
 EDGELIST_GLOB="/etc/edgemanage/edges/*"
@@ -20,7 +21,11 @@ def main():
                     if edgename.startswith("#"):
                         # skip commented edges
                         continue
-                    edge_ip = socket.gethostbyname(edgename)
+                    try:
+                        edge_ip = socket.gethostbyname(edgename)
+                    except:
+                        sys.stderr.write("Problem with getting IP for %s\n" % edgename)
+                        continue
                     if edge_ip not in ip_list: 
                         ip_list.append(edge_ip)
 
