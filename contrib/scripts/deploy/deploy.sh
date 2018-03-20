@@ -210,7 +210,7 @@ if [ -d $LOADDIR ] && [ -f $USERINPUT ]; then
     fi
   done
 else
- echo "Failed."
+ echo "Failed." >> /dev/stderr
  exit
 fi > $MYFILE1
 echo "Done.                           "
