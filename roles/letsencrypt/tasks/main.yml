@@ -6,30 +6,55 @@
     - setup
 
 - name: Ensure remote directory structure exists
-  file: path=/opt/autodeflect/{{item}}  state=directory mode=0755 recurse=yes
+  file:
+    path: "/opt/autodeflect/{{item}}"
+    state: directory
+    mode: '0755'
+    recurse: yes
   with_items: 
     - etc
     - le_certs
     - bin
-  tags: letsencrypt
+  tags:
+    - letsencrypt
 
 - name: Generate NGINX config
-  template: src=letsencrypt_origins.conf.j2 dest=/etc/nginx/sites-available/letsencrypt_origins.conf owner=root group=root mode=0644
-  tags: letsencrypt
+  template:
+    src: letsencrypt_origins.conf.j2
+    dest: /etc/nginx/sites-available/letsencrypt_origins.conf
+    owner: root
+    group: root
+    mode: '0644'
+  tags:
+    - letsencrypt
   notify: reload nginx
 
 - name: Generate Letsencrypt renewal bash script
-  template: src=LE_renew_by_name.sh.j2 dest=/opt/autodeflect/bin/LE_renew_by_name.sh owner=root group=root mode=0744
-  tags: letsencrypt 
+  template:
+    src: LE_renew_by_name.sh.j2
+    dest: /opt/autodeflect/bin/LE_renew_by_name.sh
+    owner: root
+    group: root
+    mode: '0744'
+  tags:
+    - letsencrypt
 
 - name: Generate Letsencrypt site list
-  template: src=letsencrypt-site.list.j2 dest=/opt/autodeflect/etc/letsencrypt-site.list
-  tags: letsencrypt 
+  template:
+    src: letsencrypt-site.list.j2
+    dest: /opt/autodeflect/etc/letsencrypt-site.list
+  tags:
+    - letsencrypt
 
 - name: Execute remote LE renewals
   command: /opt/autodeflect/bin/LE_renew_by_name.sh
-  tags: letsencrypt 
+  tags:
+    - letsencrypt
 
 - name: Syncronise LE certificates to local path
-  synchronize: src=/opt/autodeflect/le_certs/ dest={{letsencrypt_output}} mode=pull
-  tags: letsencrypt
+  synchronize:
+    src: /opt/autodeflect/le_certs/
+    dest: "{{letsencrypt_output}}"
+    mode: pull
+  tags:
+    - letsencrypt
