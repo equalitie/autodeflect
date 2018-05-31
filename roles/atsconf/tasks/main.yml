@@ -77,3 +77,5 @@
     content: "{{timestamp}}\n"
   with_dict: "{{ dnets }}"
   tags: ats
+
+- include_tasks: banjax.yml
