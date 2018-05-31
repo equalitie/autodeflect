@@ -2,6 +2,9 @@
 # tasks file for lists
 
 - name: create site check list json 
-  template: src=siteslist.json.j2 dest={{playbook_dir}}/siteslist.json
+  template:
+    src: siteslist.json.j2
+    dest: "{{playbook_dir}}/siteslist.json"
   with_dict: "{{ remap }}"
-  tags: siteslist
+  tags:
+    - siteslist
