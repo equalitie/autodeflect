@@ -1,19 +1,29 @@
 ---
 - name: Setup ats output base directory
-  file: path={{ats_output}} state=directory mode=0755
+  file:
+    path: "{{ats_output}}"
+    state: directory
+    mode: '0755'
   tags:
     - ats 
     - setup
 
 - name: Setup ats dnet output directories
-  file: path={{ats_output}}{{item.key}} state=directory mode=0755
+  file:
+    path: "{{ats_output}}{{item.key}}"
+    state: directory
+    mode: '0755'
   with_dict: "{{ dnets }}"
   tags:
     - ats 
     - setup
 
 - name: Setup TLS upload output directory
-  file: path={{tls_home}}/output/{{item.key}} state=directory mode=0755 recurse=yes
+  file:
+    path: "{{tls_home}}/output/{{item.key}}"
+    state: directory
+    mode: '0755'
+    recurse: yes
   with_dict: "{{ dnets }}"
   tags:
     - ats
@@ -21,42 +31,54 @@
     - tls
 
 - name: Logging disabling
-  template: src=logs_xml.config.j2 dest={{ats_output}}/{{item.key}}/logs_xml.config
+  template:
+    src: logs_xml.config.j2
+    dest: "{{ats_output}}/{{item.key}}/logs_xml.config"
   with_dict: "{{ dnets }}"
   tags:
     - ats
     - ats_logging
 
 - name: Logging disabling
-  template: src=logging.config.j2 dest={{ats_output}}/{{item.key}}/logging.config
+  template:
+    src: logging.config.j2
+    dest: "{{ats_output}}/{{item.key}}/logging.config"
   with_dict: "{{ dnets }}"
   tags:
     - ats
     - ats_logging
 
 - name: remap config
-  template: src=remap.config.j2 dest={{ats_output}}/{{item.key}}/remap.config
+  template:
+    src: remap.config.j2
+    dest: "{{ats_output}}/{{item.key}}/remap.config"
   with_dict: "{{ dnets }}"
   tags:
     - ats
     - ats_remap
 
 - name: cache.config 
-  template: src=cache.config.j2 dest={{ats_output}}/{{item.key}}/cache.config
+  template:
+    src: cache.config.j2
+    dest: "{{ats_output}}/{{item.key}}/cache.config"
   with_dict: "{{ dnets }}"
   tags: 
     - ats
     - ats_cache
 
 - name: hosts.origin
-  template: src=hosts.origin.j2 dest={{ats_output}}/{{item.key}}/hosts.origin
+  template:
+    src: hosts.origin.j2
+    dest: "{{ats_output}}/{{item.key}}/hosts.origin"
   with_dict: "{{ dnets }}"
   tags: 
     - ats
     - ats_hosts
 
 - name: ssl_multicert.config
-  template: src=ssl_multicert.config.j2 dest={{ats_output}}/{{item.key}}/ssl_multicert.config
+  template:
+    src: ssl_multicert.config.j2
+    dest: "{{ats_output}}/{{item.key}}/ssl_multicert.config"
   with_dict: "{{ dnets }}"
   tags:
     - ats
