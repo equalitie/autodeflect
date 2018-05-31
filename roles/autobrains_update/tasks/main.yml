@@ -1,12 +1,18 @@
 ---
 - name: create clients.yml-revisions directory
-  file: path={{playbook_dir}}/clients.yml-revisions state=directory mode=0755
+  file:
+    path: "{{playbook_dir}}/clients.yml-revisions"
+    state: directory
+    mode: '0755'
   tags:
     - init
     - setup
 
 - name: create directory layout
-  file: path={{playbook_dir}}/{{item}}  state=directory mode=0755
+  file:
+    path: "{{playbook_dir}}/{{item}}"
+    state: directory
+    mode: '0755'
   with_items:
     - config
     - config/remap.d
@@ -19,7 +25,8 @@
     - setup
 
 - name: check if autobrains_update.sh exists 
-  stat: path={{playbook_dir}}/autobrains_update.sh
+  stat:
+    path: "{{playbook_dir}}/autobrains_update.sh"
   register: autobrains_update 
   ignore_errors: True
   tags:
@@ -27,7 +34,10 @@
     - setup
 
 - name: Create autobrains_update.sh script
-  template: src=autobrains_update.sh.j2 dest={{playbook_dir}}/autobrains_update.sh mode=755
+  template:
+    src: autobrains_update.sh.j2
+    dest: "{{playbook_dir}}/autobrains_update.sh"
+    mode: '755'
   when: not autobrains_update.stat.exists
   tags:
     - init
