@@ -7,21 +7,21 @@
 
 - name: Create banjax dnet directories
   file: path={{banjax_output}}{{item.key}} state=directory mode=0755
-  with_dict: dnets
+  with_dict: "{{ dnets }}"
   tags:
     - banjax
     - setup
  
 - name: Create banjax.d dir
   file: path={{banjax_output}}/{{item.key}}/banjax.d state=directory mode=0755
-  with_dict: dnets
+  with_dict: "{{ dnets }}"
   tags:
     - banjax
     - setup
 
 - name: Banjax configuration file
   template: src=banjax.conf.j2 dest={{banjax_output}}/{{item.key}}/banjax.conf validate="python scripts/validate_yaml.py %s"
-  with_dict: dnets
+  with_dict: "{{ dnets }}"
   tags: banjax
 
 - name: Banjax.d configuration file 
@@ -30,15 +30,15 @@
         (remap[item.key]["banjax_captcha"] is defined and remap[item.key]["banjax_captcha"]) or
         (remap[item.key]["banjax_sha_inv"] is defined and remap[item.key]["banjax_sha_inv"]) or
         (remap[item.key]["banjax_regex_banner"] is defined)
-  with_dict: remap
+  with_dict: "{{ remap }}"
   tags: [banjax, banjaxd]
 
 - name: general.bconf
   template: src=general.dnets.bconf dest={{banjax_output}}/{{item.key}}/banjax.d/general.bconf validate="python scripts/validate_yaml.py %s"
-  with_dict: dnets
+  with_dict: "{{ dnets }}"
   tags: banjax
 
 - name: Whitelists template 
   template: src=whitelist.bconf.j2 dest={{banjax_output}}/{{item.key}}/banjax.d/whitelist.bconf validate="python scripts/validate_yaml.py %s"
-  with_dict: dnets
+  with_dict: "{{ dnets }}"
   tags: [banjax, banjax_whitelist]

@@ -10,14 +10,14 @@
 
 - name: Setup bind dnet output directories
   file: path={{bind_output}}{{item.key}} state=directory mode=0755
-  with_dict: dnets
+  with_dict: "{{ dnets }}"
   tags:
     - dns
     - setup
 
 - name: Per-site zone files
   template: src=zonetemplate.zone.j2 dest={{bind_output}}{{remap[item.key].network}}/{{item.key}}.zone
-  with_dict: remap
+  with_dict: "{{ remap }}"
   when: ('dns_records' in remap[item.key] and 'network' in remap[item.key])
   tags: dns
 
@@ -32,5 +32,5 @@
 - name: Central DNS zone files
   template: src=networkzone.dnets.j2 dest={{bind_output}}{{item.key}}/{{dnets[item.key]}}.zone
   when: (item.value is defined and item.value)
-  with_dict: dnets
+  with_dict: "{{ dnets }}"
   tags: dns
