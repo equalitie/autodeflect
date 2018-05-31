@@ -1,4 +1,4 @@
-; {{ no_edit_template }}
+; {{ansible_managed}}
 {% include "config/networkzone." + item.key ignore missing %} 
 
 {{timestamp_txt_record_name}} IN      TXT     {{timestamp}}
