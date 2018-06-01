@@ -1,0 +1,35 @@
+---
+- name: create config directories
+  file:
+    path: "{{item}}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0775'
+  with_items:
+    - config
+    - config/group_vars
+
+- name: link group_vars to top level
+  file:
+    src: config/group_vars
+    dest: group_vars
+    state: link
+
+- name: create some random string to use for passphrases
+  local_action: shell < /dev/urandom tr -dc A-Z-a-z-0-9 | head -c {{ item.size }}
+  register: rand_result
+  with_items:
+    - { size: '{{32|random(20,1)}}' }
+    - { size: '{{32|random(20,1)}}' }
+    - { size: '{{32|random(20,1)}}' }
+
+- name: create group_vars vars file from template
+  template:
+    src: "{{item}}.j2"
+    dest: "config/group_vars/{{item}}"
+    owner: root
+    group: root
+    mode: '0644'
+  with_items:
+    - controller.yml
