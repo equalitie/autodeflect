@@ -1,8 +1,9 @@
 site.yml
+inventory
 clients.yml
 clients.yml-revisions
 override.yml
-hosts.yml
+/group_vars
 config/
 bind/
 ats/
