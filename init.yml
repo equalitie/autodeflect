@@ -1,0 +1,32 @@
+---
+- hosts: controller
+  become: true
+
+  vars_prompt:
+    - name: 'default_dnet'
+      prompt: 'Name of the default dnet '
+      default: 'default'
+      private: no
+
+    - name: 'default_dnet_domain'
+      prompt: 'Name of the default dnet domain'
+      default: 'deflect.ca'
+      private: no
+
+    - name: 'dnet_list'
+      prompt: 'List other dnets names, comma separated with no spaces. Space for none'
+      default: 'staging,redzone'
+      private: no
+
+    - name: 'swabber_grace'
+      prompt: 'Swabber grace'
+      default: '300'
+      private: no
+
+    - name: 'le_url'
+      prompt: 'Letsencrypt server host:port'
+      default: 'le.deflect.ca:1111'
+      private: no
+
+  roles:
+    - {role: init, tags: init}
