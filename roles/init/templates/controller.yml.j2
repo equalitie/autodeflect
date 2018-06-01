@@ -1,0 +1,41 @@
+---
+bind_output: "bind/"
+ats_output: "ats/"
+banjax_output: "banjax/"
+tls_home: "certs"
+tls_gpghome: "config/gpg"
+letsencrypt_output: "certs/letsencrypt"
+{% set our_list = dnet_list.split(',') %}
+default_dnet: {{default_dnet}} 
+dnets:
+  {{default_dnet}}: {{default_dnet_domain}}
+{% if dnet_list == " " %}
+{% else %}
+{% set our_list = dnet_list.split(',') %}
+{% for d in our_list %}  {{d}}:
+{% endfor %}
+{% endif %}
+le_url: "{{le_url}}"
+swabber_grace: {{swabber_grace}} 
+challenger_key: "{{rand_result.results[0].stdout}}" 
+botbanger_key: "{{rand_result.results[1].stdout}}"
+timestamp_txt_record_name: "{{rand_result.results[2].stdout}}"
+
+# FIXME: Will be doing this different
+dns_notify_servers: 
+  - 127.0.0.1 
+
+
+autobrains_config:
+  deflect_dir: "{{'../../'|realpath}}"
+  log_dir: "{{'../../logs/sysedits'|realpath}}" 
+  deploy_key_path: "{{'../../etc/edge_key'|realpath}}" 
+  loc_bind_confs: "/etc/bind"
+  zone_files: "/etc/edgemanage/zones" 
+  email_notify: monitor@example.local
+  email_key_id: sysops@example.local
+  trafficserver_dir: /usr/local/trafficserver
+  dash_proxy: example-nocacheproxy.example.local
+  clients_yml_url: /brainsconfig/site.yml
+  dashadmin_host: example-dashboard-admin.example.local
+  dash_blacklist_url: /brainsconfig/blacklist.txt
