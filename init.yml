@@ -28,5 +28,20 @@
       default: 'le.deflect.ca:1111'
       private: no
 
+    - name: 'dashboard_ssh_connect_string'
+      prompt: 'ssh connection string to dashboard'
+      default: '-p 3333 dashboard.example.local'
+      private: no
+
+    - name: 'email_notify'
+      prompt: 'Your email address to get notifications'
+      default: 'notify@example.local'
+      private: no
+
+    - name: 'email_key_id'
+      prompt: 'Your email address to use with gpg'
+      default: 'notify@example.local'
+      private: no
+
   roles:
     - {role: init, tags: init}
