@@ -30,3 +30,9 @@
   with_items:
     - controller.yml
     - dashboard.yml
+
+- name: Load main variables file for next tasks
+  include_vars: "group_vars/{{item}}"
+  with_items:
+    - controller.yml
+    - dashboard.yml
