@@ -1,0 +1,27 @@
+---
+- hosts: controller
+  become: no 
+
+  vars_files:
+    - clients.yml
+    - override.yml
+
+  tags:
+    - controller
+  roles:
+    - {role: autobrains_update}
+    - {role: zonefile, tags: [zonefile, bind]}
+    - {role: atsconf, tags: ats}
+    - {role: lists, tags: lists}
+
+- hosts: letsencrypt
+  become: true
+  user: root
+
+  vars_files:
+    - clients.yml
+    - override.yml
+  tags:
+    - letsencrypt
+  roles:
+    - {role: letsencrypt, tags: letsencrypt}
