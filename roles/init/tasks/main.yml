@@ -3,8 +3,6 @@
   file:
     path: "{{item}}"
     state: directory
-    owner: root
-    group: root
     mode: '0775'
   with_items:
     - config
@@ -28,8 +26,7 @@
   template:
     src: "{{item}}.j2"
     dest: "config/group_vars/{{item}}"
-    owner: root
-    group: root
     mode: '0644'
   with_items:
     - controller.yml
+    - dashboard.yml
