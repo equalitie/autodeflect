@@ -1,0 +1,5 @@
+---
+- hosts: dashboard
+
+  roles:
+    - {role: dashpull, tags: dashpull}

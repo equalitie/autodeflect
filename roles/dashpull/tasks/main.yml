@@ -1,0 +1,26 @@
+---
+- name: remove controller clients.yml link
+  file:
+    path: clients.yml
+    state: absent
+  delegate_to: localhost 
+  tags:
+    - clients_yml
+
+- name: get clients.yml
+  fetch:
+    src: "{{dash_clients_yml}}"
+    dest: "clients.yml-revisions/clients.yml-{{ansible_date_time.year}}{{ansible_date_time.month}}{{ansible_date_time.day}}{{ansible_date_time.hour}}{{ansible_date_time.minute}}{{ansible_date_time.second}}"
+    flat: true
+  tags:
+    - clients_yml
+
+- name: Link clients.yml
+  file:
+    src: "clients.yml-revisions/clients.yml-{{ansible_date_time.year}}{{ansible_date_time.month}}{{ansible_date_time.day}}{{ansible_date_time.hour}}{{ansible_date_time.minute}}{{ansible_date_time.second}}"
+    dest: clients.yml
+    state: link
+  delegate_to: localhost
+  tags:
+    - clients_yml
+
