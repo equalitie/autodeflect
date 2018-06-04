@@ -1,6 +1,6 @@
 ---
 - hosts: controller
-  become: true
+  gather_facts: no
 
   vars_prompt:
     - name: 'default_dnet'
@@ -28,6 +28,11 @@
       default: 'le.deflect.ca:1111'
       private: no
 
+    - name: 'dash_clients_yml'
+      prompt: 'Path to clients.yml on Dashboard'
+      default: '/var/www/brainsconfig/site.yml'
+      private: no
+
     - name: 'dashboard_ssh_connect_string'
       prompt: 'ssh connection string to dashboard'
       default: '-p 3333 dashboard.example.local'
@@ -45,3 +50,4 @@
 
   roles:
     - {role: init, tags: init}
+    - {role: autobrains_update}
