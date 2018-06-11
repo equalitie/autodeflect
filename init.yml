@@ -38,11 +38,6 @@
       default: '/var/www/brainsconfig/tls_bundles'
       private: no
 
-    - name: 'dashboard_ssh_connect_string'
-      prompt: 'ssh connection string to dashboard'
-      default: '-p 3333 dashboard.example.local'
-      private: no
-
     - name: 'email_notify'
       prompt: 'Your email address to get notifications'
       default: 'notify@example.local'
@@ -51,6 +46,16 @@
     - name: 'email_key_id'
       prompt: 'Your email address to use with gpg'
       default: 'notify@example.local'
+      private: no
+
+    - name: 'le_email'
+      prompt: 'Your email address to use for LetsEncrypt'
+      default: 'letsencrypt@example.local'
+      private: no
+
+    - name: 'authoritative_nameserver_grep_init'
+      prompt: 'Authoritive name servers to grep for. Comma separated with not spaces'
+      default: 'deflect,someplaceelse'
       private: no
 
   roles:
