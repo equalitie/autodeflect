@@ -1,6 +1,6 @@
 ---
 # TODO: the delegate_to: localhost needs to be thought out, [controller] ?
-# TODO: the output directories probably need to be outside playbook_dir root
+# TODO: the output directories probably needs to be outside playbook_dir root
 # TODO: examine tags
 # TODO: cert cleanup on dashboard?
 
@@ -38,6 +38,24 @@
     src: "clients.yml-revisions/clients.yml-{{ansible_date_time.year}}{{ansible_date_time.month}}{{ansible_date_time.day}}{{ansible_date_time.hour}}{{ansible_date_time.minute}}{{ansible_date_time.second}}"
     dest: clients.yml
     state: link
+  delegate_to: localhost
+  tags:
+    - clients_yml
+
+- name: check if clients.yml-revisions/clients.yml-last_used exists
+  stat:
+    path: clients.yml-revisions/clients.yml-last_used
+  register: clientslast_used
+  ignore_errors: true
+  delegate_to: localhost
+  tags:
+    - clients_yml
+
+- name: copy current clients.yml to clients.yml-last_used if none
+  copy:
+    src: "clients.yml-revisions/clients.yml-{{ansible_date_time.year}}{{ansible_date_time.month}}{{ansible_date_time.day}}{{ansible_date_time.hour}}{{ansible_date_time.minute}}{{ansible_date_time.second}}"
+    dest: clients.yml-revisions/clients.yml-last_used
+  when: not clientslast_used.stat.exists
   delegate_to: localhost
   tags:
     - clients_yml
