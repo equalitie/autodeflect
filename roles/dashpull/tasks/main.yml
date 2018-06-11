@@ -1,4 +1,19 @@
 ---
+# TODO: the delegate_to: localhost needs to be thought out, [controller] ?
+# TODO: the output directories probably need to be outside playbook_dir root
+# TODO: examine tags
+# TODO: cert cleanup on dashboard?
+
+- name: make sure needed directories exist
+  file:
+    path: "{{item}}"
+    state: directory
+    mode: '0750'
+  delegate_to: localhost
+  with_items:
+    - clients.yml-revisions
+    - "{{tls_home}}"
+
 - name: remove controller clients.yml link
   file:
     path: clients.yml
@@ -24,3 +39,12 @@
   tags:
     - clients_yml
 
+- name: sync tls bundles from dashboard
+  synchronize:
+    mode: pull
+    src: "{{tls_bundles_path}}/*.gpg"
+    dest: "{{tls_home}}/encypted"
+    use_ssh_args: yes
+    checksum: yes
+  tags:
+    - tls_bundles
