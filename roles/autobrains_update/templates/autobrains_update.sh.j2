@@ -7,6 +7,8 @@
 #
 # rm autobrains_update.sh
 # ansible-playbook site.yml -l controller --tags='init'
+#
+# TODO: removed all start_ssh_agent. Need to give option to load and load or use alreadly loaded key
 
 # Version hash: $Id$
 
@@ -784,9 +786,6 @@ return $(true)
 
 function run_deploy() {
 
-# This function should always return true. Anything else should be exit in the function itself
-start_ssh_agent || exit
-
 for DNET in $DNETS; do
   if [ -n "${REMAP_TOUCHED[$DNET]}" ]; then
     nonlive=$(get_nonlive_edge)
@@ -867,8 +866,6 @@ function letsencrypt_update() {
   if [ -z "$OVERRIDECHECKED" ]; then
     check_override
   fi
-
-  start_ssh_agent || exit
 
   rm -rf {{letsencrypt_output}}
 
@@ -988,7 +985,6 @@ case "$1" in
   MOST=0
   YES=0
   NOSPIN=0
-  start_ssh_agent || STOP=0
   shift
   ;;
   --force)
