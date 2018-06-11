@@ -1,0 +1,4 @@
+---
+le_email: "{{le_email}}" 
+{% set ns_list = authoritative_nameserver_grep_init.split(',') %}
+authoritative_nameserver_grep: '"{% for i in ns_list %}{{i}}{% if not loop.last%}|{% endif %}{% endfor %}"'
