@@ -13,6 +13,9 @@
   with_items:
     - clients.yml-revisions
     - "{{tls_home}}"
+  tags:
+    - clients_yml
+    - tls_bundles
 
 - name: remove controller clients.yml link
   file:
