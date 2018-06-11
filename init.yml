@@ -33,6 +33,11 @@
       default: '/var/www/brainsconfig/site.yml'
       private: no
 
+    - name: 'tls_bundle_path'
+      prompt: 'Path to tls bundles on Dashboard'
+      default: '/var/www/brainsconfig/tls_bundles'
+      private: no
+
     - name: 'dashboard_ssh_connect_string'
       prompt: 'ssh connection string to dashboard'
       default: '-p 3333 dashboard.example.local'
