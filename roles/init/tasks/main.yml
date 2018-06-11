@@ -28,11 +28,13 @@
     dest: "config/group_vars/{{item}}"
     mode: '0644'
   with_items:
+    - all.yml
     - controller.yml
     - dashboard.yml
 
 - name: Load main variables file for next tasks
   include_vars: "group_vars/{{item}}"
   with_items:
+    - all.yml
     - controller.yml
     - dashboard.yml
