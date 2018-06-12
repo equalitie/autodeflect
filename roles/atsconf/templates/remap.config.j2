@@ -2,7 +2,7 @@
 
 # forward all Let's Encrypt requests to our LE server
 # (which may forward them to origin)
-regex_map http://.*/.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
+map /.well-known/acme-challenge http://{{le_url}}/.well-known/acme-challenge
 
 # include config/remap.config.all if found
 {% include "config/remap.config.all" ignore missing %}
