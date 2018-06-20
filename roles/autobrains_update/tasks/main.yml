@@ -37,7 +37,7 @@
   template:
     src: autobrains_update.sh.j2
     dest: "autobrains_update.sh"
-    mode: '755'
+    mode: '0755'
   when: not autobrains_update.stat.exists
   tags:
     - init
