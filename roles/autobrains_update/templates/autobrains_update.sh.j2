@@ -792,6 +792,7 @@ for DNET in $DNETS; do
     if [ $nonlive ]; then
       echo "Test config on $nonlive on $DNET"
       if [ -n "$DEBUG" ]; then
+# TODO: Change this deploy test to ansible
         local test_run=$({{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive)
       else
         local test_run=$({{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive 2> /dev/null | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}') 
