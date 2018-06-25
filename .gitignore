@@ -30,3 +30,4 @@ http/config.php
 siteslist.json
 trigger.sh
 *.retry
+/deploy.yml
