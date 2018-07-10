@@ -1,4 +1,4 @@
-# {{ansible_managed}} 
+# {{ansible_managed}}
 # 
 # note: ATS gracefully handles a missing ca/chain cert, so we can
 # include it without worrying about whether it exists
@@ -17,7 +17,7 @@
 {#- if https is on -#}
 {%- if remap[site]["http_type"] == "https" or remap[site]["http_type"] == "https_only" or remap[site]["http_type"] == "https_redirect" -%}
 
-# {{site}} 
+# {{site}}
 {# if LE is in use -#}
 {%- if remap[site]["letsencrypt"] is defined and remap[site]["letsencrypt"] == true %}
 ssl_cert_name={{site}}.le.cert.crt ssl_key_name={{site}}.le.key ssl_ca_name={{site}}.le.chain.crt

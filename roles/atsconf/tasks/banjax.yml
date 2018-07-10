@@ -17,7 +17,7 @@
   tags:
     - banjax
     - setup
- 
+
 - name: Create banjax.d dir
   file:
     path: "{{banjax_output}}/{{item.key}}/banjax.d"
@@ -37,7 +37,7 @@
   tags:
     - banjax
 
-- name: Banjax.d configuration file 
+- name: Banjax.d configuration file
   template:
     src: banjax/banjax.d.j2
     dest: "{{banjax_output}}/{{remap[item.key].network}}/banjax.d/{{item.key}}.bconf"
@@ -60,7 +60,7 @@
   tags:
     - banjax
 
-- name: Whitelists template 
+- name: Whitelists template
   template:
     src: banjax/whitelist.bconf.j2
     dest: "{{banjax_output}}/{{item.key}}/banjax.d/whitelist.bconf"

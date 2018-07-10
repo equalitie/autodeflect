@@ -6,13 +6,13 @@
 # or if autobrains_update.sh is broken
 #
 # rm autobrains_update.sh
-# ansible-playbook site.yml -l controller --tags='init'
+# ansible-playbook site.yml -l controller --tags=update
 #
 # TODO: removed all start_ssh_agent. Need to give option to load and load or use alreadly loaded key
 
 # Version hash: $Id$
 
-## This will be the loop variable DNETS 
+## This will be the loop variable DNETS
 {% set dnetspace = joiner(" ") %}
 DNETS='{% for dnet in dnets %}{{dnetspace()}}{{dnet}}{% endfor %}'
 
@@ -30,7 +30,7 @@ COMPLETED_TIME_FILE='.completed_timestamp'
 
 {% set bpspace = joiner(" ") %}
 {% if autobrains_bypasses is defined and autobrains_bypasses %}
-BYPASS_FILES="{% for bypass in autobrains_bypasses %}{{bpspace()}}{{bypass}}{% endfor %}" 
+BYPASS_FILES="{% for bypass in autobrains_bypasses %}{{bpspace()}}{{bypass}}{% endfor %}"
 {% endif %}
 
 ##########
@@ -368,7 +368,7 @@ function zone_diff_loop {
     fi
     local test=$(match_bypass_file "$(basename $i)")
     if [ $test -gt 0 ]; then 
-      echo -e "Bypassing file $(basename $i)" 
+      echo -e "Bypassing file $(basename $i)"
       continue
     fi
     DIFF_FILES="{{autobrains_config.zone_files}}/$DNET/$(basename $i) $i"
@@ -385,17 +385,17 @@ function zone_diff_loop {
         if [ "$d" == "$DNET" ]; then
           continue
         else
-          [ -f {{autobrains_config.zone_files}}/$d/$(basename $i) ] && echo -e "\n$(basename $i) exists in $d\nand you want to install to $DNET.\nThis is not aloud! Please fix this.\nexample:\n mv {{autobrains_config.zone_files}}/$d/$(basename $i) {{autobrains_config.zone_files}}/$DNET/$(basename $i)\nor\n rm {{autobrains_config.zone_files}}/$d/$(basename $i)\nBypassing install option.\n" && local zone_conflict=1 
+          [ -f {{autobrains_config.zone_files}}/$d/$(basename $i) ] && echo -e "\n$(basename $i) exists in $d\nand you want to install to $DNET.\nThis is not aloud! Please fix this.\nexample:\n mv {{autobrains_config.zone_files}}/$d/$(basename $i) {{autobrains_config.zone_files}}/$DNET/$(basename $i)\nor\n rm {{autobrains_config.zone_files}}/$d/$(basename $i)\nBypassing install option.\n" && local zone_conflict=1
         fi
       done
       if [ $zone_conflict -eq 1 ]; then
-        read -t 30 -p "[Enter] to continue or will automatically in 30 seconds " 
+        read -t 30 -p "[Enter] to continue or will automatically in 30 seconds "
       else
         yorn "Do you want to install this file" "install_file $i {{autobrains_config.zone_files}}/$DNET/$(basename $i)"
         [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
         echo -e $ECHO_SEPARATOR
      fi
-    fi 
+    fi
 done
 }
 

@@ -1,4 +1,4 @@
-; {{ansible_managed}} 
+; {{ansible_managed}}
 {% for domain, entries in remap[item.key]["dns_records"] | dictsort %}
 {% for entry in entries %}
 {% if domain == item.key or domain == "@" %}

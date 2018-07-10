@@ -1,10 +1,10 @@
--- {{ansible_managed}} 
+-- {{ansible_managed}}
 -- chi = client ip
 -- caun = user name
 -- cqtn = client request timestamp
 -- cqhm = HTTP method
 -- cqup = Path component from the remapped client request
--- cqhv = HTTP version 
+-- cqhv = HTTP version
 -- cqus = URL scheme
 -- cqh = named header from the client's request
 -- pssc = HTTP response status code sent by Traffic Server proxy to the client
@@ -43,7 +43,7 @@ log.ascii {
 log.ascii {
   Filename = 'deflect.log',
   Format = deflect_log,
-  Filters = { reject_delete }, 
+  Filters = { reject_delete },
   RollingEnabled = 1,
   RollingIntervalSec = 86400,
   RollingOffsetHr = 0
