@@ -8,11 +8,11 @@ challenger:
 {% if remap[item.key]['banjax_path'] is defined and remap[item.key]['banjax_path'] != '' %}
     - name: "{{item.key}}_auth"
       domains:
-       - "{{item.key}}"
-       - "www.{{item.key}}"
+        - "{{item.key}}"
+        - "www.{{item.key}}"
 {% if "additional_domain_prefix" in remap[item.key] and remap[item.key]['additional_domain_prefix'] %}
 {% for prefix in remap[item.key]['additional_domain_prefix'] %}
-       - "{{prefix}}.{{item.key}}"
+        - "{{prefix}}.{{item.key}}"
 {% endfor %}
 {% endif %}
       challenge_type: "auth"
@@ -45,7 +45,7 @@ challenger:
 {% endfor %}
 {% elif remap[item.key]['banjax_path_exceptions'] is defined and remap[item.key]['banjax_path_exceptions'] is string and remap[item.key]['banjax_path_exceptions'] != '' %}
       magic_word_exceptions:
-       - "{{remap[item.key]['banjax_path_exceptions']}}"
+        - "{{remap[item.key]['banjax_path_exceptions']}}"
 {% else %}
       magic_word_exceptions: [] 
 {% endif %}
@@ -56,11 +56,11 @@ challenger:
 
     - name: "{{item.key}}_sha_inv"
       domains:
-       - "{{item.key}}"
-       - "www.{{item.key}}"
+        - "{{item.key}}"
+        - "www.{{item.key}}"
 {% if "additional_domain_prefix" in remap[item.key] and remap[item.key]['additional_domain_prefix'] %}
 {% for prefix in remap[item.key]['additional_domain_prefix'] %}
-       - "{{prefix}}.{{item.key}}"
+        - "{{prefix}}.{{item.key}}"
 {% endfor %}
 {% endif %}
       challenge_type: "sha_inverse"
@@ -80,11 +80,11 @@ challenger:
 
     - name: "{{item.key}}_captcha"
       domains:
-       - "{{item.key}}"
-       - "www.{{item.key}}"
+        - "{{item.key}}"
+        - "www.{{item.key}}"
 {% if "additional_domain_prefix" in remap[item.key] and remap[item.key]['additional_domain_prefix'] %}
 {% for prefix in remap[item.key]['additional_domain_prefix'] %}
-       - "{{prefix}}.{{item.key}}"
+        - "{{prefix}}.{{item.key}}"
 {% endfor %}
 {% endif %}
       challenge_type: "captcha"
