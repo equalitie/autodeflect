@@ -9,7 +9,7 @@
   tags:
     - controller
   roles:
-    - {role: autobrains_update}
+    - {role: autobrains_update, tags: update}
     - {role: zonefile, tags: [zonefile, bind]}
     - {role: atsconf, tags: ats}
     - {role: lists, tags: lists}
