@@ -33,7 +33,7 @@
 - name: Bind common conf to enable templated zones
   template:
     src: named.conf.local.j2
-    dest: "{{bind_output}}bind/named.conf.local.templated"
+    dest: "{{bind_output}}bind/named.conf.local.edgemanage"
   tags:
     - dns
 
