@@ -689,7 +689,7 @@ function awstats_update() {
 
 function initau() {
   rm $0
-  ansible-playbook site.yml -l controller --tags init
+  ansible-playbook site.yml -l controller --tags='update'
 }
 
 function spin() {
@@ -1066,13 +1066,14 @@ if [ -n "$SKIP_UPDATE" ]; then
     yorn "Update (controller) config" "controller_update"
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
   fi
-  if [ -z "$MOST" ]; then
-    AW_LASTRAN=$(date -d @$(cat config/rundata/$AW_LASTRUN_FILE))
-    echo "Awstats was last updated: $AW_LASTRAN"
-    awstatsorn "Update (awstats) config" "awstats_update"
-  elif [ -n "$THEREST" ]; then
-    awstats_update 
-  fi
+## awstats is depreciated
+#  if [ -z "$MOST" ]; then
+#    AW_LASTRAN=$(date -d @$(cat config/rundata/$AW_LASTRUN_FILE))
+#    echo "Awstats was last updated: $AW_LASTRAN"
+#    awstatsorn "Update (awstats) config" "awstats_update"
+#  elif [ -n "$THEREST" ]; then
+#    awstats_update
+#  fi
 fi
 
 if [ -n "$MOST" ]; then
