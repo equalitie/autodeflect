@@ -136,7 +136,7 @@ echo "$NOTIFY_CONTENT" >> config/rundata/$LOCK_PREFIX$UNAME
 }
 
 function lock() {
-ls -1 config/rundata/$LOCK_PREFIX* > /dev/null 2>&1
+ls -1 config/rundata/$LOCK_PREFIX* >> config/logs/current.log 2>&1
 RT=$?
 if [ $RT -eq 0 ]; then 
   echo "\"$(ls -x config/rundata/$LOCK_PREFIX* | sed -e "s/config\/rundata\/$LOCK_PREFIX//g")\" is currently running this script. If not remove \"$(ls -x config/rundata/$LOCK_PREFIX*)\""
@@ -156,7 +156,7 @@ if [ -n "$MAINT_BYPASS" ]; then
     return
   fi
 fi
-ls -1 config/rundata/$MAINTENANCE_LOCK* > /dev/null 2>&1
+ls -1 config/rundata/$MAINTENANCE_LOCK* >> config/logs/current.log 2>&1
 RT=$?
 if [ $RT -eq 0 ]; then
   echo -e "\"$(ls -x config/rundata/$MAINTENANCE_LOCK* | sed -e "s/config\/rundata\/$MAINTENANCE_LOCK//g")\" put in maintenance mode. Remove file\n\"$(ls -x config/rundata/$MAINTENANCE_LOCK*)\" when done.\nMaintenance lock details are:\n$(<config/rundata/$MAINTENANCE_LOCK*)\n\nUse $0 -b or $0 --bypass to run anyway.\n"
@@ -224,11 +224,11 @@ function fetch_clients_yml() {
       exit
     fi
   else
-    ansible-playbook dashboard-pull.yml --tags='clients_yml' > /dev/null &
+    ansible-playbook dashboard-pull.yml --tags='clients_yml' >> config/logs/current.log &
     spin $!
   fi
 
-  if diff clients.yml-revisions/clients.yml-last_used clients.yml >/dev/null 2>&1 ; then
+  if diff clients.yml-revisions/clients.yml-last_used clients.yml >> config/logs/current.log 2>&1 ; then
     echo "No differences found in clients.yml since updated."
   else
     echo "Differences found in clients.yml since updated."
@@ -267,7 +267,7 @@ fi
 function le_cert_bundle_diff_loop {
   ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   for i in {{letsencrypt_output}}/*; do
-    ls $i > /dev/null 2>&1 
+    ls $i >> config/logs/current.log 2>&1
     RT=$?
     if [ "$RT" -gt 0 ]; then 
       continue
@@ -278,7 +278,7 @@ function le_cert_bundle_diff_loop {
       continue
     fi   
     SITENAME=$(echo $(basename $i) | sed -E 's%\.le\.chain\.crt$|\.le\.cert\.crt$|\.le\.key$%%')
-    if grep "^## BEGIN $SITENAME$" $ATS_DIR/conf/remap.config > /dev/null ; then
+    if grep "^## BEGIN $SITENAME$" $ATS_DIR/conf/remap.config >> config/logs/current.log ; then
       DIFF_FILES="$ATS_DIR/conf/ssl/$(basename $i) $i"
       if [ -f "$ATS_DIR/conf/ssl/$(basename $i)" ] ; then
         diff -Nq $DIFF_FILES
@@ -303,7 +303,7 @@ done
 function uploaded_cert_bundle_diff_loop {
   ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   for i in {{tls_home}}/output/$DNET/*; do
-    ls $i > /dev/null 2>&1 
+    ls $i >> config/logs/current.log 2>&1
     RT=$?
     if [ "$RT" -gt 0 ]; then 
       continue
@@ -333,7 +333,7 @@ done
 function banjax_diff_loop {
   ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   for i in {{banjax_output}}$DNET/banjax.d/*.bconf; do
-    ls $i > /dev/null 2>&1 
+    ls $i >> config/logs/current.log 2>&1
     RT=$?
     if [ "$RT" -gt 0 ]; then
       continue
@@ -361,7 +361,7 @@ done
 
 function zone_diff_loop {
   for i in {{bind_output}}$DNET/*.zone; do
-    ls $i > /dev/null 2>&1 
+    ls $i >> config/logs/current.log 2>&1
     RT=$?
     if [ "$RT" -gt 0 ]; then
       continue
@@ -635,7 +635,7 @@ function finish() {
   echo "Last complete run: $(date -d @$(cat config/rundata/$COMPLETED_TIME_FILE))"
   # Write to audit.log
   echo "[$(date -d @$EDATE)] $UNAME \"$COMMANDLINE\" [$timetook]" >> config/logs/audit.log
-  rm config/rundata/$LOCK_PREFIX$UNAME  2>/dev/null
+  rm config/rundata/$LOCK_PREFIX$UNAME  2>> config/logs/current.log
   [ -n "$SMART" ] || tput cnorm
   [ -n "$AUTODEFLECT_AGENT" ] && eval `ssh-agent -k` && echo "killed autobrain ssh-agent (${AUTODEFLECT_AGENT})"
   echo "Runtime: $timetook"
@@ -664,7 +664,7 @@ function controller_update() {
       exit
     fi
   else
-    ansible-playbook site.yml -l controller > /dev/null &
+    ansible-playbook site.yml -l controller >> config/logs/current.log &
     spin $!
   fi
 }
@@ -682,7 +682,7 @@ function awstats_update() {
       exit
     fi
   else
-    ansible-playbook site.yml -l awstats > /dev/null &
+    ansible-playbook site.yml -l awstats >> config/logs/current.log &
     spin $!
   fi
 }
@@ -723,7 +723,7 @@ fi
 }
 
 function check_override {
-  local check=$(for n in $(grep '^  [a-zA-Z0-9]' override.yml) ; do grep $n clients.yml >> /dev/null || echo "${n%%:} not found in clients.yml. This needs fixed." ; done)
+  local check=$(for n in $(grep '^  [a-zA-Z0-9]' override.yml) ; do grep $n clients.yml >> config/logs/current.log || echo "${n%%:} not found in clients.yml. This needs fixed." ; done)
 
   if [ "$check" == "" ]; then
     OVERRIDECHECKED=0
@@ -746,7 +746,7 @@ if [ $DNET ]; then
   count=5
   until [ $count -le 0 ]; do
     # This should return a array
-    edge=($(edge_query --dnet $DNET --health allpass -s out -m available -q --format flat 2> /dev/null | cut -d' ' -f1 | cut -d'.' -f1 | tr '\r\n' ' '))
+    edge=($(edge_query --dnet $DNET --health allpass -s out -m available -q --format flat 2>> config/logs/current.log | cut -d' ' -f1 | cut -d'.' -f1 | tr '\r\n' ' '))
     if [ "${#edge[@]}" -ge "1" ]; then
       count=0
     else
@@ -768,7 +768,7 @@ function start_ssh_agent() {
 # it now
 [ -z $SSH_AUTH_SOCK ] && eval `ssh-agent -s` && AUTODEFLECT_AGENT="$SSH_AGENT_PID"
 local counter
-while ! ssh-add -ls 2>&1 | grep `ssh-keygen -lf {{ autobrains_config.deploy_key_path }} 2>&1 | awk '{print $2}'` >/dev/null ; do
+while ! ssh-add -ls 2>&1 | grep `ssh-keygen -lf {{ autobrains_config.deploy_key_path }} 2>&1 | awk '{print $2}'` >> config/logs/current.log ; do
   if [ -n "$SMART" ]; then
     echo -e "\nwith --smart ssh-agent and ssh-add must already have edge key loaded. Can not continue.\n"
     exit
@@ -795,9 +795,9 @@ for DNET in $DNETS; do
 # TODO: Change this deploy test to ansible
         local test_run=$({{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive)
       else
-        local test_run=$({{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive 2> /dev/null | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}') 
+        local test_run=$({{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}')
       fi
-      if echo "$test_run" | grep Via >/dev/null 2>&1; then 
+      if echo "$test_run" | grep Via >> config/logs/current.log 2>&1; then
         echo "Found Via header. Test config good"
         NONLIVESAFE=0
       fi
@@ -808,7 +808,7 @@ for DNET in $DNETS; do
       if [ -n "$DEBUG" ]; then
         {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H ALL
       else
-        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H ALL 2> /dev/null | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}' 
+        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H ALL 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}'
       fi
       # We set a variable array for this DNET has been deployed
       DEPLOYED[$DNET]=0
@@ -828,7 +828,7 @@ for DNET in $DNETS; do
       if [ -n "$DEBUG" ]; then
         {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL
       else
-        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL 2> /dev/null | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}' 
+        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}'
       fi
     else
       echo "Do not need a deploy on \"$DNET\""
@@ -878,7 +878,7 @@ function letsencrypt_update() {
       exit
     fi
   else
-    ansible-playbook site.yml -l letsencrypt > /dev/null &
+    ansible-playbook site.yml -l letsencrypt >> config/logs/current.log &
     spin $!
   fi
 }
@@ -892,7 +892,7 @@ function sync_dashboard_tls() {
       exit
     fi
   else
-    ansible-playbook dashboard-pull.yml --tags='tls_bundles' > /dev/null &
+    ansible-playbook dashboard-pull.yml --tags='tls_bundles' >> config/logs/current.log &
     spin $!
   fi
 }
@@ -911,6 +911,9 @@ if [ "$(pwd)" != "{{playbook_dir}}" ]; then
     exit
   fi
 fi
+
+# initialize a new current.log
+cat /dev/null > config/logs/current.log
 
 TSHA1HASH="$(git hash-object roles/autobrains_update/templates/autobrains_update.sh.j2)"
 LSHA1HASH="$(grep "^# Version hash:" autobrains_update.sh | cut -d' ' -f5)"
