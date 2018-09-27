@@ -21,7 +21,8 @@
 {% endset %}
 
 deflect_log = format {
-  Format = '%<chi> %<caun> [%<cqtn>] \"%<cqhm> /%<cqup> %<cqhv>\" %<cqus> %<{Host}cqh> %<pssc> %<pscl> \"%<{User-Agent}cqh>\" %<crc> %<psct> %<pqsn> %<ttms> %<cquc> \"%<{Referer}cqh>\" \"%<{X-Forwarded-For}cqh>\"'
+  -- Format = '%<chi> %<caun> [%<cqtn>] \"%<cqhm> /%<cqup> %<cqhv>\" %<cqus> %<{Host}cqh> %<pssc> %<pscl> \"%<{User-Agent}cqh>\" %<crc> %<psct> %<pqsn> %<ttms> %<cquc> \"%<{Referer}cqh>\" \"%<{X-Forwarded-For}cqh>\"'
+  Format = '%<chi> %<caun> [%<cqtn>] \"%<cqhm> /%<cqup> %<cqhv>\" %<cqus> %<{Host}cqh> %<pssc> %<pscl> \"%<{User-Agent}cqh>\" %<crc> %<psct> %<pqsn> %<ttms> %<cquc>'
 }
 
 {% if delete_sites|length() > 0 %}
