@@ -1,5 +1,5 @@
 # {{ no_edit_template }}
-white_lister: 
+white_lister:
   white_listed_ips:
     ### BEGIN STATIC WHITELISTS
     # Google crawler
@@ -145,8 +145,8 @@ white_lister:
     # Interfax bot crawler
     - 46.28.18.0/24
     # Twitterbot social
-    - 199.59.148.0/24 
-    - 199.59.149.0/24 
+    - 199.59.148.0/24
+    - 199.59.149.0/24
     - 199.59.150.0/24
     - 199.16.156.0/24
     - 199.16.157.0/24
@@ -398,7 +398,7 @@ white_lister:
     # Letsencrypt Server - update as we see new
     - 66.133.109.36/32
     - 64.78.149.164/32
-    ### END STATIC WHITELISTS 
+    ### END STATIC WHITELISTS
     ### START ORIGIN WHITELISTS
 {% for site, siteattrs in remap | dictsort %}
 {% if remap[site]["network"] == item.key %}
