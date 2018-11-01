@@ -562,19 +562,19 @@ function cache_diff {
 }
 
 function bind_local_templated_diff {
-  local test=$(match_bypass_file named.conf.local.templated)
+  local test=$(match_bypass_file named.conf.local.edgemanage)
     if [ $test -gt 0 ]; then
-      echo "Bypassing file named.conf.local.templated"
+      echo "Bypassing file named.conf.local.edgemanage"
       return 
     fi
-  diff -Ntu {{autobrains_config.loc_bind_confs}}/named.conf.local.templated {{bind_output}}bind/named.conf.local.templated
+  diff -Ntu {{autobrains_config.loc_bind_confs}}/named.conf.local.edgemanage {{bind_output}}bind/named.conf.local.edgemanage
   RT=$?
   if [ $RT -eq 2 ]
   then
     echo "ERROR: There was something wrong with the diff command"
   elif [ $RT -eq 1 ]
   then
-    yorn "Do you want to install this file" "install_file {{bind_output}}bind/named.conf.local.templated {{autobrains_config["loc_bind_confs"]}}/named.conf.local.templated"
+    yorn "Do you want to install this file" "install_file {{bind_output}}bind/named.conf.local.edgemanage {{autobrains_config["loc_bind_confs"]}}/named.conf.local.edgemanage"
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
     echo -e $ECHO_SEPARATOR
   fi
