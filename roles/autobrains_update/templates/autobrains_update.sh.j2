@@ -420,6 +420,7 @@ function banjax_new_diff {
 }
 
 function logs_xml_diff {
+# This function no longer used. Pre ATS-7
   ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   local test=$(match_bypass_file logs_xml.config)
     if [ $test -gt 0 ]; then
@@ -583,7 +584,6 @@ function all_diff {
 for DNET in $DNETS; do
   banjax_new_diff
   banjax_diff_loop
-  logs_xml_diff
   logging_diff
   ssl_multicert_diff
   remap_diff
