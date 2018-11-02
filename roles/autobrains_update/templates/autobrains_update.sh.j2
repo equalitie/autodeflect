@@ -646,7 +646,8 @@ function finish() {
 
 function dot_generated() {
   ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
-  date +%s > $ATS_DIR/conf/remap.d/.generated
+ # we are not using remap.d/ so the dir does not exist. 
+ # date +%s > $ATS_DIR/conf/remap.d/.generated
   touch $ATS_DIR/conf/remap.config
   CHANGED=0
 }
