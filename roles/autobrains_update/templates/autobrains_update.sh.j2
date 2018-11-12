@@ -787,57 +787,57 @@ return $(true)
 
 function run_deploy() {
 
-for DNET in $DNETS; do
-  if [ -n "${REMAP_TOUCHED[$DNET]}" ]; then
-    nonlive=$(get_nonlive_edge)
-    if [ $nonlive ]; then
-      echo "Test config on $nonlive on $DNET"
-      if [ -n "$DEBUG" ]; then
-# TODO: Change this deploy test to ansible
-        local test_run=$({{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive)
-      else
-        local test_run=$({{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}')
-      fi
-      if echo "$test_run" | grep Via >> config/logs/current.log 2>&1; then
-        echo "Found Via header. Test config good"
-        NONLIVESAFE=0
-      fi
-    fi
-
-    if [ -n "$NONLIVESAFE" ]; then
-      echo "Full deploy needed. Running \"deploy\" for \"$DNET\""
-      if [ -n "$DEBUG" ]; then
-        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H ALL
-      else
-        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H ALL 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}'
-      fi
-      # We set a variable array for this DNET has been deployed
-      DEPLOYED[$DNET]=0
-    else
-      if [ "$nonlive" = '' ]; then
-        echo "Could not find a test edge. Will not continue."
-      else
-        echo -e "Config not safe. No Via header found when\ndeployed to $nonlive. Will not continue."
-      fi
-    exit
-    fi
-  # We are here because no new config detected on the DNET
-  else
-    # We only need 'conftouch' if client.yml was different
-    if [ -n "$NEWCLIENTS_YML" ] && [ -z "${SKIPPED_INSTALL[$DNET]}" ]; then
-      echo "Full deploy not needed. Running \"conftouch\" for \"$DNET\""
-      if [ -n "$DEBUG" ]; then
-        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL
-      else
-        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}'
-      fi
-    else
-      echo "Do not need a deploy on \"$DNET\""
-    fi
-    # We set a variable array for this DNET has been deployed
-    DEPLOYED[$DNET]=0
-  fi
-done
+#for DNET in $DNETS; do
+#  if [ -n "${REMAP_TOUCHED[$DNET]}" ]; then
+#    nonlive=$(get_nonlive_edge)
+#    if [ $nonlive ]; then
+#      echo "Test config on $nonlive on $DNET"
+#      if [ -n "$DEBUG" ]; then
+## TODO: Change this deploy test to ansible
+#        local test_run=$({{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive)
+#      else
+#        local test_run=$({{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}')
+#      fi
+#      if echo "$test_run" | grep Via >> config/logs/current.log 2>&1; then
+#        echo "Found Via header. Test config good"
+#        NONLIVESAFE=0
+#      fi
+#    fi
+#
+#    if [ -n "$NONLIVESAFE" ]; then
+#      echo "Full deploy needed. Running \"deploy\" for \"$DNET\""
+#      if [ -n "$DEBUG" ]; then
+#        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H ALL
+#      else
+#        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H ALL 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}'
+#      fi
+#      # We set a variable array for this DNET has been deployed
+#      DEPLOYED[$DNET]=0
+#    else
+#      if [ "$nonlive" = '' ]; then
+#        echo "Could not find a test edge. Will not continue."
+#      else
+#        echo -e "Config not safe. No Via header found when\ndeployed to $nonlive. Will not continue."
+#      fi
+#    exit
+#    fi
+#  # We are here because no new config detected on the DNET
+#  else
+#    # We only need 'conftouch' if client.yml was different
+#    if [ -n "$NEWCLIENTS_YML" ] && [ -z "${SKIPPED_INSTALL[$DNET]}" ]; then
+#      echo "Full deploy not needed. Running \"conftouch\" for \"$DNET\""
+#      if [ -n "$DEBUG" ]; then
+#        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL
+#      else
+#        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}'
+#      fi
+#    else
+#      echo "Do not need a deploy on \"$DNET\""
+#    fi
+#    # We set a variable array for this DNET has been deployed
+#    DEPLOYED[$DNET]=0
+#  fi
+#done
 }
 
 function mark_all_skipped() {
