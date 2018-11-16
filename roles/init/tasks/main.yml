@@ -1,12 +1,13 @@
 ---
 - name: create config directories
   file:
-    path: "{{item}}"
+    path: "{{item.name}}"
     state: directory
-    mode: '0775'
+    mode: "{{item.mode | default('0775')}}"
   with_items:
-    - config
-    - config/group_vars
+    - {name: 'config'}
+    - {name: 'config/group_vars'}
+    - {name: 'config/gpg', mode: '0750'}
 
 - name: link group_vars to top level
   file:
