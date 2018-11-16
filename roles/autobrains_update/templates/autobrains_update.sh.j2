@@ -127,7 +127,9 @@ echo "$HELP" | less -EXR
 
 # set the encrypted mailer routine
 function notify() {
-gpg --homedir /root/.gnupg/ -e -a -r $EMAIL_KEY_ID | mailx -s "$UNAME updated w/ autobrains" ${EMAIL_NOTIFY} 
+# TODO: Make this work and configured by ansible init. Current disable
+#gpg --homedir /root/.gnupg/ -e -a -r $EMAIL_KEY_ID | mailx -s "$UNAME updated w/ autobrains" ${EMAIL_NOTIFY} 
+echo "TODO: fix notify"
 }
 
 function notify_store() {
@@ -195,6 +197,7 @@ fi
 [ -n "$SMART" ] || echo
 }
 
+# TODO: Remove, we not longer use this
 function awstatsorn() {
 if [ -n "$YES" ]; then
   yn='y'
@@ -419,6 +422,7 @@ function banjax_new_diff {
   fi
 }
 
+# TODO: We can remove this.
 function logs_xml_diff {
 # This function no longer used. Pre ATS-7
   ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
@@ -670,6 +674,7 @@ function controller_update() {
   fi
 }
 
+# TODO: We can remove this. Not longer used.
 function awstats_update() {
   if [ -z "$OVERRIDECHECKED" ]; then
     check_override
@@ -787,7 +792,7 @@ return $(true)
 
 function run_deploy() {
 
-  {{autobrains_config.deflect_dir}}/scripts/fastdeploy
+  {{autobrains_config.deflect_dir}}/scripts/fastdeploy 2>&1 >> config/logs/currnet.log
 
   # TODO: This is just a fake to make things happy
   for DNET in $DNETS; do
