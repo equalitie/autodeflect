@@ -787,6 +787,17 @@ return $(true)
 
 function run_deploy() {
 
+  {{autobrains_config.deflect_dir}}/scripts/fastdeploy
+
+  # TODO: This is just a fake to make things happy
+  for DNET in $DNETS; do
+    DEPLOYED[$DNET]=0
+  done
+
+}
+
+#function run_deploy() {
+
 #for DNET in $DNETS; do
 #  if [ -n "${REMAP_TOUCHED[$DNET]}" ]; then
 #    nonlive=$(get_nonlive_edge)
@@ -838,7 +849,7 @@ function run_deploy() {
 #    DEPLOYED[$DNET]=0
 #  fi
 #done
-}
+#}
 
 function mark_all_skipped() {
 local d
