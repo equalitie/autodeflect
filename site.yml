@@ -18,10 +18,13 @@
   become: true
   user: root
 
+  vars:
+    le_skip: true
+
   vars_files:
     - clients.yml
     - override.yml
   tags:
     - letsencrypt
   roles:
-    - {role: letsencrypt, tags: letsencrypt}
+    - {role: letsencrypt, tags: letsencrypt, when: le_skip == false}
