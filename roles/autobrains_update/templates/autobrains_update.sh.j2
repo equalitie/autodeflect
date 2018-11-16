@@ -791,14 +791,16 @@ return $(true)
 }
 
 function run_deploy() {
+if [ -n "$DEBUG" ]; then
+  {{autobrains_config.deflect_dir}}/scripts/fastdeploy
+else
+  {{autobrains_config.deflect_dir}}/scripts/fastdeploy 2>&1 >> config/logs/current.log
+fi
 
-  {{autobrains_config.deflect_dir}}/scripts/fastdeploy 2>&1 >> config/logs/currnet.log
-
-  # TODO: This is just a fake to make things happy
-  for DNET in $DNETS; do
-    DEPLOYED[$DNET]=0
-  done
-
+# TODO: This is just a fake to make things happy
+for DNET in $DNETS; do
+  DEPLOYED[$DNET]=0
+done
 }
 
 #function run_deploy() {
