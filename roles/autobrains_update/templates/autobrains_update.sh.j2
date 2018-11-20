@@ -791,16 +791,30 @@ return $(true)
 }
 
 function run_deploy() {
-if [ -n "$DEBUG" ]; then
-  {{autobrains_config.deflect_dir}}/scripts/fastdeploy
-else
-  {{autobrains_config.deflect_dir}}/scripts/fastdeploy 2>&1 >> config/logs/current.log
-fi
-
-# TODO: This is just a fake to make things happy
 for DNET in $DNETS; do
-  DEPLOYED[$DNET]=0
+  if [ -n "${REMAP_TOUCHED[$DNET]}" ]; then
+    echo "Full deploy needed. Running \"deploy\" for \"$DNET\""
+    if [ -n "$DEBUG" ]; then
+      {{autobrains_config.deflect_dir}}/scripts/fastdeploy -H $DNET
+    else
+      {{autobrains_config.deflect_dir}}/scripts/fastdeploy -H $DNET 2>&1 >> config/logs/current.log
+    fi
+    DEPLOYED[$DNET]=0
+  else
+    if [ -n "$NEWCLIENTS_YML" ] && [ -z "${SKIPPED_INSTALL[$DNET]}" ]; then
+      echo "Full deploy not needed. Running \"conftouch\" for \"$DNET\""
+      if [ -n "$DEBUG" ]; then
+        {{autobrains_config.deflect_dir}}/scripts/fastdeploy -H $DNET -t
+      else
+        {{autobrains_config.deflect_dir}}/scripts/fastdeploy -H $DNET -t 2>&1 >> config/logs/current.log
+      fi
+    else
+      echo "Do not need a deploy on \"$DNET\""
+    fi
+    DEPLOYED[$DNET]=0
+  fi
 done
+
 }
 
 #function run_deploy() {
