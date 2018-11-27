@@ -64,7 +64,7 @@
   synchronize:
     mode: pull
     src: "{{tls_bundles_path}}/*.gpg"
-    dest: "{{tls_home}}/encypted"
+    dest: "{{tls_home}}/encrypted"
     use_ssh_args: yes
     checksum: yes
   tags:
