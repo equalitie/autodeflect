@@ -1,25 +1,18 @@
 ---
-- name: create clients.yml-revisions directory
-  file:
-    path: "clients.yml-revisions"
-    state: directory
-    mode: '0755'
-  tags:
-    - init
-    - setup
-
 - name: create directory layout
   file:
-    path: "{{item}}"
+    path: "{{item.name}}"
     state: directory
-    mode: '0755'
+    mode: "{{item.mode | default('0755')}}"
   with_items:
-    - config
-    - config/remap.d
-    - config/banjax.d
-    - config/rundata
-    - config/logs
-    - bin
+    - {name: 'clients.yml-revisions'}
+    - {name: 'bin'}
+    - {name: 'config'}
+    - {name: 'config/remap.d'}
+    - {name: 'config/banjax.d'}
+    - {name: 'config/rundata'}
+    - {name: 'config/logs'}
+    - {name: 'config/gpg', mode: '0750'}
   tags:
     - init
     - setup
