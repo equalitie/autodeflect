@@ -85,7 +85,7 @@
   ignore_errors: yes
 
 - name: see if there are any non-auto-letsencrypt certs and install them
-  syncronize:
+  synchronize:
     src: "{{letsencrypt_output}}non-auto/{{item.key}}/"
     dest: "{{tls_home}}output/{{item.key}}"
     mode: '0644'
