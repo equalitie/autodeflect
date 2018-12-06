@@ -93,7 +93,7 @@
     - ats
     - tls
     - test1
-  ingnore_errors: yes
+  ignore_errors: yes
 
 - name: write current timestamp to ats directory
   copy:
