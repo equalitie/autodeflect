@@ -1,0 +1,81 @@
+---
+- name: get local date
+  local_action:
+    module: shell
+    _raw_params: date +%s
+  register: local_date
+  run_once: true
+  tags:
+    - renew-non-auto-le
+
+# TODO: This depends on the script already being there.
+# currently we do not build the letsencrypt server. Should
+# be done in cityhall eventually.
+- name: run non-auto-certs-renew.sh on letsencrypt server
+  shell: /root/non-auto-certs-renew.sh {{local_date.stdout}}
+  become: true
+  tags:
+    - renew-non-auto-le
+
+- name: fetch the tgz certs
+  fetch:
+    src: non-auto-cert-bundles/edge-certs-{{local_date.stdout}}.tgz
+    dest: /tmp/edge-certs-{{local_date.stdout}}.tgz
+    flat: yes
+  become: true
+  tags:
+    - renew-non-auto-le
+
+- set_fact:
+    default_dnet: "{{hostvars[groups['controller'][0]]['default_dnet']}}"
+  run_once: true
+  tags:
+    - renew-non-auto-le
+
+- set_fact:
+    dnets: "{{hostvars[groups['controller'][0]]['dnets']}}"
+  run_once: true
+  tags:
+    - renew-non-auto-le
+
+- name: dnets in {{tls_home}}output/
+  local_action:
+    module: file
+    path: "{{tls_home}}output/{{item.key}}"
+    state: directory
+    mode: '0755'
+  with_dict: "{{dnets}}"
+  run_once: true
+  tags:
+    - renew-non-auto-le
+
+
+- name: copy all into default dnet cert bundle directory
+  local_action:
+    module: shell 
+    _raw_params: "cd {{tls_home}}output/{{default_dnet}} && tar xzf /tmp/edge-certs-{{local_date.stdout}}.tgz"
+  become: true
+  run_once: true
+  tags:
+    - renew-non-auto-le
+
+- name: copy the deflect apex cert to the other dnets
+  local_action:
+    module: shell
+    _raw_params: "cd {{tls_home}}output/{{default_dnet}} && cp {{dnets[default_dnet]}}.non-auto-le.* ../{{item.key}}/"
+  when: default_dnet != item.key
+  become: true
+  with_dict: "{{dnets}}"
+  run_once: true
+  tags:
+    - renew-non-auto-le
+
+- name: cleanup
+  local_action:
+    module: file
+    path: "/tmp/edge-certs-{{local_date.stdout}}.tgz"
+    state: absent
+  become: true
+  run_once: true
+  tags:
+    - renew-non-auto-le
