@@ -43,7 +43,7 @@
     module: file
     path: "{{letsencrypt_output}}non-auto/{{item.key}}"
     mode: '0755'
-    recusive: true
+    recurse: yes
     state: directory
   run_once: true
   with_dict: "{{dnets}}"
