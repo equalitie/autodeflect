@@ -88,7 +88,6 @@
   synchronize:
     src: "{{letsencrypt_output}}non-auto/{{item.key}}/"
     dest: "{{tls_home}}output/{{item.key}}"
-    mode: '0644'
   with_dict: "{{ dnets }}"
   tags:
     - ats
