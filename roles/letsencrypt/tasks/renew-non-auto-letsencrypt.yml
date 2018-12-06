@@ -38,31 +38,31 @@
   tags:
     - renew-non-auto-le
 
-- name: dnets in {{tls_home}}output/
+- name: make output directories
   local_action:
     module: file
-    path: "{{tls_home}}output/{{item.key}}"
-    state: directory
+    path: "{{letsencrypt_output}}non-auto/{{item.key}}"
     mode: '0755'
-  with_dict: "{{dnets}}"
+    recusive: true
+    state: directory
   run_once: true
+  with_dict: "{{dnets}}"
   tags:
     - renew-non-auto-le
-
 
 - name: copy all into default dnet cert bundle directory
   local_action:
     module: shell 
-    _raw_params: "cd {{tls_home}}output/{{default_dnet}} && tar xzf /tmp/edge-certs-{{local_date.stdout}}.tgz"
+    _raw_params: "cd {{letsencrypt_output}}non-auto/{{default_dnet}} && tar xzf /tmp/edge-certs-{{local_date.stdout}}.tgz"
   become: true
   run_once: true
   tags:
     - renew-non-auto-le
 
-- name: copy the deflect apex cert to the other dnets
+- name: copy cert to the other dnets
   local_action:
     module: shell
-    _raw_params: "cd {{tls_home}}output/{{default_dnet}} && cp {{dnets[default_dnet]}}.non-auto-le.* ../{{item.key}}/"
+    _raw_params: "cd {{letsencrypt_output}}non-auto/{{default_dnet}} && cp {{dnets[default_dnet]}}.non-auto-le.* ../{{item.key}}/"
   when: default_dnet != item.key
   become: true
   with_dict: "{{dnets}}"
