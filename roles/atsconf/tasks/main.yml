@@ -84,6 +84,18 @@
     - tls
   ignore_errors: yes
 
+- name: see if there are any non-auto-letsencrypt certs and install them
+  syncronize:
+    src: "{{letsencrypt_output}}non-auto/{{item.key}}/"
+    dest: "{{tls_home}}output/{{item.key}}"
+    mode: '0644'
+  with_dict: "{{ dnets }}"
+  tags:
+    - ats
+    - tls
+    - test1
+  ingnore_errors: yes
+
 - name: write current timestamp to ats directory
   copy:
     dest: "{{ats_output}}/{{item.key}}/dashboard.timestamp"
