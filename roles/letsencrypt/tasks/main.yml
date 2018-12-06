@@ -1,8 +1,14 @@
 ---
 - name: Setup Letsencrypt output base directory
-  local_action: file path={{letsencrypt_output}} state=directory mode=0755 recurse=yes
+  local_action:
+    module: file
+    path: "{{letsencrypt_output}}"
+    state: directory
+    mode: '0755'
+    recurse: yes
   tags:
     - letsencrypt
+    - renew-non-auto-le
     - setup
 
 - name: Ensure remote directory structure exists
@@ -58,3 +64,7 @@
     mode: pull
   tags:
     - letsencrypt
+
+- include_tasks: renew-non-auto-letsencrypt.yml
+  tags:
+    - renew-non-auto-le
