@@ -12,6 +12,7 @@
     - {name: 'config/banjax.d'}
     - {name: 'config/rundata'}
     - {name: 'config/logs'}
+    - {name: 'config/conf.d'}
     - {name: 'config/gpg', mode: '0700'}
   tags:
     - init

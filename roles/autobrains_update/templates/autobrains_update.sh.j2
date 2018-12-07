@@ -303,6 +303,29 @@ done
 
 }
 
+function ats_custom_conf_diff {
+  ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
+  for i in config/conf.d/*; do
+    ls $i >> config/logs/current.log 2>&1
+    RT=$?
+    if [ "$RT" -gt 0 ]; then
+      continue
+    fi
+    DIFF_FILES="$ATS_DIR/conf/conf.d/$(basename $i) $i"
+    diff -Nq $DIFF_FILES
+    RT=$?
+    if [ $RT -eq 2 ]
+    then
+      echo "ERROR: There was something wrong with the diff command"
+    elif [ $RT -eq 1 ]
+    then
+      yorn "Do you want to install this file in $DNET" "install_file $i $ATS_DIR/conf/conf.d/$(basename $i)"
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
+      echo -e $ECHO_SEPARATOR
+    fi
+done
+}
+
 function uploaded_cert_bundle_diff_loop {
   ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   for i in {{tls_home}}/output/$DNET/*; do
@@ -593,6 +616,7 @@ for DNET in $DNETS; do
   remap_diff
   hosts_diff
   cache_diff
+  ats_custom_conf_diff
   zone_diff_loop
   le_cert_bundle_diff_loop
   uploaded_cert_bundle_diff_loop
