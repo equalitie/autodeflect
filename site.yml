@@ -18,6 +18,8 @@
   become: true
   user: root
 
+  # TODO: "le_skip: false" when in production and this is only
+  # controller accessing the letsencrypt server
   vars:
     le_skip: true
 
