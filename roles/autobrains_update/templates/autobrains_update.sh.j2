@@ -36,7 +36,7 @@ BYPASS_FILES="{% for bypass in autobrains_bypasses %}{{bpspace()}}{{bypass}}{% e
 ##########
 ## SETUP 
 COMMANDLINE="$0 $*"
-ECHO_SEPARATOR='\n#################################\n\t##\t##\n#################################\n'
+ECHO_SEPARATOR='\n##########\n\t##\t##\n##########\n'
 DATE=$(date +%Y%m%d%H%M%S)
 EDATE=$(date +%s)
 # Just in case
@@ -116,19 +116,16 @@ $0 --most -n
 
 $0 --most -y --force
 			Run most local configuration and install.
-			This is dangerous but will be the future
-			for a automated update.
 EOF
 )
 
 echo "$HELP" | less -EXR
 }
 
-
 # set the encrypted mailer routine
 function notify() {
-# TODO: Make this work and configured by ansible init. Current disable
-#gpg --homedir /root/.gnupg/ -e -a -r $EMAIL_KEY_ID | mailx -s "$UNAME updated w/ autobrains" ${EMAIL_NOTIFY} 
+# TODO: Make this work again. Currently disabled
+#gpg --homedir {{tls_gpghome}} -e -a -r $EMAIL_KEY_ID | mailx -s "$UNAME updated w/ autobrains" ${EMAIL_NOTIFY} 
 echo "TODO: fix notify"
 }
 
@@ -192,27 +189,6 @@ else
       [Nn]* ) break;;
           * ) echo "Please answer y or n.";;
       esac
-  done
-fi
-[ -n "$SMART" ] || echo
-}
-
-# TODO: Remove, we not longer use this
-function awstatsorn() {
-if [ -n "$YES" ]; then
-  yn='y'
-  $2
-elif [ -n "$NO" ]; then
-  yn='n'
-  return
-else
-  while true; do
-    read -p "$1 (awstats/n)? " yn
-    case $yn in
-      [awstats]* ) $2; echo "$EDATE" > config/rundata/$AW_LASTRUN_FILE ; break;;
-      [Nn]* ) break;;
-         * ) echo "Please answer awstats or n.";;
-    esac
   done
 fi
 [ -n "$SMART" ] || echo
@@ -300,7 +276,6 @@ function le_cert_bundle_diff_loop {
     fi
     
 done
-
 }
 
 function ats_custom_conf_diff {
@@ -353,7 +328,6 @@ function uploaded_cert_bundle_diff_loop {
     fi
     
 done
-
 }
 
 function banjax_diff_loop {
@@ -445,29 +419,7 @@ function banjax_new_diff {
   fi
 }
 
-# TODO: We can remove this.
-function logs_xml_diff {
-# This function no longer used. Pre ATS-7
-  ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
-  local test=$(match_bypass_file logs_xml.config)
-    if [ $test -gt 0 ]; then
-      echo "Bypassing file logs_xml.config"
-      return 
-    fi
-  diff -Ntu $ATS_DIR/conf/logs_xml.config {{ats_output}}$DNET/logs_xml.config
-  RT=$?
-  if [ $RT -eq 2 ]
-  then
-    echo "ERROR: There was something wrong with the diff command"
-  elif [ $RT -eq 1 ]
-  then 
-    yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/logs_xml.config $ATS_DIR/conf/logs_xml.config" 
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
-    echo -e $ECHO_SEPARATOR
-  fi
-}
-
-# Newer logging.config file for ATS 7
+# ATS 7+
 function logging_diff {
   ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   local test=$(match_bypass_file logging.config)
@@ -674,8 +626,6 @@ function finish() {
 
 function dot_generated() {
   ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
- # we are not using remap.d/ so the dir does not exist. 
- # date +%s > $ATS_DIR/conf/remap.d/.generated
   touch $ATS_DIR/conf/remap.config
   CHANGED=0
 }
@@ -694,25 +644,6 @@ function controller_update() {
     fi
   else
     ansible-playbook site.yml -l controller >> config/logs/current.log &
-    spin $!
-  fi
-}
-
-# TODO: We can remove this. Not longer used.
-function awstats_update() {
-  if [ -z "$OVERRIDECHECKED" ]; then
-    check_override
-  fi
-
-  if [ -n "$DEBUG" ]; then
-    ansible-playbook site.yml -l awstats
-    local exitcode=$?
-    if [ $exitcode -ne 0 ]; then
-      echo "Something went wrong. Can not continue."
-      exit
-    fi
-  else
-    ansible-playbook site.yml -l awstats >> config/logs/current.log &
     spin $!
   fi
 }
@@ -793,6 +724,7 @@ fi
 {% endraw %}
 
 function start_ssh_agent() {
+# TODO: We need to use this someplace again
 # We return true or exit
 # set up an ssh-agent if we don't already have one, and kill it after if we created
 # it now
@@ -838,63 +770,7 @@ for DNET in $DNETS; do
     DEPLOYED[$DNET]=0
   fi
 done
-
 }
-
-#function run_deploy() {
-
-#for DNET in $DNETS; do
-#  if [ -n "${REMAP_TOUCHED[$DNET]}" ]; then
-#    nonlive=$(get_nonlive_edge)
-#    if [ $nonlive ]; then
-#      echo "Test config on $nonlive on $DNET"
-#      if [ -n "$DEBUG" ]; then
-## TODO: Change this deploy test to ansible
-#        local test_run=$({{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive)
-#      else
-#        local test_run=$({{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}')
-#      fi
-#      if echo "$test_run" | grep Via >> config/logs/current.log 2>&1; then
-#        echo "Found Via header. Test config good"
-#        NONLIVESAFE=0
-#      fi
-#    fi
-#
-#    if [ -n "$NONLIVESAFE" ]; then
-#      echo "Full deploy needed. Running \"deploy\" for \"$DNET\""
-#      if [ -n "$DEBUG" ]; then
-#        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H ALL
-#      else
-#        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p ats -l -H ALL 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}'
-#      fi
-#      # We set a variable array for this DNET has been deployed
-#      DEPLOYED[$DNET]=0
-#    else
-#      if [ "$nonlive" = '' ]; then
-#        echo "Could not find a test edge. Will not continue."
-#      else
-#        echo -e "Config not safe. No Via header found when\ndeployed to $nonlive. Will not continue."
-#      fi
-#    exit
-#    fi
-#  # We are here because no new config detected on the DNET
-#  else
-#    # We only need 'conftouch' if client.yml was different
-#    if [ -n "$NEWCLIENTS_YML" ] && [ -z "${SKIPPED_INSTALL[$DNET]}" ]; then
-#      echo "Full deploy not needed. Running \"conftouch\" for \"$DNET\""
-#      if [ -n "$DEBUG" ]; then
-#        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL
-#      else
-#        {{autobrains_config.deflect_dir}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}'
-#      fi
-#    else
-#      echo "Do not need a deploy on \"$DNET\""
-#    fi
-#    # We set a variable array for this DNET has been deployed
-#    DEPLOYED[$DNET]=0
-#  fi
-#done
-#}
 
 function mark_all_skipped() {
 local d
@@ -1126,14 +1002,6 @@ if [ -n "$SKIP_UPDATE" ]; then
     yorn "Update (controller) config" "controller_update"
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
   fi
-## awstats is depreciated
-#  if [ -z "$MOST" ]; then
-#    AW_LASTRAN=$(date -d @$(cat config/rundata/$AW_LASTRUN_FILE))
-#    echo "Awstats was last updated: $AW_LASTRAN"
-#    awstatsorn "Update (awstats) config" "awstats_update"
-#  elif [ -n "$THEREST" ]; then
-#    awstats_update
-#  fi
 fi
 
 if [ -n "$MOST" ]; then
