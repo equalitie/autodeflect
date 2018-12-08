@@ -106,7 +106,7 @@ challenger:
       validity_period: 86400
 {% endif %}
 {% endif %}
-{% if remap[site]['banjax_regex_banner'] is defined %}
+{% if remap[site]['banjax_regex_banner'] is defined and remap[site]['banjax_regex_banner'] %}
 
 regex_banner:
 {% for rb in remap[site]['banjax_regex_banner'] %}
