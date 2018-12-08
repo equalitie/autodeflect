@@ -109,7 +109,7 @@ challenger:
 {% if remap[site]['banjax_regex_banner'] is defined %}
 
 regex_banner:
-{%i for rb in remap[site]['banjax_regex_banner'] %}
+{% for rb in remap[site]['banjax_regex_banner'] %}
   - rule: '{{site}} m={{rb.regex.method}} p={{rb.regex.url}} u={{rb.regex.ua}} {{rb.hits_per_interval}}req/{{rb.interval}}sec'
     regex: '^{{rb.regex.method}}\ https?:\/\/{{rb.regex.url}}\ {{site | regex_replace('\.', '\\.')}}\ {{rb.regex.ua}}'
     interval: {{rb.interval}}
