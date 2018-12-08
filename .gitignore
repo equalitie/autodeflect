@@ -3,11 +3,11 @@ clients.yml
 clients.yml-revisions
 override.yml
 /group_vars
-config/
-bind/
-ats/
-banjax/
-certs/
+/config/
+/bind/
+/ats/
+/banjax/
+/certs/
 autobrains_update.sh
 old/
 daemon/*.o
@@ -16,7 +16,7 @@ daemon/autodeflect
 daemon/ad2p
 daemon/ad2ssh
 daemon/ad2runner
-bin/
+/bin/
 *.swp
 /http/vendor/
 /http/logs/*
