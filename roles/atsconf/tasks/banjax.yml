@@ -51,6 +51,17 @@
     - banjax
     - banjaxd
 
+# TODO: This will be a major speedup. Meant to replace the above "Banjax.d configuration file"
+- name: banjax.d/clients.bconf configuration file
+  template:
+    src: banjax/clients.bconf.j2
+    dest: "{{banjax_output}}/{{item.key}}/banjax.d/clients.bconf"
+    validate: 'python scripts/validate_yaml.py %s'
+  with_dict: "{{dnets}}"
+  tags:
+    - banjax
+    - banjaxd
+
 - name: general.bconf
   template:
     src: banjax/general.dnets.bconf
