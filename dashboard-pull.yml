@@ -1,6 +1,6 @@
 ---
 - hosts: dashboard
-  gather_facts: true
+  gather_facts: false
 
   roles:
     - {role: dashpull}
