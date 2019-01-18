@@ -9,8 +9,8 @@ This project consists of progams to automatically detect when client has updated
 
 ## Installation
 
-Will autoinstall with via ansible with eQualit.ie 'cityhall'
-Note: that VERSION should match cityhall's roles/deflect/deflect/main.yml [autodeflect_daemon_version]
+Will autoinstall via ansible and eQualit.ie 'cityhall'
+Note: VERSION should match cityhall's roles/deflect/deflect/main.yml [autodeflect_daemon_version]
 
 Manual compile when 'cityhall' is not being used.
 Depends on:
