@@ -10,6 +10,7 @@ This project consists of progams to automatically detect when client has updated
 ## Installation
 
 Will autoinstall via ansible and eQualit.ie 'cityhall'
+
 Note: VERSION should match cityhall's roles/deflect/deflect/main.yml [autodeflect_daemon_version]
 
 Manual compile when 'cityhall' is not being used.
@@ -72,6 +73,5 @@ Then in production:
 * "Rodney Mosley (RamJett)" 'rodney at equalit dot ie'
 * "Anonymous" 'sparklinux'
 
-* See: https://wiki.deflect.ca
 * Special contribution https://ramnic.com
 
