@@ -55,6 +55,10 @@
     - ats
     - ats_hosts
 
+- name: check which cert files we have for every site and register user_{cert,key,chain}_exists variables
+  tasks:
+  - import_playbook: cert-statter.yml
+
 - name: ssl_multicert.config
   template: src=ssl_multicert.config.j2 dest={{ats_output}}/{{item.key}}/ssl_multicert.config
   with_dict: dnets

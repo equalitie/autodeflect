@@ -1,0 +1,48 @@
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: print remap dict BEFORE enumerating files
+    debug:
+      msg: "key={{ item.key }} value={{ item.value }}"
+    with_dict: "{{ remap }}"
+
+# first the .cert.crt files
+  - name: enumerate files
+    stat:
+      path: "{{tls_home}}/decrypted/{{item._ansible_item_label.key}}-{{item._ansible_item_label.value.tls_bundle}}.cert.crt"
+    register: stat_results
+    with_dict: "{{ remap }}"
+
+  - name: use stat results to modify remap dict
+    set_fact:
+        remap: "{{ remap|default({}) | combine( {item._ansible_item_label.key: item._ansible_item_label.value | combine( {'user_cert_exists': item.stat.exists} )} ) }}"
+    with_items: "{{ stat_results.results }}"
+
+# then the .key files
+  - name: enumerate files
+    stat:
+      path: "{{tls_home}}/decrypted/{{item._ansible_item_label.key}}-{{item._ansible_item_label.value.tls_bundle}}.key"
+    register: stat_results
+    with_dict: "{{ remap }}"
+
+  - name: use stat results to modify remap dict
+    set_fact:
+        remap: "{{ remap|default({}) | combine( {item._ansible_item_label.key: item._ansible_item_label.value | combine( {'user_key_exists': item.stat.exists} )} ) }}"
+    with_items: "{{ stat_results.results }}"
+
+# finally the .chain.crt files
+  - name: enumerate files
+    stat:
+      path: "{{tls_home}}/decrypted/{{item._ansible_item_label.key}}-{{item._ansible_item_label.value.tls_bundle}}.chain.crt"
+    register: stat_results
+    with_dict: "{{ remap }}"
+
+  - name: use stat results to modify remap dict
+    set_fact:
+        remap: "{{ remap|default({}) | combine( {item._ansible_item_label.key: item._ansible_item_label.value | combine( {'user_chain_exists': item.stat.exists} )} ) }}"
+    with_items: "{{ stat_results.results }}"
+
+  - name: print remap dict AFTER enumerating files
+    debug:
+      msg: "key={{ item.key }} value={{ item.value }}"
+    with_dict: "{{ remap }}"
