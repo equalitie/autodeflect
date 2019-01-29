@@ -92,6 +92,10 @@
   with_dict: "{{ dnets }}"
   tags: ats
 
+- name: check which cert files we have for every site and register user_{cert,key,chain}_exists variables
+  tasks:
+  - import_playbook: cert-statter.yml
+
 - name: ssl_multicert.config
   template:
     src: ssl_multicert.config.j2
