@@ -25,7 +25,13 @@ ssl_cert_name={{site}}.le.cert.crt ssl_key_name={{site}}.le.key ssl_ca_name={{si
 {# else, if tls_bundle is defined -#}
 {%- elif remap[site]["tls_bundle"] is defined -%}
 
+{% if remap[site]["user_cert_exists"] and remap[site]["user_key_exists"] and remap[site]["user_chain_exists"] %}
 ssl_cert_name={{site}}-{{remap[site]["tls_bundle"]}}.cert.crt ssl_key_name={{site}}-{{remap[site]["tls_bundle"]}}.key ssl_ca_name={{site}}-{{remap[site]["tls_bundle"]}}.chain.crt
+{% elif remap[site]["user_cert_exists"] and remap[site]["user_key_exists"] %}
+ssl_cert_name={{site}}-{{remap[site]["tls_bundle"]}}.cert.crt ssl_key_name={{site}}-{{remap[site]["tls_bundle"]}}.key
+{% else %}
+{# should not happen because tls_bundle is defined -#}
+{% endif %}
 
 {# else, check for an include -#}{%- else %}
 # include config/ssl_multicert.d/{{site}} if found
