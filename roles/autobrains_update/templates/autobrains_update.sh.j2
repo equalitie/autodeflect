@@ -196,14 +196,14 @@ fi
 
 function fetch_clients_yml() {
   if [ -n "$DEBUG" ]; then
-    ansible-playbook dashboard-pull.yml --tags='clients_yml'
+    ansible-playbook site.yml -l dashboard --tags='clients_yml'
     local exitcode=$?
     if [ $exitcode -ne 0 ]; then
       echo "Something went wrong. Can not continue."
       exit
     fi
   else
-    ansible-playbook dashboard-pull.yml --tags='clients_yml' >> config/logs/current.log &
+    ansible-playbook site.yml -l dashboard --tags='clients_yml' >> config/logs/current.log &
     spin $!
   fi
 
@@ -818,14 +818,14 @@ function letsencrypt_update() {
 
 function sync_dashboard_tls() {
   if [ -n "$DEBUG" ]; then
-    ansible-playbook dashboard-pull.yml --tags='tls_bundles'
+    ansible-playbook site.yml -l dashboard --tags='tls_bundles'
     local exitcode=$?
     if [ $exitcode -ne 0 ]; then
       echo "Something went wrong. Can not continue."
       exit
     fi
   else
-    ansible-playbook dashboard-pull.yml --tags='tls_bundles' >> config/logs/current.log &
+    ansible-playbook site.yml -l dashboard --tags='tls_bundles' >> config/logs/current.log &
     spin $!
   fi
 }
