@@ -1,48 +1,57 @@
-- hosts: localhost
-  gather_facts: no
-  tasks:
-  - name: print remap dict BEFORE enumerating files
-    debug:
-      msg: "key={{ item.key }} value={{ item.value }}"
-    with_dict: "{{ remap }}"
-
+---
 # first the .cert.crt files
-  - name: enumerate files
-    stat:
-      path: "{{tls_home}}/decrypted/{{item._ansible_item_label.key}}-{{item._ansible_item_label.value.tls_bundle}}.cert.crt"
-    register: stat_results
-    with_dict: "{{ remap }}"
+- name: enumerate files
+  stat:
+    path: "{{tls_home}}output/{{item.value.network}}/{{item.key}}-{{item.value.tls_bundle}}.cert.crt"
+  register: cert_results
+  when: item.value.tls_bundle is defined and item.value.https == True
+  with_dict: "{{ remap }}"
+  tags:
+    - tls
 
-  - name: use stat results to modify remap dict
-    set_fact:
-        remap: "{{ remap|default({}) | combine( {item._ansible_item_label.key: item._ansible_item_label.value | combine( {'user_cert_exists': item.stat.exists} )} ) }}"
-    with_items: "{{ stat_results.results }}"
+- name: Use stat results to modify remap. Set user_cert_exists
+  set_fact:
+    remap: "{{ remap | combine( {item._ansible_item_label.key: item._ansible_item_label.value | combine( {'user_cert_exists': item.stat.exists} )} ) }}"
+  when: item._ansible_item_label.value.tls_bundle is defined and item._ansible_item_label.value.https == True
+        and item.stat.exists is defined
+  with_items: "{{ cert_results.results }}"
+  tags:
+    - tls
 
 # then the .key files
-  - name: enumerate files
-    stat:
-      path: "{{tls_home}}/decrypted/{{item._ansible_item_label.key}}-{{item._ansible_item_label.value.tls_bundle}}.key"
-    register: stat_results
-    with_dict: "{{ remap }}"
+- name: enumerate files
+  stat:
+    path: "{{tls_home}}output/{{item.value.network}}/{{item.key}}-{{item.value.tls_bundle}}.key"
+  when: item.value.tls_bundle is defined and item.value.https == True
+  register: key_results
+  with_dict: "{{ remap }}"
+  tags:
+    - tls
 
-  - name: use stat results to modify remap dict
-    set_fact:
-        remap: "{{ remap|default({}) | combine( {item._ansible_item_label.key: item._ansible_item_label.value | combine( {'user_key_exists': item.stat.exists} )} ) }}"
-    with_items: "{{ stat_results.results }}"
+- name: Use stat results to modify remap. Set user_key_exists
+  set_fact:
+    remap: "{{ remap | combine( {item._ansible_item_label.key: item._ansible_item_label.value | combine( {'user_key_exists': item.stat.exists} )} ) }}"
+  when: item._ansible_item_label.value.tls_bundle is defined and item._ansible_item_label.value.https == True
+        and item.stat.exists is defined
+  with_items: "{{ key_results.results }}"
+  tags:
+    - tls
 
 # finally the .chain.crt files
-  - name: enumerate files
-    stat:
-      path: "{{tls_home}}/decrypted/{{item._ansible_item_label.key}}-{{item._ansible_item_label.value.tls_bundle}}.chain.crt"
-    register: stat_results
-    with_dict: "{{ remap }}"
+- name: enumerate files
+  stat:
+    path: "{{tls_home}}output/{{item.value.network}}/{{item.key}}-{{item.value.tls_bundle}}.chain.crt"
+  when: item.value.tls_bundle is defined and item.value.https == True
+  register: chain_results
+  with_dict: "{{ remap }}"
+  tags:
+    - tls
 
-  - name: use stat results to modify remap dict
-    set_fact:
-        remap: "{{ remap|default({}) | combine( {item._ansible_item_label.key: item._ansible_item_label.value | combine( {'user_chain_exists': item.stat.exists} )} ) }}"
-    with_items: "{{ stat_results.results }}"
-
-  - name: print remap dict AFTER enumerating files
-    debug:
-      msg: "key={{ item.key }} value={{ item.value }}"
-    with_dict: "{{ remap }}"
+- name: Use stat results to modify remap. Set user_chain_exists
+  set_fact:
+    remap: "{{ remap | combine( {item._ansible_item_label.key: item._ansible_item_label.value | combine( {'user_chain_exists': item.stat.exists} )} ) }}"
+  when: item._ansible_item_label.value.tls_bundle is defined and item._ansible_item_label.value.https == True
+        and item.stat.exists is defined
+  with_items: "{{ chain_results.results }}"
+  tags:
+    - tls

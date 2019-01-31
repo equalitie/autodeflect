@@ -6,6 +6,7 @@
     mode: '0755'
   tags:
     - ats 
+    - tls
     - setup
 
 - name: Setup ats dnet output directories
@@ -16,6 +17,7 @@
   with_dict: "{{ dnets }}"
   tags:
     - ats 
+    - tls
     - setup
 
 - name: Setup TLS upload output directory
@@ -66,10 +68,10 @@
     - ats
     - ats_hosts
 
-- name: install uploaded certs
-  command: scripts/tls_bundle_decrypt.sh {{item.key}} {{item.value["tls_bundle"]}} {{tls_home}} {{item.value.network}} {{tls_gpghome}}
+- name: decrypt and validate uploaded certs
+  command: "scripts/tls_bundle_decrypt.sh {{item.key}} {{item.value.tls_bundle}} {{tls_home}} {{item.value.network}} {{tls_gpghome}}"
   with_dict: "{{ remap }}"
-  when: item.value["tls_bundle"] is defined
+  when: item.value.tls_bundle is defined
   tags:
     - ats
     - tls
@@ -90,11 +92,13 @@
     dest: "{{ats_output}}/{{item.key}}/dashboard.timestamp"
     content: "{{timestamp}}\n"
   with_dict: "{{ dnets }}"
-  tags: ats
+  tags:
+    - ats
 
-- name: check which cert files we have for every site and register user_{cert,key,chain}_exists variables
-  tasks:
-  - import_playbook: cert-statter.yml
+- include_tasks: cert-statter.yml
+  tags:
+    - ats
+    - tls
 
 - name: ssl_multicert.config
   template:
@@ -106,3 +110,8 @@
     - tls
 
 - include_tasks: banjax.yml
+  tags:
+    - ats
+    - banjax
+    - banjaxd
+    - banjax_whitelist
