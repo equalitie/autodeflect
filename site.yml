@@ -1,6 +1,29 @@
 ---
+- hosts: dashboard
+  gather_facts: false
+
+  roles:
+    - {role: dashpull}
+
+- hosts: letsencrypt
+  become: true
+  user: root
+
+  # TODO: "le_skip: false" when in production and this is the only
+  # controller accessing the letsencrypt server
+  vars:
+    le_skip: true
+
+  vars_files:
+    - clients.yml
+    - override.yml
+  tags:
+    - letsencrypt
+  roles:
+    - {role: letsencrypt, tags: letsencrypt, when: le_skip == false}
+
 - hosts: controller
-  become: no 
+  become: no
 
   vars_files:
     - clients.yml
@@ -13,20 +36,3 @@
     - {role: zonefile, tags: [zonefile, bind]}
     - {role: atsconf, tags: ats}
     - {role: lists, tags: lists}
-
-- hosts: letsencrypt
-  become: true
-  user: root
-
-  # TODO: "le_skip: false" when in production and this is only
-  # controller accessing the letsencrypt server
-  vars:
-    le_skip: true
-
-  vars_files:
-    - clients.yml
-    - override.yml
-  tags:
-    - letsencrypt
-  roles:
-    - {role: letsencrypt, tags: letsencrypt, when: le_skip == false}
