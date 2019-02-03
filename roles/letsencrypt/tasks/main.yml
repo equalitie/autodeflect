@@ -7,6 +7,7 @@
     mode: '0755'
     recurse: yes
   tags:
+    - tls
     - letsencrypt
     - renew-non-auto-le
     - setup
@@ -17,7 +18,9 @@
     state: directory
     mode: '0755'
     recurse: yes
+  become: true
   with_items: 
+    - tls
     - etc
     - le_certs
     - bin
@@ -31,7 +34,10 @@
     owner: root
     group: root
     mode: '0644'
+  become: true
+  when: le_skip == false
   tags:
+    - tls
     - letsencrypt
   notify: reload nginx
 
@@ -42,18 +48,26 @@
     owner: root
     group: root
     mode: '0744'
+  become: true
+  when: le_skip == false
   tags:
+    - tls
     - letsencrypt
 
 - name: Generate Letsencrypt site list
   template:
     src: letsencrypt-site.list.j2
     dest: /opt/autodeflect/etc/letsencrypt-site.list
+  become: true
+  when: le_skip == false
   tags:
+    - tls
     - letsencrypt
 
 - name: Execute remote LE renewals
   command: /opt/autodeflect/bin/LE_renew_by_name.sh
+  when: le_skip == false
+  become: true
   tags:
     - letsencrypt
 
@@ -62,9 +76,12 @@
     src: /opt/autodeflect/le_certs/
     dest: "{{letsencrypt_output}}"
     mode: pull
+  become: true
   tags:
+    - tls
     - letsencrypt
 
 - include_tasks: renew-non-auto-letsencrypt.yml
   tags:
+    - tls
     - renew-non-auto-le
