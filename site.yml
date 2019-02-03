@@ -6,11 +6,12 @@
     - {role: dashpull}
 
 - hosts: letsencrypt
-  become: true
-  user: root
+  gather_facts: false
 
   # TODO: "le_skip: false" when in production and this is the only
   # controller accessing the letsencrypt server
+  # Note: "le_skip: false" will still access letsencrypt server and
+  # download existing certs already generated.
   vars:
     le_skip: true
 
@@ -20,10 +21,10 @@
   tags:
     - letsencrypt
   roles:
-    - {role: letsencrypt, tags: letsencrypt, when: le_skip == false}
+    - {role: letsencrypt, tags: letsencrypt}
 
 - hosts: controller
-  become: no
+  gather_facts: false
 
   vars_files:
     - clients.yml
