@@ -10,6 +10,7 @@
     - clients.yml-revisions
     - "{{tls_home}}"
   tags:
+    - tls
     - clients_yml
     - tls_bundles
 
@@ -71,4 +72,5 @@
     use_ssh_args: yes
     checksum: yes
   tags:
+    - tls
     - tls_bundles
