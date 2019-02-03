@@ -6,6 +6,7 @@
   register: local_date
   run_once: true
   tags:
+    - tls
     - renew-non-auto-le
 
 # TODO: This depends on the script already being there.
@@ -14,7 +15,9 @@
 - name: run non-auto-certs-renew.sh on letsencrypt server
   shell: /root/non-auto-certs-renew.sh {{local_date.stdout}}
   become: true
+  when: le_skip == false
   tags:
+    - tls
     - renew-non-auto-le
 
 - name: fetch the tgz certs
@@ -22,20 +25,24 @@
     src: non-auto-cert-bundles/edge-certs-{{local_date.stdout}}.tgz
     dest: /tmp/edge-certs-{{local_date.stdout}}.tgz
     flat: yes
+  when: le_skip == false
   become: true
   tags:
+    - tls
     - renew-non-auto-le
 
 - set_fact:
     default_dnet: "{{hostvars[groups['controller'][0]]['default_dnet']}}"
   run_once: true
   tags:
+    - tls
     - renew-non-auto-le
 
 - set_fact:
     dnets: "{{hostvars[groups['controller'][0]]['dnets']}}"
   run_once: true
   tags:
+    - tls
     - renew-non-auto-le
 
 - name: make output directories
@@ -48,6 +55,7 @@
   run_once: true
   with_dict: "{{dnets}}"
   tags:
+    - tls
     - renew-non-auto-le
 
 - name: copy all into default dnet cert bundle directory
@@ -56,7 +64,9 @@
     _raw_params: "cd {{letsencrypt_output}}non-auto/{{default_dnet}} && tar xzf /tmp/edge-certs-{{local_date.stdout}}.tgz"
   become: true
   run_once: true
+  when: le_skip == false
   tags:
+    - tls
     - renew-non-auto-le
 
 - name: copy cert to the other dnets
@@ -67,7 +77,9 @@
   become: true
   with_dict: "{{dnets}}"
   run_once: true
+  when: le_skip == false
   tags:
+    - tls
     - renew-non-auto-le
 
 - name: cleanup
@@ -78,4 +90,5 @@
   become: true
   run_once: true
   tags:
+    - tls
     - renew-non-auto-le
