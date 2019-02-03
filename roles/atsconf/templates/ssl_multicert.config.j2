@@ -17,25 +17,25 @@
 # {{site}}
 {# if LE is in use -#}
 {%- if remap[site]["letsencrypt"] is defined and remap[site]["letsencrypt"] == true %}
-# uses Letsencrypt certs
+# uses letsencrypt certs
 {%- if leremap[site]["le_chain_exists"] is defined and leremap[site]["le_chain_exists"] == true %}
+
 ssl_cert_name={{site}}.le.cert.crt ssl_key_name={{site}}.le.key ssl_ca_name={{site}}.le.chain.crt
 {% else %}
 
-# no Letsencrypt chain found
+# no letsencrypt chain found
 {% endif %}
 
 {# else, if tls_bundle is defined -#}
 {%- elif remap[site]["tls_bundle"] is defined -%}
-# uses uploaded client certs
-
+# uses bundle client certs
 {% if bundleremap[site]["user_cert_exists"] is defined and bundleremap[site]["user_cert_exists"] and bundleremap[site]["user_key_exists"] is defined and bundleremap[site]["user_key_exists"] and bundleremap[site]["user_chain_exists"] is defined and bundleremap[site]["user_chain_exists"] %}
 ssl_cert_name={{site}}-{{remap[site]["tls_bundle"]}}.cert.crt ssl_key_name={{site}}-{{remap[site]["tls_bundle"]}}.key ssl_ca_name={{site}}-{{remap[site]["tls_bundle"]}}.chain.crt
 {% elif bundleremap[site]["user_cert_exists"] is defined and bundleremap[site]["user_cert_exists"] and bundleremap[site]["user_key_exists"] is defined and bundleremap[site]["user_key_exists"] %}
 ssl_cert_name={{site}}-{{remap[site]["tls_bundle"]}}.cert.crt ssl_key_name={{site}}-{{remap[site]["tls_bundle"]}}.key
 {% else %}
 {# should not happen because tls_bundle is defined -#}
-# no uploaded certs found.
+# no bundle certs found.
 {% endif %}
 
 {# else, check for an include -#}{%- else %}
