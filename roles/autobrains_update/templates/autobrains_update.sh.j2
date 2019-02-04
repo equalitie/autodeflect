@@ -618,6 +618,7 @@ function finish() {
   rm config/rundata/$LOCK_PREFIX$UNAME  2>> config/logs/current.log
   [ -n "$SMART" ] || tput cnorm
   [ -n "$AUTODEFLECT_AGENT" ] && eval `ssh-agent -k` && echo "killed autobrain ssh-agent (${AUTODEFLECT_AGENT})"
+  cat config/logs/current.log > config/logs/current-$DATE.log 
   echo "Runtime: $timetook"
   cd $CUR_DIR
   trap '' EXIT
