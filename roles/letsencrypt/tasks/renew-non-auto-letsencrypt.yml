@@ -73,11 +73,10 @@
   local_action:
     module: shell
     _raw_params: "cd {{letsencrypt_output}}non-auto/{{default_dnet}} && cp {{dnets[default_dnet]}}.non-auto-le.* ../{{item.key}}/"
-  when: default_dnet != item.key
+  when: (le_skip == false) and (default_dnet != item.key)
   become: true
   with_dict: "{{dnets}}"
   run_once: true
-  when: le_skip == false
   tags:
     - tls
     - renew-non-auto-le
