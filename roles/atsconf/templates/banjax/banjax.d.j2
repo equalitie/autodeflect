@@ -73,7 +73,7 @@ challenger:
 {% endfor %}
 {% endif %}
       challenge: "solver.html"
-{% if "user_anabled_banjax" in remap[item.key] and remap[item.key]['user_enabled_banjax'] %}
+{% if "user_enabled_banjax" in remap[item.key] and remap[item.key]['user_enabled_banjax'] %}
       no_of_fails_to_ban: 999999999
 {% else %}
       no_of_fails_to_ban: 20
