@@ -15,15 +15,7 @@ denialator:
 include:
   - banjax.d/general.bconf
   - banjax.d/whitelist.bconf
-{% for site, attributes in remap | dictsort %}
-{% if (remap[site]["network"] == item.key) and
-      ( (attributes["banjax_path"]) or
-      (attributes["banjax_sha_inv"] is defined and attributes["banjax_sha_inv"]) or
-      (attributes["banjax_captcha"] is defined and attributes["banjax_captcha"]) or
-      (attributes["banjax_regex_banner"] is defined) ) %}
-  - banjax.d/{{site}}.bconf
-{% endif %}
-{% endfor %}
+  - banjax.d/sites.bconf
 
 challenger:
   key: {{challenger_key}}
