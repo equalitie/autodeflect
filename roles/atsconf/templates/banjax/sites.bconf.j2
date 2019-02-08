@@ -129,10 +129,12 @@ regex_banner:
 {% endfor -%}
 {%- endif -%}
 
+{% if remap[site].global_origin_whitelist is defined and remap[site].global_origin_whitelist == True %}
 # origin whitelist
 white_lister:
   white_listed_ips:
     - {{remap[site]['origin']}}
+{% endif %}
 
 # include config/banjax.d/{{site}}.bconf
 {% include "config/banjax.d/" + site + ".bconf" ignore missing %}
