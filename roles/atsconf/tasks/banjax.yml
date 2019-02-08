@@ -51,6 +51,13 @@
 #  tags:
 #    - banjax
 #    - banjaxd
+#
+
+- debug:
+    msg: "{{ item }}"
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
 
 - name: banjax.d/sites.bconf configuration file
   template:
