@@ -57,8 +57,7 @@
     src: banjax/sites.bconf.j2
     dest: "{{banjax_output}}{{item.key}}/banjax.d/sites.bconf"
     validate: 'python scripts/validate_yaml.py %s'
-  with_dict: "{{dnets}}"
-  # disable for now
+  with_dict: "{{ dnets }}"
   tags:
     - banjax
     - banjaxd
