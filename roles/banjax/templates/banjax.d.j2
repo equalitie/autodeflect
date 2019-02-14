@@ -51,9 +51,6 @@ challenger:
       validity_period: 360000
       no_of_fails_to_ban: 10
 {% endif %}
-# These challenges were traditionally enabled only by sysops. We're introducing a user-enabled sha-inv challenge denoted by 'user_banjax_sha_inv`
-# which acts the same except that it never reports to swabber (otherwise extraneous bans caused by one site can affect other sites).
-# Both options can be set: in that case, the sysops one clobbers the user one.
 {% if (remap[item.key]['banjax_sha_inv'] is defined and remap[item.key]['banjax_sha_inv']) or (remap[item.key]['user_banjax_sha_inv'] is defined and remap[item.key]['user_banjax_sha_inv']) %}
 
     - name: "{{item.key}}_sha_inv"
