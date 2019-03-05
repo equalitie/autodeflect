@@ -9,11 +9,8 @@
     - tls
     - renew-non-auto-le
 
-# TODO: This depends on the script already being there.
-# currently we do not build the letsencrypt server. Should
-# be done in cityhall eventually.
-- name: run non-auto-certs-renew.sh on letsencrypt server
-  shell: /root/non-auto-certs-renew.sh {{local_date.stdout}}
+- name: run non-auto-certs-renew on letsencrypt server
+  shell: /usr/local/bin/non-auto-certs-renew {{local_date.stdout}} autodeflect
   become: true
   when: le_skip == false
   tags:
@@ -22,7 +19,7 @@
 
 - name: fetch the tgz certs
   fetch:
-    src: non-auto-cert-bundles/edge-certs-{{local_date.stdout}}.tgz
+    src: /opt/non-auto/archives/edge-certs-{{local_date.stdout}}.tgz
     dest: /tmp/edge-certs-{{local_date.stdout}}.tgz
     flat: yes
   when: le_skip == false
