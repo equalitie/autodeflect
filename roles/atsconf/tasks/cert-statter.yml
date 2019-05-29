@@ -10,9 +10,9 @@
 
 - name: Use stat results to modify remap. Set user_cert_exists
   set_fact:
-    bundleremap: "{{ bundleremap|default({}) | combine( {item._ansible_item_label.key: item._ansible_item_label.value | combine( {'user_cert_exists': item.stat.exists} )} ) }}"
-  when: item._ansible_item_label.value.tls_bundle is defined and item.stat.exists is defined
-  with_items: "{{ stat_results.results }}"
+    bundleremap: "{{ bundleremap|default({}) | combine( {item.item.key: item.item.value | combine( {'user_cert_exists': item.stat.exists} )} ) }}"
+  when: item.item.value.tls_bundle is defined and item.stat.exists is defined
+  loop: "{{ stat_results.results }}"
   tags:
     - tls
 
@@ -27,9 +27,9 @@
 
 - name: Use stat results to modify remap. Set user_key_exists
   set_fact:
-    bundleremap: "{{ bundleremap|default({}) | combine( {item._ansible_item_label.key: item._ansible_item_label.value | combine( {'user_key_exists': item.stat.exists} )} ) }}"
-  when: item._ansible_item_label.value.tls_bundle is defined and item.stat.exists is defined
-  with_items: "{{ stat_results.results }}"
+    bundleremap: "{{ bundleremap|default({}) | combine( {item.item.key: item.item.value | combine( {'user_key_exists': item.stat.exists} )} ) }}"
+  when: item.item.value.tls_bundle is defined and item.stat.exists is defined
+  loop: "{{ stat_results.results }}"
   tags:
     - tls
 
@@ -44,9 +44,9 @@
 
 - name: Use stat results to modify remap. Set user_chain_exists
   set_fact:
-    bundleremap: "{{ bundleremap|default({}) | combine( {item._ansible_item_label.key: item._ansible_item_label.value | combine( {'user_chain_exists': item.stat.exists} )} ) }}"
-  when: item._ansible_item_label.value.tls_bundle is defined and item.stat.exists is defined
-  with_items: "{{ stat_results.results }}"
+    bundleremap: "{{ bundleremap|default({}) | combine( {item.item.key: item.item.value | combine( {'user_chain_exists': item.stat.exists} )} ) }}"
+  when: item.item.value.tls_bundle is defined and item.stat.exists is defined
+  loop: "{{ stat_results.results }}"
   tags:
     - tls
 
@@ -61,8 +61,8 @@
 
 - name: Use stat results to modify remap. Set le_chain_exists
   set_fact:
-    leremap: "{{ leremap|default({}) | combine( {item._ansible_item_label.key: item._ansible_item_label.value | combine( {'le_chain_exists': item.stat.exists} )} ) }}"
-  when: item._ansible_item_label.value.letsencrypt is defined and item._ansible_item_label.value.letsencrypt == True and item.stat.exists is defined
-  with_items: "{{ stat_results.results }}"
+    leremap: "{{ leremap|default({}) | combine( {item.item.key: item.item.value | combine( {'le_chain_exists': item.stat.exists} )} ) }}"
+  when: item.item.value.letsencrypt is defined and item.item.value.letsencrypt == True and item.stat.exists is defined
+  loop: "{{ stat_results.results }}"
   tags:
     - tls
