@@ -562,7 +562,7 @@ for EDGENAME in $HOSTS ; do
   if ping -c1 -w2 $EDGENAME >/dev/null 2>&1 || [ "$IGNORE_PING" = "0" ] ; then
     if [ "$BUILD" = 0 ] ; then
       grep ^$EDGENAME $EDGES_LIVE && echo "found edge in live list - remove before build" && exit 1
-      echo "Building for $HOSTS"
+      echo "Building for $EDGENAME"
       do_build
       exit
      else
