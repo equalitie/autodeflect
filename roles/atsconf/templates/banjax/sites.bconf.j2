@@ -53,7 +53,7 @@ challenger:
       validity_period: 360000
       no_of_fails_to_ban: 10
 {% endif %}
-{% if remap[site]['banjax_sha_inv'] is defined and remap[site]['banjax_sha_inv'] %} or (remap[site]['user_banjax_sha_inv'] is defined and remap[site]['user_banjax_sha_inv']) %}
+{% if remap[site]['banjax_sha_inv'] is defined and remap[site]['banjax_sha_inv'] or (remap[site]['user_banjax_sha_inv'] is defined and remap[site]['user_banjax_sha_inv']) %}
 
     - name: "{{site}}_sha_inv"
       domains:
