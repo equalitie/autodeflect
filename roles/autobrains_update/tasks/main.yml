@@ -37,3 +37,12 @@
   tags:
     - init
     - setup
+
+- name: create blank clients.yml
+  file:
+    path: clients.yml
+    state: touch
+  tags:
+    - init
+    - setup
+
