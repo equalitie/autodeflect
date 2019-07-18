@@ -34,6 +34,68 @@
     - ats
     - ats_logging
 
+- name: register a bunch of intermedate loop values
+  debug: var="do nothing"
+  with_dict: "{{ remap }}"
+  register: foo_result
+  tags:
+     - ats
+     - ats_remap
+
+- name: map over the registered stuff to make a proper list
+  set_fact:
+      site_list: "{{ foo_result.results | map(attribute='item.value') | list }}"
+  tags:
+     - ats
+     - ats_remap
+
+- name: create directory under /tmp for purge_remap genid files
+  file:
+      path: /tmp/purge_remap
+      state: directory
+      owner: www-data
+      group: www-data
+      mode: "0777"
+  tags:
+      - ats
+      - ats_remap
+
+- name: touch purge_remap genid files (non-additional-prefix)
+  file:
+      path: "/tmp/purge_remap/{{item.0['url']}}-{{item.1}}"
+      state: touch
+      mode: "0777"
+  with_nested:
+      - "{{ site_list }}"
+      - [ 'http_no_www', 'http_www', 'https_no_www', 'https_www' ]
+  tags:
+      - ats
+      - ats_remap
+
+- name: touch purge_remap genid files (http + additional_prefix)
+  file:
+      path: "/tmp/purge_remap/{{item.0['url']}}-http_prefix-{{item.1}}"
+      state: touch
+      mode: "0777"
+  with_subelements:
+      - "{{ site_list | selectattr('additional_domain_prefix', 'defined') | list }}"
+      - additional_domain_prefix
+  tags:
+      - ats
+      - ats_remap
+
+- name: touch purge_remap genid files (https + additional_prefix)
+  file:
+      path: "/tmp/purge_remap/{{item.0['url']}}-https_prefix-{{item.1}}"
+      state: touch
+      mode: "0777"
+  with_subelements:
+      - "{{ site_list | selectattr('additional_domain_prefix', 'defined') | list }}"
+      - additional_domain_prefix
+  tags:
+      - ats
+      - ats_remap
+
 - name: remap config
   template: src=remap.config.j2 dest={{ats_output}}/{{item.key}}/remap.config
   with_dict: dnets
@@ -70,6 +132,13 @@
     - ats
     - tls
   ignore_errors: yes
+
+- name: ip_allow.config
+  template: src=ip_allow.config.j2 dest={{ats_output}}/{{item.key}}/ip_allow.config
+  with_dict: dnets
+  tags:
+    - ats
+    - ats_ip_allow
 
 - name: write current timestamp to ats directory
   copy:
