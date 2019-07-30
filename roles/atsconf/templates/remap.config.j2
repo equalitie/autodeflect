@@ -41,6 +41,13 @@ regex_map http://.*/.well-known/acme-challenge http://{{le_url}}/.well-known/acm
 {%- set pluginconf2 = "@plugin=conf_remap.so @pparam=/usr/local/trafficserver/conf/conf.d/cache_cookies.config " -%}
 {%- else -%}{%- set pluginconf2 = "" -%}{%- endif -%}
 {%- set pluginconf = pluginconf0 + pluginconf1 + pluginconf2 -%}
+{% macro pluginconf_for_site_and_mapping(site, map_name) %}
+{%- if remap[site]["ats_purge_secret"] is defined and remap[site]["ats_purge_secret"] -%}
+{{pluginconf ~ " @plugin=purge_remap.so @pparam=–-header=ATS-Purger @pparam=--secret=" ~ remap[site]["ats_purge_secret"] ~ " @pparam=--state-file=/tmp/purge_remap/" ~ site ~ "-" ~ map_name}}
+{%- else -%}
+{{pluginconf}}
+{%- endif -%}
+{%- endmacro %}
     {#- define HTTP methods -#}
 {%- if remap[site]["allowed_http_methods"] is defined -%}
 {%- set http_methods = " @action=allow @method=" ~ remap[site]['allowed_http_methods']| join (' @method=') -%}
@@ -54,13 +61,13 @@ regex_map http://.*/.well-known/acme-challenge http://{{le_url}}/.well-known/acm
   {#- BEGIN http remaps -#}
 {%- if remap[site]["http_type"] == "http" or remap[site]["http_type"] == "https" -%}
 {%- if remap[site]["www_only"] is not defined or remap[site]["www_only"] == false %}
-map	http://{{site}}/	http://{{site}}.origin{{target_port}}/	{{pluginconf}}{{http_methods}}
+map	http://{{site}}/	http://{{site}}.origin{{target_port}}/	{{pluginconf_for_site_and_mapping(site, "http_no_www")}}{{http_methods}}
 {% endif %}
 {%- if remap[site]["no_www"] is not defined or remap[site]["no_www"] == false %}{% if remap[site]["dns_records"] is defined %}
-map	http://www.{{site}}/	http://{{site}}.origin{{target_port}}/	{{pluginconf}}{{http_methods}}
+map	http://www.{{site}}/	http://{{site}}.origin{{target_port}}/	{{pluginconf_for_site_and_mapping(site, "http_www")}}{{http_methods}}
 {% endif -%}{%- endif -%}
 {%- if remap[site]["additional_domain_prefix"] is defined %}{% for prefix in remap[site]["additional_domain_prefix"] %}
-map	http://{{prefix}}.{{site}}/	http://{{site}}.origin{{target_port}}/	{{pluginconf}}{{http_methods}}
+map	http://{{prefix}}.{{site}}/	http://{{site}}.origin{{target_port}}/	{{pluginconf_for_site_and_mapping(site, "http_prefix" ~ "-" ~ prefix)}}{{http_methods}}
 {% endfor -%}{%- endif -%}
 {%- elif remap[site]["http_type"] == "https_redirect" %}
 {%- if remap[site]["www_only"] is not defined or remap[site]["www_only"] == false %}
@@ -79,13 +86,13 @@ redirect	http://{{prefix}}.{{site}}/	https://{{prefix}}.{{site}}/
 {%- set target_https_port = ":" ~ remap[site]["origin_https_port"] -%}
 {%- else -%}{% set target_https_port = "" -%}{% endif -%}
 {%- if remap[site]["www_only"] is not defined or remap[site]["www_only"] == false %}
-map	https://{{site}}/	https://{{site}}.origin{{target_https_port}}/	{{pluginconf}}{{http_methods}}
+map	https://{{site}}/	https://{{site}}.origin{{target_https_port}}/	{{pluginconf_for_site_and_mapping(site, "https_no_www")}}{{http_methods}}
 {% endif -%}
 {%- if remap[site]["no_www"] is not defined or remap[site]["no_www"] == false -%}{%- if remap[site]["dns_records"] is defined %}
-map	https://www.{{site}}/	https://{{site}}.origin{{target_https_port}}/	{{pluginconf}}{{http_methods}}
+map	https://www.{{site}}/	https://{{site}}.origin{{target_https_port}}/	{{pluginconf_for_site_and_mapping(site, "https_www")}}{{http_methods}}
 {% endif -%}{%- endif -%}
 {%- if remap[site]["additional_domain_prefix"] is defined -%}{%- for prefix in remap[site]["additional_domain_prefix"] -%}
-map	https://{{prefix}}.{{site}}/	https://{{site}}.origin{{target_https_port}}/	{{pluginconf}}{{http_methods}}
+map	https://{{prefix}}.{{site}}/	https://{{site}}.origin{{target_https_port}}/	{{pluginconf_for_site_and_mapping(site, "https_prefix" ~ "-" ~ prefix)}}{{http_methods}}
 {% endfor -%}{%- endif -%}{%- endif -%}
   {#- END https remaps -#}
   {#- END remaps -#}
