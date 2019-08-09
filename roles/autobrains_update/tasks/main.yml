@@ -38,7 +38,7 @@
     - init
     - setup
 
-- name: create blank clients.yml
+- name: create placeholders
   file:
     path: "{{item}}"
     state: touch

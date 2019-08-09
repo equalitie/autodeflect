@@ -16,8 +16,8 @@
     le_skip: true
 
   vars_files:
-    - clients.yml
-    - override.yml
+    - [ "clients.yml", "ph.yml" ]
+    - [ "override.yml", "ph.yml" ]
   tags:
     - letsencrypt
   roles:
@@ -27,8 +27,8 @@
   gather_facts: false
 
   vars_files:
-    - clients.yml
-    - override.yml
+    - [ "clients.yml", "ph.yml" ]
+    - [ "override.yml", "ph.yml" ]
 
   tags:
     - controller
