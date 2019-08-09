@@ -40,9 +40,28 @@
 
 - name: create blank clients.yml
   file:
-    path: clients.yml
+    path: "{{item}}"
     state: touch
+  loop:
+    - clients.yml
+    - clients.yml-revisions/clients.yml-last_used
   tags:
     - init
     - setup
 
+- name: check if config/rundata/.completed_timestamp exists
+  stat:
+    path: config/rundata/.completed_timestamp
+  register: completed_timestamp
+  tags:
+    - init
+    - setup
+
+- name: if completed_timestamp does not exist, create placeholder with Jan 1, 1970
+  copy:
+    content: "0"
+    dest: config/rundata/.completed_timestamp
+  when: completed_timestamp is defined and completed_timestamp.stat.exists == False
+  tags:
+    - init
+    - setup
