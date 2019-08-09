@@ -13,7 +13,7 @@
   # Note: "le_skip: false" will still access letsencrypt server and
   # download existing certs already generated.
   vars:
-    le_skip: true
+    le_skip: false
 
   vars_files:
     - [ "clients.yml", "ph.yml" ]
