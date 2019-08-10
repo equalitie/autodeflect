@@ -8,16 +8,14 @@
 - hosts: letsencrypt
   gather_facts: false
 
-  # TODO: "le_skip: false" when in production and this is the only
-  # controller accessing the letsencrypt server
-  # Note: "le_skip: false" will still access letsencrypt server and
+  # Note: "le_skip: true" will still access letsencrypt server and
   # download existing certs already generated.
   vars:
     le_skip: false
 
   vars_files:
-    - [ "clients.yml", "ph.yml" ]
-    - [ "override.yml", "ph.yml" ]
+    - [ "clients.yml", "roles/ph.yml" ]
+    - [ "override.yml", "roles/ph.yml" ]
   tags:
     - letsencrypt
   roles:
@@ -27,8 +25,8 @@
   gather_facts: false
 
   vars_files:
-    - [ "clients.yml", "ph.yml" ]
-    - [ "override.yml", "ph.yml" ]
+    - [ "clients.yml", "roles/ph.yml" ]
+    - [ "override.yml", "roles/ph.yml" ]
 
   tags:
     - controller
