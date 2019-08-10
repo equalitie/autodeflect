@@ -1,5 +1,6 @@
 # {{ansible_managed}}
-
+# Set Letsencrypt Proxy IP
+{{ hosts_letsencrypt }}
 {% set ipaddrs = dict() -%}
 
 {%- for site in remap -%}

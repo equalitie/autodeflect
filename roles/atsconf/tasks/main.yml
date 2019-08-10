@@ -59,6 +59,32 @@
     - ats
     - ats_cache
 
+- name: get letsEncrypt-proxy ipaddress to for adding to hosts.origin
+  command: /usr/bin/dig +noall +short {{ groups.letsencrypt | first }}
+  register: letsencrypt_dig_lookup 
+  ignore_errors: yes
+  tags: 
+    - ats
+    - ats_hosts
+
+- name: create usable letsencrypt ipaddress if no lookup
+  set_fact:
+    hosts_letsencrypt: "## Warning {{ groups.letsencrypt | first }} did not lookup ##"
+  when: letsencrypt_dig_lookup is not defined or letsencrypt_dig_lookup.stdout == "" or
+        letsencrypt_dig_lookup.failed == True
+  tags: 
+    - ats
+    - ats_hosts
+
+- name: create usable letsencrypt ipaddress if no lookup
+  set_fact:
+    hosts_letsencrypt: "{{ groups.letsencrypt | first }}  {{ letsencrypt_dig_lookup.stdout }}"
+  when: letsencrypt_dig_lookup is defined and letsencrypt_dig_lookup.stdout != "" and 
+        letsencrypt_dig_lookup.failed == False 
+  tags: 
+    - ats
+    - ats_hosts
+
 - name: hosts.origin
   template:
     src: hosts.origin.j2
