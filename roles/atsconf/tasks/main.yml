@@ -78,7 +78,7 @@
 
 - name: create usable letsencrypt ipaddress if no lookup
   set_fact:
-    hosts_letsencrypt: "{{ groups.letsencrypt | first }}  {{ letsencrypt_dig_lookup.stdout }}"
+    hosts_letsencrypt: "{{ letsencrypt_dig_lookup.stdout }} {{ groups.letsencrypt | first }}"
   when: letsencrypt_dig_lookup is defined and letsencrypt_dig_lookup.stdout != "" and 
         letsencrypt_dig_lookup.failed == False 
   tags: 
