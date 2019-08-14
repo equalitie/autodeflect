@@ -6,7 +6,7 @@ zone "{{dnets[dnet]}}" {
       type master;
       file "edgemanage/{{dnets[dnet]}}.zone";
       also-notify { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
-      allow-query { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
+      allow-query { 127.0.0.1; {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
       allow-transfer { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
 };
 {% endif %}
@@ -18,7 +18,7 @@ zone "{{site}}" {
       type master;
       file "edgemanage/{{site}}.zone";
       also-notify { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
-      allow-query { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
+      allow-query { 127.0.0.1; {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
       allow-transfer { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
 };
 {% endif %}
