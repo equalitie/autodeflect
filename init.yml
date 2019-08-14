@@ -58,6 +58,11 @@
       default: 'deflect,someplaceelse'
       private: no
 
+    - name: 'edgemanage_transfer_ip'
+      prompt: 'IP addresses of DNS service for transfers. Comma separated with no spaces. Space for none'
+      default: ' '
+      private: no
+
   roles:
     - {role: init, tags: init}
     - {role: autobrains_update}
