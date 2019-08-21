@@ -3,6 +3,7 @@
 {% for site in remap | sort %}{% if remap[site]["network"] == item.key %}
 {% if (remap[site]['banjax_path'] is defined and remap[site]['banjax_path'] != '') or
       (remap[site]['banjax_sha_inv'] is defined and remap[site]['banjax_sha_inv']) or
+      (remap[site]['user_banjax_sha_inv'] is defined and remap[site]['user_banjax_sha_inv']) or
       (remap[site]['banjax_captcha'] is defined and remap[site]['banjax_captcha']) %}
 challenger:
   challenges:
