@@ -37,28 +37,6 @@
   tags:
     - banjax
 
-# This is now done in a single sites.bconf for generation speedup
-#- name: Banjax.d configuration file
-#  template:
-#    src: banjax/banjax.d.j2
-#    dest: "{{banjax_output}}/{{remap[item.key].network}}/banjax.d/{{item.key}}.bconf"
-#    validate: 'python scripts/validate_yaml.py %s'
-#  when: (remap[item.key]["banjax_path"]) or
-#        (remap[item.key]["banjax_captcha"] is defined and remap[item.key]["banjax_captcha"]) or
-#        (remap[item.key]["banjax_sha_inv"] is defined and remap[item.key]["banjax_sha_inv"]) or
-#        (remap[item.key]["banjax_regex_banner"] is defined)
-#  with_dict: "{{ remap }}"
-#  tags:
-#    - banjax
-#    - banjaxd
-#
-
-- debug:
-    msg: "{{ item }}"
-  with_dict: "{{ dnets }}"
-  tags:
-    - banjax
-
 - name: banjax.d/sites.bconf configuration file
   template:
     src: banjax/sites.bconf.j2
