@@ -24,14 +24,20 @@
   with_dict: dnets
   tags: banjax
 
-- name: Banjax.d configuration file 
-  template: src=banjax.d.j2 dest={{banjax_output}}/{{remap[item.key].network}}/banjax.d/{{item.key}}.bconf validate="python scripts/validate_yaml.py %s"
+- name: banjax.d configuration file
+  template:
+    src: banjax.d.j2
+    dest: "{{banjax_output}}/{{remap[item.key].network}}/banjax.d/{{item.key}}.bconf"
+    validate: "python scripts/validate_yaml.py %s"
   when: (remap[item.key]["banjax_path"]) or
         (remap[item.key]["banjax_captcha"] is defined and remap[item.key]["banjax_captcha"]) or
         (remap[item.key]["banjax_sha_inv"] is defined and remap[item.key]["banjax_sha_inv"]) or
+        (remap[item.key]["user_banjax_sha_inv"] is defined and remap[item.key]["user_banjax_sha_inv"]) or
         (remap[item.key]["banjax_regex_banner"] is defined)
   with_dict: remap
-  tags: [banjax, banjaxd]
+  tags:
+    - banjax
+    - banjaxd
 
 - name: general.bconf
   template: src=general.dnets.bconf dest={{banjax_output}}/{{item.key}}/banjax.d/general.bconf validate="python scripts/validate_yaml.py %s"
