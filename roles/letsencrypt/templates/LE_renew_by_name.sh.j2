@@ -63,6 +63,16 @@ function populate_output_dir() {
   cp ${LE_DIR}/live/${DOMAIN_W_ARGS%% *}/privkey.pem ${LE_OUTPUT_DIR}/${DOMAIN_W_ARGS%% *}.le.key
 }
 
+function check_cert_exists() {
+  DOMAIN_WO_ARGS=$(echo "${DOMAIN_W_ARGS%% *}" | cut -d' ' -f1)
+  echo "checking ${DOMAIN_WO_ARGS} cert already generated"
+  if [ -f "${LE_DIR}/live/${DOMAIN_WO_ARGS}/privkey.pem" ] ; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 # This is a bit hard to read, so explained in detail:
 # - grep out any lines beginning with a '#" character or empty
 # - pipe that output to a while loop that reads line by line
@@ -71,12 +81,17 @@ function populate_output_dir() {
 #   we already have an up to date version of this cert
 # - if we do not, go ahead and request a cert (including any sub-
 #   domains that should be included)
+# - if we appear not delegated but we already have cert from a previous run
+#   copy it also in case delegation check is not right
 # - place all the cert/key bundles into an easy dir to be synced
 #   to brains
 initialise_output_dir
 egrep -v '^$|^#' $LE_SITE_LIST | while IFS='' read -r DOMAIN_W_ARGS ; do
   if check_delegation ; then
     check_cert || renew_cert 
+    populate_output_dir
+  elif check_cert_exists ; then
+    echo "${DOMAIN_W_ARGS%% *} not delegated but cert exists from previous run"
     populate_output_dir
   else
     echo "${DOMAIN_W_ARGS%% *} does not appear delegated - skipping"
