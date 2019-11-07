@@ -12,7 +12,7 @@ switch ($name) {
 		require 'read-conf.php';
 		break;
 
-	case 'read-site-yml';
+	case 'read-site-yml':
 		require 'read-site-yml.php';
 		break;
 
@@ -20,8 +20,16 @@ switch ($name) {
 		require 'approval.php';
 		break;
 
-	case 'access-list';
+	case 'access-list':
 		require 'access-list.php';
+		break;
+
+	case 'edges':
+		require 'edges.php';
+		break;
+
+	case 'php-info':
+		require 'php-info.php';
 		break;
 
 	default:
