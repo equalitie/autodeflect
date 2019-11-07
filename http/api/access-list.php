@@ -40,9 +40,9 @@ foreach (glob("$edgelist_glob") as $dnet) {
 }
 
 if (!empty($edge_ip_array))
-	array_push($out,$edge_ip_array);
+	array_merge($out,$edge_ip_array);
 if (!empty($extra_ip_array))
-	array_push($out,$extra_ip_array);
+	array_merge($out,$extra_ip_array);
 
 // Sort low to high
 ksort($out);
