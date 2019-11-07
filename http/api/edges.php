@@ -16,13 +16,18 @@ foreach (glob("$edgelist_glob") as $dnet) {
                         if (substr($line,0,1) == '#')
                                 continue;
                         $ip = gethostbyname($line);
-                        if (filter_var($ip, FILTER_VALIDATE_IP))
-                                array_push($edge_ip_array["$dnet_name"],$ip);
+                        if (filter_var($ip, FILTER_VALIDATE_IP)) {
+				if (!array_key_exists($dnet_name,$edge_ip_array)
+					$edge_ip_array[$dnet_name] = array();
+
+                                array_push($edge_ip_array[$dnet_name],$ip);
+
+			}
                 }
         }
 }
 
-$out = array();
+$out = $edge_ip_array;
 
 if (isset($_GET["pretty"]))
 	print json_encode($out,JSON_PRETTY_PRINT);
