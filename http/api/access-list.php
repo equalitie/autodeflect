@@ -40,15 +40,15 @@ foreach (glob("$edgelist_glob") as $dnet) {
 }
 
 if (!empty($edge_ip_array))
-	array_merge($out,$edge_ip_array);
+	$out = array_merge($out,$edge_ip_array);
 if (!empty($extra_ip_array))
-	array_merge($out,$extra_ip_array);
+	$out = array_merge($out,$extra_ip_array);
 
 // Sort low to high
 ksort($out);
 
 if (isset($_GET["pretty"]))
-	print json_encode($out[0],JSON_PRETTY_PRINT);
+	print json_encode($out,JSON_PRETTY_PRINT);
 else
-	print json_encode($out[0]);
+	print json_encode($out);
 ?>
