@@ -1,9 +1,10 @@
 <?php
-// All paths are in realtion to 'autodeflect_root'
+//
 return [
   'autodeflect_root' => '/usr/local/deflect/ansible/autodeflect',
   'autodaemon_conf' => '/bin/daemon.cfg',
   'client_last_file' => '/clients.yml-revisions/clients.yml-last_used',
   'api_user' => 'user',
   'api_pass' => 'changeme',
+  'edgemanage_root' => '/etc/edgemanage',
 ];
