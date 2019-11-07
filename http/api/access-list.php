@@ -1,5 +1,13 @@
 <?php
-require 'util.php';
+/*
+ * options are:
+ * pretty	output pretty json
+ * edges	only output edge list
+ *
+ * the extra ip list is looked for at
+ * "autodeflect_root"/config/api_extra_accesslist
+ *
+ */
 
 $edgelist_glob = $config['edgemanage_root'] . '/edges/*';
 
@@ -23,18 +31,20 @@ if ( !isset($_GET["edges"]) && file_exists($config['autodeflect_root'] . '/confi
 
 $edge_ip_array = array();
 foreach (glob("$edgelist_glob") as $dnet) {
-	$fh = fopen($dnet, 'r');
-	$data = trim(fread($fh, filesize($dnet)));
-	fclose($fh);
+	if (is_file($dnet)) {
+		$fh = fopen($dnet, 'r');
+		$data = trim(fread($fh, filesize($dnet)));
+		fclose($fh);
 
-	$data_array = explode("\n", $data);
-	foreach($data_array as $line) {
-		$line = trim($line);
-		if (substr($line,0,1) == '#')
-			continue;
-		$ip = gethostbyname($line);
-		if (filter_var($ip, FILTER_VALIDATE_IP))
-			array_push($edge_ip_array,$ip);
+		$data_array = explode("\n", $data);
+		foreach($data_array as $line) {
+			$line = trim($line);
+			if (substr($line,0,1) == '#')
+				continue;
+			$ip = gethostbyname($line);
+			if (filter_var($ip, FILTER_VALIDATE_IP))
+				array_push($edge_ip_array,$ip);
+		}
 	}
 }
 
