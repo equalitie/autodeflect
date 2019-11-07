@@ -55,8 +55,7 @@ if (!empty($edge_ip_array))
 if (!empty($extra_ip_array))
 	$out = array_merge($out,$extra_ip_array);
 
-// Sort low to high
-ksort($out);
+rsort($out);
 
 if (isset($_GET["pretty"]))
 	print json_encode($out,JSON_PRETTY_PRINT);
