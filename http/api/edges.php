@@ -15,7 +15,7 @@ foreach (glob("$edgelist_glob") as $dnet) {
                         $line = trim($line);
                         if (substr($line,0,1) == '#')
                                 continue;
-			if ($_GET["ip"]) {
+			if (isset($_GET["ip"])) {
 				$ip = gethostbyname($line);
 				if (filter_var($ip, FILTER_VALIDATE_IP)) {
 					if (!array_key_exists($dnet_name,$edge_ip_array))
