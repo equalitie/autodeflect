@@ -28,7 +28,7 @@ foreach (glob("$edgelist_glob") as $dnet) {
 	fclose($fh);
 
 	$data_array = explode("\n", $data);
-	$edge_ip_array - array();
+	$edge_ip_array = array();
 	foreach($data_array as $line) {
 		$line = trim($line);
 		if (substr($line,0,1) == '#')
