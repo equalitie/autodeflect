@@ -4,7 +4,7 @@ require 'util.php';
 $edgelist_glob = $config['edgemanage_root'] . '/edges/*';
 
 // Set $extra_ip_array if file config/api_extra_accesslist exists
-if (!isset($_GET("edges") && file_exists($config['autodeflect_root'] . '/config/api_extra_accesslist')) {
+if (!isset($_GET("edges")) && file_exists($config['autodeflect_root'] . '/config/api_extra_accesslist')) {
 	$api_extra_accesslist = $config['autodeflect_root'] . '/config/api_extra_accesslist';
 	$fh = fopen($api_extra_accesslist, 'r');
 	$data = trim(fread($fh, filesize($api_extra_accesslist)));
