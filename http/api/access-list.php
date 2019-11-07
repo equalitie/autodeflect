@@ -21,13 +21,13 @@ if ( !isset($_GET["edges"]) && file_exists($config['autodeflect_root'] . '/confi
 	}
 }
 
+$edge_ip_array = array();
 foreach (glob("$edgelist_glob") as $dnet) {
 	$fh = fopen($dnet, 'r');
 	$data = trim(fread($fh, filesize($dnet)));
 	fclose($fh);
 
 	$data_array = explode("\n", $data);
-	$edge_ip_array = array();
 	foreach($data_array as $line) {
 		$line = trim($line);
 		if (substr($line,0,1) == '#')
