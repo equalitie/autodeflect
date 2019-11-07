@@ -15,13 +15,19 @@ foreach (glob("$edgelist_glob") as $dnet) {
                         $line = trim($line);
                         if (substr($line,0,1) == '#')
                                 continue;
-                        $ip = gethostbyname($line);
-                        if (filter_var($ip, FILTER_VALIDATE_IP)) {
+			if ($_GET["ip"]) {
+				$ip = gethostbyname($line);
+				if (filter_var($ip, FILTER_VALIDATE_IP)) {
+					if (!array_key_exists($dnet_name,$edge_ip_array))
+						$edge_ip_array[$dnet_name] = array();
+
+					array_push($edge_ip_array[$dnet_name],$ip);
+				}
+			} else {
 				if (!array_key_exists($dnet_name,$edge_ip_array))
 					$edge_ip_array[$dnet_name] = array();
 
-                                array_push($edge_ip_array[$dnet_name],$ip);
-
+				array_push($edge_ip_array[$dnet_name],$line);
 			}
                 }
         }
