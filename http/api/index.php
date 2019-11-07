@@ -20,6 +20,10 @@ switch ($name) {
 		require 'approval.php';
 		break;
 
+	case 'access-list';
+		require 'access-list.php';
+		break;
+
 	default:
 		header('HTTP/1.0 404 Not Found');
 		header("Content-Type: application/json");
