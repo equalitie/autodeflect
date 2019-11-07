@@ -48,7 +48,7 @@ if (!empty($extra_ip_array))
 ksort($out);
 
 if (isset($_GET["pretty"]))
-	print json_encode($out,JSON_PRETTY_PRINT);
+	print json_encode($out[0],JSON_PRETTY_PRINT);
 else
-	print json_encode($out);
+	print json_encode($out[0]);
 ?>
