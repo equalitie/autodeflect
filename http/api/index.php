@@ -33,7 +33,7 @@ switch ($name) {
 		break;
 
 	default:
-		header('HTTP/1.0 404 Not Found');
+		header("$_SERVER['SERVER_PROTOCOL'] 404 Not Found");
 		header("Content-Type: application/json");
 		echo "{ http_code: 404 }\n";
 		die();
