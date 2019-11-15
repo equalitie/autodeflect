@@ -26,7 +26,7 @@ variables. These are created with ```ansible-playbook init.yml```.
 Comments document the majority of this configuration.
 
 Setup you inventory in ```config/inventory/inventory```
-Then run your playbook. ``````ansible-playbook init.yml```.
+Then run your playbook. ```ansible-playbook init.yml```.
 Note: You should only do this after autodeflect was install with
 ```cityhall```
 
