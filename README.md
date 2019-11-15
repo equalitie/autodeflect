@@ -12,19 +12,23 @@ central component used for caching resources and serving them.
 
 Autodeflect is a system for writing out the dynamic components of a
 Deflect configuration. This comprises:
-* awstats configuration entries
 * Apache Traffic Server remap files
 * Bind-style zone file information (designed to be used with [Edgemanage](https://github.com/equalitie/edgemanage) for robust serving of content when servers experience instability or become unavailable). 
-* Nagios configuration for monitoring origin servers
-* Per-site configuration rules for the [Banjax](https://github.com/equalitie/banjax) mitigation platform - both the old-style libconfig-based file and the current YAML-based configuration. 
+* icinga configuration for monitoring origin servers
+* site configuration rules for the [Banjax](https://github.com/equalitie/banjax) mitigation platform. 
 * Scripted renewal of [Let's Encrypt](https://letsencrypt.org/) TLS certs
 
 Configuration 
 -------
 
 Global configuration of controller-side elements is accomplished via
-variables in ```site.yml```. Comments document the majority of this
-configuration.
+variables. These are created with ```ansible-playbook init.yml```.
+Comments document the majority of this configuration.
+
+Setup you inventory in ```config/inventory/inventory```
+Then run your playbook. ``````ansible-playbook init.yml```.
+Note: You should only do this after autodeflect was install with
+```cityhall```
 
 Client configuration (sites protected behind your instance of Deflect)
 is accomplished via ```clients.yml```. In the Deflect system this file
