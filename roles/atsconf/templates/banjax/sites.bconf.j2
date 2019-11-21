@@ -18,7 +18,6 @@ challenger:
 {% endfor %}
 {% endif %}
       challenge_type: "auth"
-{% if remap[site]['banjax_whitelist_include_auth'] is defined and remap[site]['banjax_whitelist_include_auth'] %}
       white_listed_ips:
         - 127.0.0.1
         - {{remap[site]['origin']}}
@@ -26,7 +25,6 @@ challenger:
 {% for whitelist_ip in remap[site]['add_banjax_whitelist'] %}
         - {{whitelist_ip}}
 {% endfor %}
-{% endif %}
 {% endif %}
       challenge: "auth.html"
       password_hash: "{{remap[site]['banjax_password']}}"
