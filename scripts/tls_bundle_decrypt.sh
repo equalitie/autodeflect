@@ -35,6 +35,7 @@ function openssl_md5 {
 function sni_names {
     openssl x509 -in $TLS_HOME/decrypted/$TLS_CERT_NAME.cert.crt -text -noout |\
       egrep 'DNS:|Subject:' |\
+      sed 's/\ //g' |\
       sed -e 's%.*CN=%%' -e 's% *DNS:%%g' |\
       tr ',' '\n'
 }
