@@ -41,6 +41,18 @@
     - letsencrypt
   notify: reload nginx
 
+- name: Generate NGINX config symlink
+  file:
+    src: /etc/nginx/sites-available/letsencrypt_origins.conf
+    dest: /etc/nginx/sites-enabled/letsencrypt_origins.conf
+    state: link
+  become: true
+  when: le_skip == false
+  tags:
+    - tls
+    - letsencrypt
+  notify: reload nginx
+
 - name: Generate Letsencrypt renewal bash script
   template:
     src: LE_renew_by_name.sh.j2
