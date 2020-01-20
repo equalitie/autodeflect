@@ -1,0 +1,26 @@
+---
+# {{ansible_managed}}
+
+priority:
+  denialator: 1
+  challenger: 2
+  white_lister: 3
+  regex_banner: 4
+
+swabber:
+  grace_period: {{swabber_grace}}
+
+denialator:
+
+include:
+  - banjax.d/general.bconf
+  - banjax.d/whitelist.bconf
+  - banjax.d/sites.bconf
+
+challenger:
+  key: {{challenger_key}}
+  difficulty: 8
+
+bot_sniffer:
+  botbanger_port: 22621
+  key: "{{botbanger_key}}"

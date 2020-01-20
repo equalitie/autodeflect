@@ -1,0 +1,68 @@
+---
+- name: enumerate bundle cert files
+  stat:
+    path: "{{tls_home}}output/{{item.value.network}}/{{item.key}}-{{item.value.tls_bundle}}.cert.crt"
+  when: item.value.tls_bundle is defined
+  with_dict: "{{ remap }}"
+  register: stat_results
+  tags:
+    - tls
+
+- name: Use stat results to modify remap. Set user_cert_exists
+  set_fact:
+    bundleremap: "{{ bundleremap|default({}) | combine( {item.item.key: item.item.value | combine( {'user_cert_exists': item.stat.exists} )} ) }}"
+  when: item.item.value.tls_bundle is defined and item.stat.exists is defined
+  loop: "{{ stat_results.results }}"
+  tags:
+    - tls
+
+- name: enumerate bundle key files
+  stat:
+    path: "{{tls_home}}output/{{item.value.network}}/{{item.key}}-{{item.value.tls_bundle}}.key"
+  when: item.value.tls_bundle is defined
+  with_dict: "{{ bundleremap }}"
+  register: stat_results
+  tags:
+    - tls
+
+- name: Use stat results to modify remap. Set user_key_exists
+  set_fact:
+    bundleremap: "{{ bundleremap|default({}) | combine( {item.item.key: item.item.value | combine( {'user_key_exists': item.stat.exists} )} ) }}"
+  when: item.item.value.tls_bundle is defined and item.stat.exists is defined
+  loop: "{{ stat_results.results }}"
+  tags:
+    - tls
+
+- name: enumerate bundle chain files
+  stat:
+    path: "{{tls_home}}output/{{item.value.network}}/{{item.key}}-{{item.value.tls_bundle}}.chain.crt"
+  when: item.value.tls_bundle is defined
+  with_dict: "{{ bundleremap }}"
+  register: stat_results
+  tags:
+    - tls
+
+- name: Use stat results to modify remap. Set user_chain_exists
+  set_fact:
+    bundleremap: "{{ bundleremap|default({}) | combine( {item.item.key: item.item.value | combine( {'user_chain_exists': item.stat.exists} )} ) }}"
+  when: item.item.value.tls_bundle is defined and item.stat.exists is defined
+  loop: "{{ stat_results.results }}"
+  tags:
+    - tls
+
+- name: enumerate Letsencrypt chain files
+  stat:
+    path: "{{letsencrypt_output}}{{item.key}}.le.chain.crt"
+  when: item.value.letsencrypt is defined and item.value.letsencrypt == True
+  with_dict: "{{ remap }}"
+  register: stat_results
+  tags:
+    - tls
+
+- name: Use stat results to modify remap. Set le_chain_exists
+  set_fact:
+    leremap: "{{ leremap|default({}) | combine( {item.item.key: item.item.value | combine( {'le_chain_exists': item.stat.exists} )} ) }}"
+  when: item.item.value.letsencrypt is defined and item.item.value.letsencrypt == True and item.stat.exists is defined
+  loop: "{{ stat_results.results }}"
+  tags:
+    - tls

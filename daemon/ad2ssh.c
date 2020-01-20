@@ -233,10 +233,10 @@ int check_loaded_key(char *ssh_key_fingerprint, char *ssh_add, LIBSSH2_SESSION *
 		goto end;
 	} 
 
-	size_t cmdSize = snprintf(NULL, 0, "%s -ls", ssh_add);
+	size_t cmdSize = snprintf(NULL, 0, "%s -l -E md5", ssh_add);
 
 	if ((cmd = malloc((cmdSize + 1) * sizeof(char)))) {
-		snprintf(cmd, cmdSize + 1, "%s -ls", ssh_add);
+		snprintf(cmd, cmdSize + 1, "%s -l -E md5", ssh_add);
 	} else {
 		fprintf(stderr, "Could not allocate memory\n");
 		goto end;

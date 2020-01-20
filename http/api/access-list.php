@@ -1,0 +1,64 @@
+<?php
+/*
+ * options are:
+ * pretty	output pretty json
+ * edges	only output edge list
+ *
+ * the extra ip list is looked for at
+ * "autodeflect_root"/config/api_extra_accesslist
+ *
+ */
+
+$edgelist_glob = $config['edgemanage_root'] . '/edges/*';
+
+// Set $extra_ip_array if file config/api_extra_accesslist exists
+if ( !isset($_GET["edges"]) && file_exists($config['autodeflect_root'] . '/config/api_extra_accesslist')) {
+	$api_extra_accesslist = $config['autodeflect_root'] . '/config/api_extra_accesslist';
+	$fh = fopen($api_extra_accesslist, 'r');
+	$data = trim(fread($fh, filesize($api_extra_accesslist)));
+	fclose($fh);
+
+	$data_array = explode("\n", $data);
+	$extra_ip_array = array();
+	foreach($data_array as $line) {
+		$line = trim($line);
+		if (substr($line,0,1) == '#')
+			continue;
+		if (filter_var($line, FILTER_VALIDATE_IP))
+			array_push($extra_ip_array,$line);
+	}
+}
+
+$edge_ip_array = array();
+foreach (glob("$edgelist_glob") as $dnet) {
+	if (is_file($dnet)) {
+		$fh = fopen($dnet, 'r');
+		$data = trim(fread($fh, filesize($dnet)));
+		fclose($fh);
+
+		$data_array = explode("\n", $data);
+		foreach($data_array as $line) {
+			$line = trim($line);
+			if (substr($line,0,1) == '#')
+				continue;
+			$ip = gethostbyname($line);
+			if (filter_var($ip, FILTER_VALIDATE_IP))
+				array_push($edge_ip_array,$ip);
+		}
+	}
+}
+
+$out = array();
+
+if (!empty($edge_ip_array))
+	$out = array_merge($out,$edge_ip_array);
+if (!empty($extra_ip_array))
+	$out = array_merge($out,$extra_ip_array);
+
+rsort($out);
+
+if (isset($_GET["pretty"]))
+	print json_encode($out,JSON_PRETTY_PRINT);
+else
+	print json_encode($out);
+?>

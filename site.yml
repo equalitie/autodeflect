@@ -1,0 +1,37 @@
+---
+- hosts: dashboard
+  gather_facts: false
+
+  roles:
+    - {role: dashpull}
+
+- hosts: letsencrypt
+  gather_facts: false
+
+  # Note: "le_skip: true" will still access letsencrypt server and
+  # download existing certs already generated.
+  vars:
+    le_skip: false
+
+  vars_files:
+    - [ "clients.yml", "roles/ph.yml" ]
+    - [ "override.yml", "roles/ph.yml" ]
+  tags:
+    - letsencrypt
+  roles:
+    - {role: letsencrypt, tags: letsencrypt}
+
+- hosts: controller
+  gather_facts: false
+
+  vars_files:
+    - [ "clients.yml", "roles/ph.yml" ]
+    - [ "override.yml", "roles/ph.yml" ]
+
+  tags:
+    - controller
+  roles:
+    - {role: autobrains_update, tags: update}
+    - {role: zonefile, tags: [zonefile, bind]}
+    - {role: atsconf, tags: ats}
+    - {role: lists, tags: lists}

@@ -1,0 +1,8 @@
+[dashboard]
+dashboard.local
+
+[controller]
+localhost	ansible_connection=local
+
+[letsencrypt]
+letsencrypt.local ansible_ssh_port=9999

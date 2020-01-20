@@ -1,28 +1,24 @@
 #!/bin/bash
-# {{no_edit_template}}
-# {{no_edit_template}}
-# {{no_edit_template}}
-# {{no_edit_template}}
-# ./autobrains_update.sh -i --force will update this file from template
+# {{ansible_managed}}
+# {{ansible_managed}}
+# ./autobrains_update.sh -i --force
+# will update this file from template
 # or if autobrains_update.sh is broken
+#
 # rm autobrains_update.sh
-# ansible-playbook {{playbook_dir}}/site.yml -l controller --tags init
-# {{no_edit_template}}
-# {{no_edit_template}}
-# {{no_edit_template}}
-# {{no_edit_template}}
-# {{no_edit_template}}
-
+# ansible-playbook site.yml -l controller --tags=update
+#
+# TODO: removed all start_ssh_agent. Need to give option to load and load or use alreadly loaded key
 
 # Version hash: $Id$
 
-## This will be the loop variable DNETS 
+## This will be the loop variable DNETS
 {% set dnetspace = joiner(" ") %}
 DNETS='{% for dnet in dnets %}{{dnetspace()}}{{dnet}}{% endfor %}'
 
-EMAIL_NOTIFY='{{autobrains_config["email_notify"]}}'
-EMAIL_KEY_ID='{{autobrains_config["email_key_id"]}}'
-LOGDIR='{{autobrains_config["log_dir"]}}'
+EMAIL_NOTIFY='{{autobrains_config.email_notify}}'
+EMAIL_KEY_ID='{{autobrains_config.email_key_id}}'
+LOGDIR='{{autobrains_config.log_dir}}'
 EXIT_SUCCESS=0
 EXIT_FAILURE=1
 
@@ -34,13 +30,13 @@ COMPLETED_TIME_FILE='.completed_timestamp'
 
 {% set bpspace = joiner(" ") %}
 {% if autobrains_bypasses is defined and autobrains_bypasses %}
-BYPASS_FILES="{% for bypass in autobrains_bypasses %}{{bpspace()}}{{bypass}}{% endfor %}" 
+BYPASS_FILES="{% for bypass in autobrains_bypasses %}{{bpspace()}}{{bypass}}{% endfor %}"
 {% endif %}
 
 ##########
 ## SETUP 
 COMMANDLINE="$0 $*"
-ECHO_SEPARATOR='\n#################################\n\t##\t##\n#################################\n'
+ECHO_SEPARATOR='\n##########\n\t##\t##\n##########\n'
 DATE=$(date +%Y%m%d%H%M%S)
 EDATE=$(date +%s)
 # Just in case
@@ -120,18 +116,17 @@ $0 --most -n
 
 $0 --most -y --force
 			Run most local configuration and install.
-			This is dangerous but will be the future
-			for a automated update.
 EOF
 )
 
 echo "$HELP" | less -EXR
 }
 
-
 # set the encrypted mailer routine
 function notify() {
-gpg --homedir /root/.gnupg/ -e -a -r $EMAIL_KEY_ID | mailx -s "$UNAME updated w/ autobrains" ${EMAIL_NOTIFY} 
+# TODO: Make this work again. Currently disabled
+#gpg --homedir {{tls_gpghome}} -e -a -r $EMAIL_KEY_ID | mailx -s "$UNAME updated w/ autobrains" ${EMAIL_NOTIFY} 
+echo "TODO: fix notify"
 }
 
 function notify_store() {
@@ -199,38 +194,25 @@ fi
 [ -n "$SMART" ] || echo
 }
 
-function awstatsorn() {
-if [ -n "$YES" ]; then
-  yn='y'
-  $2
-elif [ -n "$NO" ]; then
-  yn='n'
-  return
-else
-  while true; do
-    read -p "$1 (awstats/n)? " yn
-    case $yn in
-      [awstats]* ) $2; echo "$EDATE" > {{playbook_dir}}/config/rundata/$AW_LASTRUN_FILE ; break;;
-      [Nn]* ) break;;
-         * ) echo "Please answer awstats or n.";;
-    esac
-  done
-fi
-[ -n "$SMART" ] || echo
-}
-
 function fetch_clients_yml() {
-  curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" https://{{autobrains_config["dash_proxy"]}}{{autobrains_config["clients_yml_url"]}} > {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} 2>> config/logs/current.log
-   # Do this here incase clients.yml does not exist or is broken
-  rm {{playbook_dir}}/clients.yml
-  ln -s clients.yml-revisions/clients.yml-${DATE} clients.yml
+  if [ -n "$DEBUG" ]; then
+    ansible-playbook site.yml -l dashboard --tags='clients_yml'
+    local exitcode=$?
+    if [ $exitcode -ne 0 ]; then
+      echo "Something went wrong. Can not continue."
+      exit
+    fi
+  else
+    ansible-playbook site.yml -l dashboard --tags='clients_yml' >> config/logs/current.log &
+    spin $!
+  fi
 
-  if diff {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} >> config/logs/current.log 2>&1 ; then
+  if diff clients.yml-revisions/clients.yml-last_used clients.yml >> config/logs/current.log 2>&1 ; then
     echo "No differences found in clients.yml since updated."
   else
     echo "Differences found in clients.yml since updated."
     echo -e $ECHO_SEPARATOR
-    diff -U 5 {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE}
+    diff -U 5 clients.yml-revisions/clients.yml-last_used clients.yml
   NEWCLIENTS_YML=0
   fi
 }
@@ -262,7 +244,7 @@ fi
 }
 
 function le_cert_bundle_diff_loop {
-  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   for i in {{letsencrypt_output}}/*; do
     ls $i >> config/logs/current.log 2>&1
     RT=$?
@@ -294,22 +276,44 @@ function le_cert_bundle_diff_loop {
     fi
     
 done
+}
 
+function ats_custom_conf_diff {
+  ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
+  for i in config/conf.d/*; do
+    ls $i >> config/logs/current.log 2>&1
+    RT=$?
+    if [ "$RT" -gt 0 ]; then
+      continue
+    fi
+    DIFF_FILES="$ATS_DIR/conf/conf.d/$(basename $i) $i"
+    diff -Nq $DIFF_FILES
+    RT=$?
+    if [ $RT -eq 2 ]
+    then
+      echo "ERROR: There was something wrong with the diff command"
+    elif [ $RT -eq 1 ]
+    then
+      yorn "Do you want to install this file in $DNET" "install_file $i $ATS_DIR/conf/conf.d/$(basename $i)"
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
+      echo -e $ECHO_SEPARATOR
+    fi
+done
 }
 
 function uploaded_cert_bundle_diff_loop {
-  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   for i in {{tls_home}}/output/$DNET/*; do
     ls $i >> config/logs/current.log 2>&1
     RT=$?
     if [ "$RT" -gt 0 ]; then 
       continue
-    fi   
+    fi
     local test=$(match_bypass_file "$(basename $i)")
     if [ $test -gt 0 ]; then 
       echo -e "Bypassing file $(basename $i)" 
       continue
-    fi   
+    fi
     DIFF_FILES="$ATS_DIR/conf/ssl/$(basename $i) $i"
     diff -Nq $DIFF_FILES
     RT=$?
@@ -321,14 +325,13 @@ function uploaded_cert_bundle_diff_loop {
       yorn "Do you want to install this file in $DNET" "install_file $i $ATS_DIR/conf/ssl/$(basename $i)" 
       [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
       echo -e $ECHO_SEPARATOR 
-    fi   
+    fi
     
 done
-
 }
 
 function banjax_diff_loop {
-  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   for i in {{banjax_output}}$DNET/banjax.d/*.bconf; do
     ls $i >> config/logs/current.log 2>&1
     RT=$?
@@ -365,10 +368,10 @@ function zone_diff_loop {
     fi
     local test=$(match_bypass_file "$(basename $i)")
     if [ $test -gt 0 ]; then 
-      echo -e "Bypassing file $(basename $i)" 
+      echo -e "Bypassing file $(basename $i)"
       continue
     fi
-    DIFF_FILES="{{autobrains_config["zone_files"]}}/$DNET/$(basename $i) $i"
+    DIFF_FILES="{{autobrains_config.zone_files}}/$DNET/$(basename $i) $i"
     diff -Ntu $DIFF_FILES
     RT=$?
     if [ $RT -eq 2 ]
@@ -382,22 +385,22 @@ function zone_diff_loop {
         if [ "$d" == "$DNET" ]; then
           continue
         else
-          [ -f {{autobrains_config["zone_files"]}}/$d/$(basename $i) ] && echo -e "\n$(basename $i) exists in $d\nand you want to install to $DNET.\nThis is not aloud! Please fix this.\nexample:\n mv {{autobrains_config["zone_files"]}}/$d/$(basename $i) {{autobrains_config["zone_files"]}}/$DNET/$(basename $i)\nor\n rm {{autobrains_config["zone_files"]}}/$d/$(basename $i)\nBypassing install option.\n" && local zone_conflict=1 
+          [ -f {{autobrains_config.zone_files}}/$d/$(basename $i) ] && echo -e "\n$(basename $i) exists in $d\nand you want to install to $DNET.\nThis is not aloud! Please fix this.\nexample:\n mv {{autobrains_config.zone_files}}/$d/$(basename $i) {{autobrains_config.zone_files}}/$DNET/$(basename $i)\nor\n rm {{autobrains_config.zone_files}}/$d/$(basename $i)\nBypassing install option.\n" && local zone_conflict=1
         fi
       done
       if [ $zone_conflict -eq 1 ]; then
-        read -t 30 -p "[Enter] to continue or will automatically in 30 seconds " 
+        read -t 30 -p "[Enter] to continue or will automatically in 30 seconds "
       else
-        yorn "Do you want to install this file" "install_file $i {{autobrains_config["zone_files"]}}/$DNET/$(basename $i)"
+        yorn "Do you want to install this file" "install_file $i {{autobrains_config.zone_files}}/$DNET/$(basename $i)"
         [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
         echo -e $ECHO_SEPARATOR
      fi
-    fi 
+    fi
 done
 }
 
 function banjax_new_diff {
-  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   local test=$(match_bypass_file banjax.conf)
     if [ $test -gt 0 ]; then
       echo "Bypassing file banjax.conf"
@@ -416,29 +419,9 @@ function banjax_new_diff {
   fi
 }
 
-function logs_xml_diff {
-  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
-  local test=$(match_bypass_file logs_xml.config)
-    if [ $test -gt 0 ]; then
-      echo "Bypassing file logs_xml.config"
-      return 
-    fi
-  diff -Ntu $ATS_DIR/conf/logs_xml.config {{ats_output}}$DNET/logs_xml.config
-  RT=$?
-  if [ $RT -eq 2 ]
-  then
-    echo "ERROR: There was something wrong with the diff command"
-  elif [ $RT -eq 1 ]
-  then 
-    yorn "Do you want to install this file" "install_file {{ats_output}}$DNET/logs_xml.config $ATS_DIR/conf/logs_xml.config" 
-    [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
-    echo -e $ECHO_SEPARATOR
-  fi
-}
-
-# Newer logging.config file for ATS 7
+# ATS 7+
 function logging_diff {
-  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   local test=$(match_bypass_file logging.config)
     if [ $test -gt 0 ]; then
       echo "Bypassing file logging.config"
@@ -458,7 +441,7 @@ function logging_diff {
 }
 
 function dashboard_timestamp_diff {
-  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   local test=$(match_bypass_file dashboard.timestamp)
     if [ $test -gt 0 ]; then
       echo "Bypassing file dashboard.timestamp"
@@ -478,7 +461,7 @@ function dashboard_timestamp_diff {
 }
 
 function ssl_multicert_diff {
-  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   local test=$(match_bypass_file ssl_multicert.config)
     if [ $test -gt 0 ]; then
       echo "Bypassing file ssl_multicert.config"
@@ -498,7 +481,7 @@ function ssl_multicert_diff {
 }
 
 function remap_diff {
-  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   local test=$(match_bypass_file remap.config)
     if [ $test -gt 0 ]; then
       echo "Bypassing file remap.config"
@@ -518,7 +501,7 @@ function remap_diff {
 }
 
 function hosts_diff {
-  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   local test=$(match_bypass_file hosts.origin)
     if [ $test -gt 0 ]; then
       echo "Bypassing file hosts.origin"
@@ -538,7 +521,7 @@ function hosts_diff {
 }
 
 function cache_diff {
-  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
+  ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   local test=$(match_bypass_file cache.config)
     if [ $test -gt 0 ]; then
       echo "Bypassing file cache.config"
@@ -558,19 +541,19 @@ function cache_diff {
 }
 
 function bind_local_templated_diff {
-  local test=$(match_bypass_file named.conf.local.templated)
+  local test=$(match_bypass_file named.conf.local.edgemanage)
     if [ $test -gt 0 ]; then
-      echo "Bypassing file named.conf.local.templated"
+      echo "Bypassing file named.conf.local.edgemanage"
       return 
     fi
-  diff -Ntu {{autobrains_config["loc_bind_confs"]}}/named.conf.local.templated {{bind_output}}bind/named.conf.local.templated
+  diff -Ntu {{autobrains_config.loc_bind_confs}}/named.conf.local.edgemanage {{bind_output}}bind/named.conf.local.edgemanage
   RT=$?
   if [ $RT -eq 2 ]
   then
     echo "ERROR: There was something wrong with the diff command"
   elif [ $RT -eq 1 ]
   then
-    yorn "Do you want to install this file" "install_file {{bind_output}}bind/named.conf.local.templated {{autobrains_config["loc_bind_confs"]}}/named.conf.local.templated"
+    yorn "Do you want to install this file" "install_file {{bind_output}}bind/named.conf.local.edgemanage {{autobrains_config["loc_bind_confs"]}}/named.conf.local.edgemanage"
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
     echo -e $ECHO_SEPARATOR
   fi
@@ -580,12 +563,12 @@ function all_diff {
 for DNET in $DNETS; do
   banjax_new_diff
   banjax_diff_loop
-  logs_xml_diff
   logging_diff
   ssl_multicert_diff
   remap_diff
   hosts_diff
   cache_diff
+  ats_custom_conf_diff
   zone_diff_loop
   le_cert_bundle_diff_loop
   uploaded_cert_bundle_diff_loop
@@ -629,12 +612,13 @@ function finish() {
   else
     echo "[$(date -d @$EDATE)] $UNAME \"$COMMANDLINE\" [$timetook] - \"NO DIFF\"" >> config/logs/autodeflect-$(date +%Y%m%d).log
   fi
-  echo "Last complete run: $(date -d @$(cat {{playbook_dir}}/config/rundata/$COMPLETED_TIME_FILE))"
+  echo "Last complete run: $(date -d @$(cat config/rundata/$COMPLETED_TIME_FILE))"
   # Write to audit.log
   echo "[$(date -d @$EDATE)] $UNAME \"$COMMANDLINE\" [$timetook]" >> config/logs/audit.log
   rm config/rundata/$LOCK_PREFIX$UNAME  2>> config/logs/current.log
   [ -n "$SMART" ] || tput cnorm
   [ -n "$AUTODEFLECT_AGENT" ] && eval `ssh-agent -k` && echo "killed autobrain ssh-agent (${AUTODEFLECT_AGENT})"
+  cat config/logs/current.log > config/logs/current-$DATE.log 
   echo "Runtime: $timetook"
   cd $CUR_DIR
   trap '' EXIT
@@ -642,16 +626,9 @@ function finish() {
 }
 
 function dot_generated() {
-  ATS_DIR="{{autobrains_config["deflect_dir"]}}/edges/$DNET{{autobrains_config["trafficserver_dir"]}}"
-  date +%s > $ATS_DIR/conf/remap.d/.generated
+  ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
   touch $ATS_DIR/conf/remap.config
   CHANGED=0
-}
-
-function cat_blacklist() {
-  echo -e "The following are not included from\n{{autobrains_config["dashadmin_host"]}}\n## START BLACKLIST ##"
-  curl -k -H "Host: {{autobrains_config["dashadmin_host"]}}" https://{{autobrains_config["dash_proxy"]}}{{autobrains_config["dash_blacklist_url"]}}
-  echo -e "\n## END BLACKLIST ##"
 }
 
 function controller_update() {
@@ -660,39 +637,21 @@ function controller_update() {
 
   rm -rf {{ats_output}} {{banjax_output}} {{bind_output}} {{tls_home}}/output
   if [ -n "$DEBUG" ]; then
-    ansible-playbook {{playbook_dir}}/site.yml -l controller
+    ansible-playbook site.yml -l controller
     local exitcode=$?
     if [ $exitcode -ne 0 ]; then
       echo "Something went wrong. Can not continue."
       exit
     fi
   else
-    ansible-playbook {{playbook_dir}}/site.yml -l controller >> config/logs/current.log &
-    spin $!
-  fi
-}
-
-function awstats_update() {
-  if [ -z "$OVERRIDECHECKED" ]; then
-    check_override
-  fi
-
-  if [ -n "$DEBUG" ]; then
-    ansible-playbook {{playbook_dir}}/site.yml -l awstats
-    local exitcode=$?
-    if [ $exitcode -ne 0 ]; then
-      echo "Something went wrong. Can not continue."
-      exit
-    fi
-  else
-    ansible-playbook {{playbook_dir}}/site.yml -l awstats >> config/logs/current.log &
+    ansible-playbook site.yml -l controller >> config/logs/current.log &
     spin $!
   fi
 }
 
 function initau() {
   rm $0
-  ansible-playbook {{playbook_dir}}/site.yml -l controller --tags init
+  ansible-playbook site.yml -l controller --tags='update'
 }
 
 function spin() {
@@ -766,17 +725,18 @@ fi
 {% endraw %}
 
 function start_ssh_agent() {
+# TODO: We need to use this someplace again
 # We return true or exit
 # set up an ssh-agent if we don't already have one, and kill it after if we created
 # it now
 [ -z $SSH_AUTH_SOCK ] && eval `ssh-agent -s` && AUTODEFLECT_AGENT="$SSH_AGENT_PID"
 local counter
-while ! ssh-add -ls 2>&1 | grep `ssh-keygen -lf {{ autobrains_config["deploy_key_path"] }} 2>&1 | awk '{print $2}'` >> config/logs/current.log ; do
+while ! ssh-add -ls 2>&1 | grep `ssh-keygen -lf {{ autobrains_config.deploy_key_path }} 2>&1 | awk '{print $2}'` >> config/logs/current.log ; do
   if [ -n "$SMART" ]; then
     echo -e "\nwith --smart ssh-agent and ssh-add must already have edge key loaded. Can not continue.\n"
     exit
   else
-    ssh-add {{ autobrains_config["deploy_key_path"] }}
+    ssh-add {{ autobrains_config.deploy_key_path }}
     let counter=counter+1
     if [ $counter -gt 4 ]; then
       echo "Error loading key. Can not continue"
@@ -788,57 +748,26 @@ return $(true)
 }
 
 function run_deploy() {
-
-# This function should always return true. Anything else should be exit in the function itself
-start_ssh_agent || exit
-
 for DNET in $DNETS; do
   if [ -n "${REMAP_TOUCHED[$DNET]}" ]; then
-    nonlive=$(get_nonlive_edge)
-    if [ $nonlive ]; then
-      echo "Test config on $nonlive on $DNET"
-      if [ -n "$DEBUG" ]; then
-        local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive)
-      else
-        local test_run=$({{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -l -H $nonlive 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}')
-      fi
-      if echo "$test_run" | grep Via >> config/logs/current.log 2>&1; then
-        echo "Found Via header. Test config good"
-        NONLIVESAFE=0
-      fi
-    fi
-
-    if [ -n "$NONLIVESAFE" ]; then
-      echo "Full deploy needed. Running \"deploy\" for \"$DNET\""
-      if [ -n "$DEBUG" ]; then
-        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -l -H ALL
-      else
-        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p ats -l -H ALL 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}'
-      fi
-      # We set a variable array for this DNET has been deployed
-      DEPLOYED[$DNET]=0
+    echo "Full deploy needed. Running \"deploy\" for \"$DNET\""
+    if [ -n "$DEBUG" ]; then
+      {{autobrains_config.deflect_dir}}/scripts/fastdeploy -H $DNET
     else
-      if [ "$nonlive" = '' ]; then
-        echo "Could not find a test edge. Will not continue."
-      else
-        echo -e "Config not safe. No Via header found when\ndeployed to $nonlive. Will not continue."
-      fi
-    exit
+      {{autobrains_config.deflect_dir}}/scripts/fastdeploy -H $DNET 2>&1 >> config/logs/current.log
     fi
-  # We are here because no new config detected on the DNET
+    DEPLOYED[$DNET]=0
   else
-    # We only need 'conftouch' if client.yml was different
     if [ -n "$NEWCLIENTS_YML" ] && [ -z "${SKIPPED_INSTALL[$DNET]}" ]; then
       echo "Full deploy not needed. Running \"conftouch\" for \"$DNET\""
       if [ -n "$DEBUG" ]; then
-        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL
+        {{autobrains_config.deflect_dir}}/scripts/fastdeploy -H $DNET -t
       else
-        {{autobrains_config["deflect_dir"]}}/scripts/deploy.sh -A $DNET -p conftouch -H ALL 2>> config/logs/current.log | sed -n '/^\(!!!\|Via\)/{s/!!!\|NOW//g;p;}'
+        {{autobrains_config.deflect_dir}}/scripts/fastdeploy -H $DNET -t 2>&1 >> config/logs/current.log
       fi
     else
       echo "Do not need a deploy on \"$DNET\""
     fi
-    # We set a variable array for this DNET has been deployed
     DEPLOYED[$DNET]=0
   fi
 done
@@ -860,11 +789,11 @@ done
 
 # This should protect us from marking deployed timestamp if we skipped and ran again
 if [ -n "$NEWCLIENTS_YML" ] && [ -z "$nomark" ]; then
-  cp {{playbook_dir}}/clients.yml-revisions/clients.yml-${DATE} {{playbook_dir}}/clients.yml-revisions/clients.yml-last_used
+  cat clients.yml > clients.yml-revisions/clients.yml-last_used
 fi
 
 # If we did not set 'nomark' then update the timestamp file with EPOCH
-[ -z "$nomark" ] && echo "$EDATE" > {{playbook_dir}}/config/rundata/$COMPLETED_TIME_FILE
+[ -z "$nomark" ] && echo "$EDATE" > config/rundata/$COMPLETED_TIME_FILE
 
 }
 
@@ -873,26 +802,33 @@ function letsencrypt_update() {
     check_override
   fi
 
-  start_ssh_agent || exit
-
   rm -rf {{letsencrypt_output}}
 
   if [ -n "$DEBUG" ]; then
-    ansible-playbook {{playbook_dir}}/site.yml -l letsencrypt
+    ansible-playbook site.yml -l letsencrypt
     local exitcode=$?
     if [ $exitcode -ne 0 ]; then
       echo "Something went wrong. Can not continue."
       exit
     fi
   else
-    ansible-playbook {{playbook_dir}}/site.yml -l letsencrypt >> config/logs/current.log &
+    ansible-playbook site.yml -l letsencrypt >> config/logs/current.log &
     spin $!
   fi
 }
 
 function sync_dashboard_tls() {
-  # get files uploaded manually to dashboard
-  rsync -ae "ssh -p {{autobrains_config["dashadmin_ssh_port"]}}" {{autobrains_config["dash_proxy"]}}:{{autobrains_config["tls_bundles_path"]}}/ {{tls_home}}/encrypted
+  if [ -n "$DEBUG" ]; then
+    ansible-playbook site.yml -l dashboard --tags='tls_bundles'
+    local exitcode=$?
+    if [ $exitcode -ne 0 ]; then
+      echo "Something went wrong. Can not continue."
+      exit
+    fi
+  else
+    ansible-playbook site.yml -l dashboard --tags='tls_bundles' >> config/logs/current.log &
+    spin $!
+  fi
 }
 
 #########
@@ -987,7 +923,6 @@ case "$1" in
   MOST=0
   YES=0
   NOSPIN=0
-  start_ssh_agent || STOP=0
   shift
   ;;
   --force)
@@ -1053,7 +988,6 @@ if [ -n "$SKIP_UPDATE" ]; then
       fetch_clients_yml
     else
       yorn "Download latest dashboard config" "fetch_clients_yml"
-      cat_blacklist
     fi
   fi
 
@@ -1068,13 +1002,6 @@ if [ -n "$SKIP_UPDATE" ]; then
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped
     yorn "Update (controller) config" "controller_update"
     [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && mark_all_skipped 
-  fi
-  if [ -z "$MOST" ]; then
-    AW_LASTRAN=$(date -d @$(cat {{playbook_dir}}/config/rundata/$AW_LASTRUN_FILE))
-    echo "Awstats was last updated: $AW_LASTRAN"
-    awstatsorn "Update (awstats) config" "awstats_update"
-  elif [ -n "$THEREST" ]; then
-    awstats_update 
   fi
 fi
 

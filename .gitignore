@@ -1,13 +1,13 @@
-site.yml
+inventory
 clients.yml
 clients.yml-revisions
 override.yml
-hosts.yml
-config/
-bind/
-ats/
-banjax/
-certs/
+/group_vars
+/config/
+/bind/
+/ats/
+/banjax/
+/certs/
 autobrains_update.sh
 old/
 daemon/*.o
@@ -16,7 +16,7 @@ daemon/autodeflect
 daemon/ad2p
 daemon/ad2ssh
 daemon/ad2runner
-bin/
+/bin/
 *.swp
 /http/vendor/
 /http/logs/*
@@ -29,3 +29,5 @@ composer.lock
 http/config.php
 siteslist.json
 trigger.sh
+*.retry
+/deploy.yml

@@ -1,0 +1,90 @@
+---
+- name: get local date
+  local_action:
+    module: shell
+    _raw_params: date +%s
+  register: local_date
+  run_once: true
+  tags:
+    - tls
+    - renew-non-auto-le
+
+- name: run non-auto-certs-renew on letsencrypt server
+  shell: /usr/local/bin/non-auto-certs-renew {{local_date.stdout}} autodeflect
+  become: true
+  when: le_skip == false
+  tags:
+    - tls
+    - renew-non-auto-le
+
+- name: fetch the tgz certs
+  fetch:
+    src: /opt/non-auto/archives/edge-certs-{{local_date.stdout}}.tgz
+    dest: /tmp/edge-certs-{{local_date.stdout}}.tgz
+    flat: yes
+  when: le_skip == false
+  become: true
+  tags:
+    - tls
+    - renew-non-auto-le
+
+- set_fact:
+    default_dnet: "{{hostvars[groups['controller'][0]]['default_dnet']}}"
+  run_once: true
+  tags:
+    - tls
+    - renew-non-auto-le
+
+- set_fact:
+    dnets: "{{hostvars[groups['controller'][0]]['dnets']}}"
+  run_once: true
+  tags:
+    - tls
+    - renew-non-auto-le
+
+- name: make output directories
+  local_action:
+    module: file
+    path: "{{letsencrypt_output}}non-auto/{{item.key}}"
+    mode: '0755'
+    recurse: yes
+    state: directory
+  run_once: true
+  with_dict: "{{dnets}}"
+  tags:
+    - tls
+    - renew-non-auto-le
+
+- name: copy all into default dnet cert bundle directory
+  local_action:
+    module: shell 
+    _raw_params: "cd {{letsencrypt_output}}non-auto/{{default_dnet}} && tar xzf /tmp/edge-certs-{{local_date.stdout}}.tgz"
+  become: true
+  run_once: true
+  when: le_skip == false
+  tags:
+    - tls
+    - renew-non-auto-le
+
+- name: copy cert to the other dnets
+  local_action:
+    module: shell
+    _raw_params: "cd {{letsencrypt_output}}non-auto/{{default_dnet}} && cp {{dnets[default_dnet]}}.non-auto-le.* ../{{item.key}}/"
+  when: (le_skip == false) and (default_dnet != item.key)
+  become: true
+  with_dict: "{{dnets}}"
+  run_once: true
+  tags:
+    - tls
+    - renew-non-auto-le
+
+- name: cleanup
+  local_action:
+    module: file
+    path: "/tmp/edge-certs-{{local_date.stdout}}.tgz"
+    state: absent
+  become: true
+  run_once: true
+  tags:
+    - tls
+    - renew-non-auto-le

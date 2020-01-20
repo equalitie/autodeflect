@@ -1,0 +1,67 @@
+---
+- name: Create banjax base directory
+  file:
+    path: "{{banjax_output}}"
+    state: directory
+    mode: '0755'
+  tags:
+    - banjax
+    - setup
+
+- name: Create banjax dnet directories
+  file:
+    path: "{{banjax_output}}{{item.key}}"
+    state: directory
+    mode: '0755'
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+    - setup
+
+- name: Create banjax.d dir
+  file:
+    path: "{{banjax_output}}{{item.key}}/banjax.d"
+    state: directory
+    mode: '0755'
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+    - setup
+
+- name: Banjax configuration file
+  template:
+    src: banjax/banjax.conf.j2
+    dest: "{{banjax_output}}{{item.key}}/banjax.conf"
+    validate: 'python scripts/validate_yaml.py %s'
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+
+- name: banjax.d/sites.bconf configuration file
+  template:
+    src: banjax/sites.bconf.j2
+    dest: "{{banjax_output}}{{item.key}}/banjax.d/sites.bconf"
+    validate: 'python scripts/validate_yaml.py %s'
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+    - banjaxd
+
+- name: general.bconf
+  template:
+    src: banjax/general.dnets.bconf
+    dest: "{{banjax_output}}{{item.key}}/banjax.d/general.bconf"
+    validate: 'python scripts/validate_yaml.py %s'
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+
+- name: Whitelists template
+  template:
+    src: banjax/whitelist.bconf.j2
+    dest: "{{banjax_output}}{{item.key}}/banjax.d/whitelist.bconf"
+    validate: 'python scripts/validate_yaml.py %s'
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+    - banjax_whitelist

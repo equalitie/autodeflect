@@ -1,34 +1,67 @@
 ---
-- name: create clients.yml-revisions directory
-  file: path={{playbook_dir}}/clients.yml-revisions state=directory mode=0755
-  tags:
-    - init
-    - setup
-
 - name: create directory layout
-  file: path={{playbook_dir}}/{{item}}  state=directory mode=0755
+  file:
+    path: "{{item.name}}"
+    state: directory
+    mode: "{{item.mode | default('0755')}}"
   with_items:
-    - config
-    - config/remap.d
-    - config/banjax.d
-    - config/rundata
-    - config/logs
-    - bin
+    - {name: 'clients.yml-revisions'}
+    - {name: 'bin'}
+    - {name: 'config'}
+    - {name: 'config/remap.d'}
+    - {name: 'config/banjax.d'}
+    - {name: 'config/rundata'}
+    - {name: 'config/logs'}
+    - {name: 'config/conf.d'}
+    - {name: 'config/gpg', mode: '0700'}
+    - {name: 'config/ssl_multicert.d', mode: '0700'}
   tags:
     - init
     - setup
 
-- name: check if autobrains_update.sh exists 
-  stat: path={{playbook_dir}}/autobrains_update.sh
-  register: autobrains_update 
+- name: check if autobrains_update.sh exists
+  stat:
+    path: "autobrains_update.sh"
+  register: autobrains_update
   ignore_errors: True
   tags:
     - init
     - setup
 
 - name: Create autobrains_update.sh script
-  template: src=autobrains_update.sh.j2 dest={{playbook_dir}}/autobrains_update.sh mode=755
+  template:
+    src: autobrains_update.sh.j2
+    dest: "autobrains_update.sh"
+    mode: '0755'
   when: not autobrains_update.stat.exists
+  tags:
+    - init
+    - setup
+
+- name: create placeholders
+  file:
+    path: "{{item}}"
+    state: touch
+  loop:
+    - clients.yml
+    - clients.yml-revisions/clients.yml-last_used
+  tags:
+    - init
+    - setup
+
+- name: check if config/rundata/.completed_timestamp exists
+  stat:
+    path: config/rundata/.completed_timestamp
+  register: completed_timestamp
+  tags:
+    - init
+    - setup
+
+- name: if completed_timestamp does not exist, create placeholder with Jan 1, 1970
+  copy:
+    content: "0"
+    dest: config/rundata/.completed_timestamp
+  when: completed_timestamp is defined and completed_timestamp.stat.exists == False
   tags:
     - init
     - setup

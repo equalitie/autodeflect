@@ -9,11 +9,16 @@ This project consists of progams to automatically detect when client has updated
 
 ## Installation
 
+Will autoinstall via ansible and eQualit.ie 'cityhall'
+
+Note: VERSION should match cityhall's roles/deflect/deflect/main.yml [autodeflect_daemon_version]
+
+Manual compile when 'cityhall' is not being used.
 Depends on:
 * libssh2
 * openssl
 
-Debian/Ubuntu (7.x/14.04)
+Debian/Ubuntu (7.x/14.04)+
 * apt-get install libssh2-1-dev libssl-dev
 
 After ansible has ran tag init 'ansible-playbook site.yml -l controller --tags init' 
@@ -68,6 +73,5 @@ Then in production:
 * "Rodney Mosley (RamJett)" 'rodney at equalit dot ie'
 * "Anonymous" 'sparklinux'
 
-* See: https://wiki.deflect.ca
 * Special contribution https://ramnic.com
 

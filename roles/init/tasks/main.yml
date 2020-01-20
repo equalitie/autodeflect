@@ -1,0 +1,43 @@
+---
+- name: create config directories
+  file:
+    path: "{{item.name}}"
+    state: directory
+    mode: "{{item.mode | default('0775')}}"
+  with_items:
+    - {name: 'config'}
+    - {name: 'config/group_vars'}
+    - {name: 'config/gpg', mode: '0750'}
+
+- name: link group_vars to top level
+  file:
+    src: config/group_vars
+    dest: group_vars
+    state: link
+
+- name: create some random string to use for passphrases
+  local_action: shell < /dev/urandom tr -dc A-Za-z0-9 | head -c {{ item.size }}
+  register: rand_result
+  with_items:
+    - { size: '{{40|random(36,1)}}' }
+    - { size: '{{76|random(60,1)}}' }
+    - { size: '{{40|random(36,1)}}' }
+
+- name: create group_vars vars file from template
+  template:
+    src: "{{item}}.j2"
+    dest: "config/group_vars/{{item}}"
+    mode: '0644'
+  with_items:
+    - all.yml
+    - controller.yml
+    - dashboard.yml
+    - letsencrypt.yml
+
+- name: Load main variables file for next tasks
+  include_vars: "group_vars/{{item}}"
+  with_items:
+    - all.yml
+    - controller.yml
+    - dashboard.yml
+    - letsencrypt.yml

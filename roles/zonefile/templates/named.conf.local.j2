@@ -1,11 +1,13 @@
-# {{ no_edit_template }}
+# {{ansible_managed}}
 {% for dnet in dnets %}
 {% if dnets[dnet] is defined and dnets[dnet] %}
 # in {{dnet}} dnet
 zone "{{dnets[dnet]}}" {
       type master;
-      file "{{dnets[dnet]}}.zone";
+      file "edgemanage/{{dnets[dnet]}}.zone";
       also-notify { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
+      allow-query { 127.0.0.1; {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
+      allow-transfer { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
 };
 {% endif %}
 {% endfor %}
@@ -14,8 +16,10 @@ zone "{{dnets[dnet]}}" {
 # in {{attributes.network}} dnet
 zone "{{site}}" {
       type master;
-      file "{{site}}.zone";
+      file "edgemanage/{{site}}.zone";
       also-notify { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
+      allow-query { 127.0.0.1; {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
+      allow-transfer { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
 };
 {% endif %}
 {% endfor %}

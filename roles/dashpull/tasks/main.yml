@@ -1,0 +1,76 @@
+---
+
+- name: make sure needed directories exist
+  local_action:
+    module: file
+    path: "{{item}}"
+    state: directory
+    mode: '0750'
+  with_items:
+    - clients.yml-revisions
+    - "{{tls_home}}"
+  tags:
+    - tls
+    - clients_yml
+    - tls_bundles
+
+- name: remove controller clients.yml link
+  local_action:
+    module: file
+    path: clients.yml
+    state: absent
+  tags:
+    - clients_yml
+
+# we want date format like: 20181116194851
+- name: get date
+  shell: date +%Y%m%d%H%M%S
+  register: dashdate
+  tags:
+    - clients_yml
+
+- name: get clients.yml
+  fetch:
+    src: "{{dash_clients_yml}}"
+    dest: "clients.yml-revisions/clients.yml-{{dashdate.stdout}}"
+    flat: true
+  tags:
+    - clients_yml
+
+- name: Link clients.yml
+  local_action:
+    module: file
+    src: "clients.yml-revisions/clients.yml-{{dashdate.stdout}}"
+    dest: clients.yml
+    state: link
+  tags:
+    - clients_yml
+
+- name: check if clients.yml-revisions/clients.yml-last_used exists
+  local_action:
+    module: stat
+    path: clients.yml-revisions/clients.yml-last_used
+  register: clientslast_used
+  ignore_errors: true
+  tags:
+    - clients_yml
+
+- name: copy current clients.yml to clients.yml-last_used if none
+  local_action:
+    module: copy
+    src: "clients.yml-revisions/clients.yml-{{dashdate.stdout}}"
+    dest: clients.yml-revisions/clients.yml-last_used
+  when: not clientslast_used.stat.exists
+  tags:
+    - clients_yml
+
+- name: sync tls bundles from dashboard
+  synchronize:
+    mode: pull
+    src: "{{tls_bundles_path}}/*.gpg"
+    dest: "{{tls_home}}/encrypted"
+    use_ssh_args: yes
+    checksum: yes
+  tags:
+    - tls
+    - tls_bundles
