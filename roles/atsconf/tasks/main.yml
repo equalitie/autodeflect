@@ -41,6 +41,16 @@
     - ats
     - ats_logging
 
+- name: Make sure remap_purge state file directory exists
+  file:
+    path: "/etc/remap_purge/"
+    state: directory
+    mode: '0777'
+  tags:
+    - ats
+    - tls
+    - setup
+
 - name: remap config
   template:
     src: remap.config.j2
