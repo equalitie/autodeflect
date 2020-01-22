@@ -43,7 +43,7 @@
 
 - name: Make sure remap_purge state file directory exists
   file:
-    path: "/etc/remap_purge/"
+    path: "/usr/local/trafficserver/remap_purge/"
     state: directory
     mode: '0777'
   tags:
