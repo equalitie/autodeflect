@@ -43,7 +43,7 @@ regex_map http://.*/.well-known/acme-challenge http://{{le_url}}/.well-known/acm
 {%- set pluginconf = pluginconf0 + pluginconf1 + pluginconf2 -%}
 {% macro pluginconf_for_site_and_mapping(site, map_name) %}
 {%- if remap[site]["ats_purge_secret"] is defined and remap[site]["ats_purge_secret"] -%}
-{{pluginconf ~ " @plugin=remap_purge.so @pparam=--header=ATS-Purger @pparam=--secret=" ~ remap[site]["ats_purge_secret"] ~ " @pparam=--state-file=/usr/local/trafficserver/remap_purge/" ~ site ~ "-" ~ map_name}}
+{{pluginconf ~ " @plugin=remap_purge.so @pparam=--header=ATS-Purger @pparam=--secret=" ~ remap[site]["ats_purge_secret"] ~ " @pparam=--state-file=/usr/local/trafficserver/conf/remap_purge/" ~ site ~ "-" ~ map_name}}
 {%- else -%}
 {{pluginconf}}
 {%- endif -%}
