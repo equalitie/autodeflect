@@ -380,21 +380,16 @@ function zone_diff_loop {
     elif [ $RT -eq 1 ]
     then
       # Check if live zone file is active in another dnet
-      local zone_conflict=0
       for d in $DNETS ; do
         if [ "$d" == "$DNET" ]; then
           continue
         else
-          [ -f {{autobrains_config.zone_files}}/$d/$(basename $i) ] && echo -e "\n$(basename $i) exists in $d\nand you want to install to $DNET.\nThis is not aloud! Please fix this.\nexample:\n mv {{autobrains_config.zone_files}}/$d/$(basename $i) {{autobrains_config.zone_files}}/$DNET/$(basename $i)\nor\n rm {{autobrains_config.zone_files}}/$d/$(basename $i)\nBypassing install option.\n" && local zone_conflict=1
+          [ -f {{autobrains_config.zone_files}}/$d/$(basename $i) ] && echo -e "\n$(basename $i) exists in $d\nand want to install in $DNET.\nRemoving from $d\n" && rm {{autobrains_config.zone_files}}/$d/$(basename $i)
         fi
       done
-      if [ $zone_conflict -eq 1 ]; then
-        read -t 30 -p "[Enter] to continue or will automatically in 30 seconds "
-      else
-        yorn "Do you want to install this file" "install_file $i {{autobrains_config.zone_files}}/$DNET/$(basename $i)"
-        [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
-        echo -e $ECHO_SEPARATOR
-     fi
+      yorn "Do you want to install this file" "install_file $i {{autobrains_config.zone_files}}/$DNET/$(basename $i)"
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
+      echo -e $ECHO_SEPARATOR
     fi
 done
 }
