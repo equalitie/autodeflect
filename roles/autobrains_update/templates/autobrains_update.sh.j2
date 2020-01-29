@@ -1034,15 +1034,15 @@ for DNET in $DNETS; do
     echo "proxy config changes for \"$DNET\" detected"
     nonlive=$(get_nonlive_edge)
     if [ $nonlive ]; then
-      echo "deploy.sh -A $DNET -p ats -l -H $nonlive"
+      echo "fastdeploy -H $nonlive"
     else
-      echo "ERROR: deploy.sh -A $DNET -p ats -H **missing**"
+      echo "ERROR: fastdeploy -H **missing**"
     fi
-    echo -e "deploy.sh -A $DNET -p ats -l -H ALL\n"
+    echo -e "fastdeploy -H $DNET\n"
   else
     echo "No proxy config changes for \"$DNET\" detected"
     if [ -n "$NEWCLIENTS_YML" ] && [ -z "${SKIPPED_INSTALL[$DNET]}" ]; then 
-      echo -e "deploy.sh -A $DNET -p conftouch -H ALL\n"
+      echo -e "fastdeploy -H $DNET -t\n"
     else
       if [ -n "${SKIPPED_INSTALL[$DNET]}" ]; then
         echo -e "and conftouch not recommended when skipping any steps.\n"
