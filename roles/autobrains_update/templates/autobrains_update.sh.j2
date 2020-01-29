@@ -569,12 +569,14 @@ for DNET in $DNETS; do
   hosts_diff
   cache_diff
   ats_custom_conf_diff
-  zone_diff_loop
   le_cert_bundle_diff_loop
   uploaded_cert_bundle_diff_loop
   dashboard_timestamp_diff
 done
   bind_local_templated_diff
+for DNET in $DNETS; do
+  zone_diff_loop
+done
 }
 
 function list_bypass_files {
