@@ -380,21 +380,16 @@ function zone_diff_loop {
     elif [ $RT -eq 1 ]
     then
       # Check if live zone file is active in another dnet
-      local zone_conflict=0
       for d in $DNETS ; do
         if [ "$d" == "$DNET" ]; then
           continue
         else
-          [ -f {{autobrains_config.zone_files}}/$d/$(basename $i) ] && echo -e "\n$(basename $i) exists in $d\nand you want to install to $DNET.\nThis is not aloud! Please fix this.\nexample:\n mv {{autobrains_config.zone_files}}/$d/$(basename $i) {{autobrains_config.zone_files}}/$DNET/$(basename $i)\nor\n rm {{autobrains_config.zone_files}}/$d/$(basename $i)\nBypassing install option.\n" && local zone_conflict=1
+          [ -f {{autobrains_config.zone_files}}/$d/$(basename $i) ] && echo -e "\n$(basename $i) exists in $d\nand want to install in $DNET.\nRemoving from $d\n" && rm {{autobrains_config.zone_files}}/$d/$(basename $i)
         fi
       done
-      if [ $zone_conflict -eq 1 ]; then
-        read -t 30 -p "[Enter] to continue or will automatically in 30 seconds "
-      else
-        yorn "Do you want to install this file" "install_file $i {{autobrains_config.zone_files}}/$DNET/$(basename $i)"
-        [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
-        echo -e $ECHO_SEPARATOR
-     fi
+      yorn "Do you want to install this file" "install_file $i {{autobrains_config.zone_files}}/$DNET/$(basename $i)"
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0
+      echo -e $ECHO_SEPARATOR
     fi
 done
 }
@@ -569,12 +564,14 @@ for DNET in $DNETS; do
   hosts_diff
   cache_diff
   ats_custom_conf_diff
-  zone_diff_loop
   le_cert_bundle_diff_loop
   uploaded_cert_bundle_diff_loop
   dashboard_timestamp_diff
 done
   bind_local_templated_diff
+for DNET in $DNETS; do
+  zone_diff_loop
+done
 }
 
 function list_bypass_files {
@@ -1037,15 +1034,15 @@ for DNET in $DNETS; do
     echo "proxy config changes for \"$DNET\" detected"
     nonlive=$(get_nonlive_edge)
     if [ $nonlive ]; then
-      echo "deploy.sh -A $DNET -p ats -l -H $nonlive"
+      echo "fastdeploy -H $nonlive"
     else
-      echo "ERROR: deploy.sh -A $DNET -p ats -H **missing**"
+      echo "ERROR: fastdeploy -H **missing**"
     fi
-    echo -e "deploy.sh -A $DNET -p ats -l -H ALL\n"
+    echo -e "fastdeploy -H $DNET\n"
   else
     echo "No proxy config changes for \"$DNET\" detected"
     if [ -n "$NEWCLIENTS_YML" ] && [ -z "${SKIPPED_INSTALL[$DNET]}" ]; then 
-      echo -e "deploy.sh -A $DNET -p conftouch -H ALL\n"
+      echo -e "fastdeploy -H $DNET -t\n"
     else
       if [ -n "${SKIPPED_INSTALL[$DNET]}" ]; then
         echo -e "and conftouch not recommended when skipping any steps.\n"
