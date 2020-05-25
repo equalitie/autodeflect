@@ -8,6 +8,11 @@ dnets:
 {% for d in our_list %}  {{d}}:
 {% endfor %}
 {% endif %}
+# Use dnets_deploy_bypass as a list of dnets you do not
+# want new edges configuration updated.
+# dnets_deploy_bypass:
+#   - dnet1
+#   - dnet2
 le_url: "{{le_url}}"
 swabber_grace: "{{swabber_grace}}"
 challenger_key: "{{rand_result.results[0].stdout}}"
