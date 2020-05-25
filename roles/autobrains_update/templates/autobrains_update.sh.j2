@@ -16,6 +16,10 @@
 {% set dnetspace = joiner(" ") %}
 DNETS='{% for dnet in dnets %}{{dnetspace()}}{{dnet}}{% endfor %}'
 
+{% if dnets_deploy_bypass is defined and dnets_deploy_bypass is iterable %}
+DNETS_BYPASS='{% for bypass in dnets_deploy_bypass %}{dnetspace()}}{{bypass}}{% endfor %}'
+{% endif %}
+
 EMAIL_NOTIFY='{{autobrains_config.email_notify}}'
 EMAIL_KEY_ID='{{autobrains_config.email_key_id}}'
 LOGDIR='{{autobrains_config.log_dir}}'
@@ -746,21 +750,31 @@ return $(true)
 
 function run_deploy() {
 for DNET in $DNETS; do
-  if [ -n "${REMAP_TOUCHED[$DNET]}" ]; then
+  SKIP_RUN=0
+  if [ -n "$DNETS_BYPASS" ]; then
+    for BYP in $DNETS_BYPASS; do
+      if [ "${REMAP_TOUCHED[$DNET]}" == "$BYP" ]; then
+        # Skip the deploy
+        SKIP_RUN=1
+	# Mark as deployed
+	DEPLOYED[$DNET]=0
+      fi
+    done
+  if [ -n "${REMAP_TOUCHED[$DNET]}" ] && [ $SKIP_RUN -ne 1 ]; then
     echo "Full deploy needed. Running \"deploy\" for \"$DNET\""
     if [ -n "$DEBUG" ]; then
-      {{autobrains_config.deflect_dir}}/scripts/fastdeploy -H $DNET
+      {{ autobrains_config.deflect_dir }}/scripts/fastdeploy -H $DNET
     else
-      {{autobrains_config.deflect_dir}}/scripts/fastdeploy -H $DNET 2>&1 >> config/logs/current.log
+      {{ autobrains_config.deflect_dir }}/scripts/fastdeploy -H $DNET 2>&1 >> config/logs/current.log
     fi
     DEPLOYED[$DNET]=0
   else
     if [ -n "$NEWCLIENTS_YML" ] && [ -z "${SKIPPED_INSTALL[$DNET]}" ]; then
       echo "Full deploy not needed. Running \"conftouch\" for \"$DNET\""
       if [ -n "$DEBUG" ]; then
-        {{autobrains_config.deflect_dir}}/scripts/fastdeploy -H $DNET -t
+        {{ autobrains_config.deflect_dir }}/scripts/fastdeploy -H $DNET -t
       else
-        {{autobrains_config.deflect_dir}}/scripts/fastdeploy -H $DNET -t 2>&1 >> config/logs/current.log
+        {{ autobrains_config.deflect_dir }}/scripts/fastdeploy -H $DNET -t 2>&1 >> config/logs/current.log
       fi
     else
       echo "Do not need a deploy on \"$DNET\""
@@ -781,7 +795,7 @@ function finalize_deploy_status() {
 local d
 local nomark
 for d in $DNETS; do
-  [ -n "${SKIPPED_INSTALL[$DNET]}" ] || [ -z "${DEPLOYED[$DNET]}" ] && nomark=0
+  [ -n "${SKIPPED_INSTALL[$d]}" ] || [ -z "${DEPLOYED[$d]}" ] && nomark=0
 done
 
 # This should protect us from marking deployed timestamp if we skipped and ran again
