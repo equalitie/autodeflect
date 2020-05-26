@@ -756,8 +756,8 @@ for DNET in $DNETS; do
       if [ "${REMAP_TOUCHED[$DNET]}" == "$BYP" ]; then
         # Skip the deploy
         SKIP_RUN=1
-	# Mark as deployed
-	DEPLOYED[$DNET]=0
+	# Mark as skipped so we will run again next time
+        SKIPPED_INSTALL[$DNET]=0
       fi
     done
   if [ -n "${REMAP_TOUCHED[$DNET]}" ] && [ $SKIP_RUN -ne 1 ]; then
