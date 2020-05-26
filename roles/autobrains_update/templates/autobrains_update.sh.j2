@@ -760,6 +760,7 @@ for DNET in $DNETS; do
         SKIPPED_INSTALL[$DNET]=0
       fi
     done
+  fi
   if [ -n "${REMAP_TOUCHED[$DNET]}" ] && [ $SKIP_RUN -ne 1 ]; then
     echo "Full deploy needed. Running \"deploy\" for \"$DNET\""
     if [ -n "$DEBUG" ]; then
