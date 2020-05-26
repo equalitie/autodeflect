@@ -17,7 +17,8 @@
 DNETS='{% for dnet in dnets %}{{dnetspace()}}{{dnet}}{% endfor %}'
 
 {% if dnets_deploy_bypass is defined and dnets_deploy_bypass is iterable %}
-DNETS_BYPASS='{% for bypass in dnets_deploy_bypass %}{dnetspace()}}{{bypass}}{% endfor %}'
+{% set dnetspace = joiner(" ") %}
+DNETS_BYPASS='{% for bypass in dnets_deploy_bypass %}{{dnetspace()}}{{bypass}}{% endfor %}'
 {% endif %}
 
 EMAIL_NOTIFY='{{autobrains_config.email_notify}}'
