@@ -754,7 +754,7 @@ for DNET in $DNETS; do
   SKIP_RUN=0
   if [ -n "$DNETS_BYPASS" ]; then
     for BYP in $DNETS_BYPASS; do
-      if [ "${REMAP_TOUCHED[$DNET]}" == "$BYP" ]; then
+      if [ "$DNET" == "$BYP" ]; then
         # Skip the deploy
         SKIP_RUN=1
 	# Mark as skipped so we will run again next time
