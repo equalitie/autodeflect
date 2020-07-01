@@ -758,7 +758,7 @@ for DNET in $DNETS; do
         # Skip the deploy
         SKIP_RUN=1
 	# Mark as skipped so we will run again next time
-        SKIPPED_INSTALL[$DNET]=0
+        # SKIPPED_INSTALL[$DNET]=0
 	if [ -n "$DEBUG" ]; then
           echo "Skipping \"deploy\" for dnet \"$DNET\""
 	fi
