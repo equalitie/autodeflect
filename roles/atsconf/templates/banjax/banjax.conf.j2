@@ -20,7 +20,42 @@ include:
 challenger:
   key: {{challenger_key}}
   difficulty: 8
+  dynamic_challenger_config:
+    name: "from-kafka-challenge"
+    challenge_type: "sha_inverse"
+    challenge: "solver.html"
+    magic_word:
+      - ['regexp', '.*']
+    validity_period: 360000   # how long a cookie stays valid for
+    white_listed_ips:         # XXX i needed this for some reason
+      - '0.0.0.0'
+    no_of_fails_to_ban: 10    # XXX think about what this should be...
+  dynamic_expiry_seconds: 60  # remove dynamic challenges after this long
 
 bot_sniffer:
   botbanger_port: 22621
   key: "{{botbanger_key}}"
+
+kafka:
+  metadata.broker.list: "{{kafka_broker_ip}}"
+  security.protocol: 'ssl'
+  ssl.ca.location: "{{TSPATH}}/conf/banjax/caroot.pem"
+  ssl.certificate.location: "/{{TSPATH}}/banjax/certificate.pem"
+  ssl.key.location: "/TSPATH/banjax/key.pem"
+  ssl.key.password: "{{banjax_ssl_key_password}}"
+  report_topic: 'banjax_report_topic'
+  command_topic: 'banjax_command_topic'
+  ats_metrics_to_report:
+    - "proxy.process.traffic_server.memory.rss"
+    - "proxy.node.cache.contents.num_docs"
+    - "proxy.process.cache.bytes_total"
+    - "proxy.process.cache.percent_full"
+    - "proxy.process.cache.ram_cache.bytes_used"
+    - "proxy.process.cache.ram_cache.total_bytes"
+    - "proxy.process.net.connections_currently_open"
+    - "proxy.process.current_server_connections"
+    - "proxy.process.http.current_active_client_connections"
+    - "proxy.process.eventloop.time.max"
+
+remove_expired_challenges_interval_seconds: 30
+report_status_interval_seconds: 15
