@@ -72,7 +72,6 @@
     dest: "{{ banjax_output }}{{ item.key }}/banjax.d/dynamic.bconf"
     validate: 'python scripts/validate_yaml.py %s'
   with_dict: "{{ dnets }}"
-  when: dynamic_banjax
   tags:
     - banjax
     - banjaxd
