@@ -17,9 +17,9 @@ challenger:
 kafka:
   metadata.broker.list: "{{ kafka_broker_ip }}"
   security.protocol: 'ssl'
-  ssl.ca.location: "{{ TSPATH }}/conf/banjax/caroot.pem"
-  ssl.certificate.location: "{{ TSPATH }}/banjax/certificate.pem"
-  ssl.key.location: "{{ TSPATH }}/banjax/key.pem"
+  ssl.ca.location: "conf/banjax/caroot.pem"
+  ssl.certificate.location: "conf/banjax/certificate.pem"
+  ssl.key.location: "conf/banjax/key.pem"
   ssl.key.password: "{{ banjax_ssl_key_password }}"
   report_topic: 'banjax_report_topic'
   command_topic: 'banjax_command_topic'
