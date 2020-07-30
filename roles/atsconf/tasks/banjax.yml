@@ -55,6 +55,7 @@
   with_dict: "{{ dnets }}"
   tags:
     - banjax
+    - banjaxd
 
 - name: Whitelists template
   template:
@@ -64,6 +65,7 @@
   with_dict: "{{ dnets }}"
   tags:
     - banjax
+    - banjaxd
     - banjax_whitelist
 
 - name: banjax.d/dynamic.bconf configuration file
