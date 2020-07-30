@@ -28,6 +28,25 @@
     - banjax
     - setup
 
+- name: Create banjax config dir
+  file:
+    path: "config/banjax"
+    state: directory
+    mode: '0755'
+  tags:
+    - banjax
+    - setup
+
+- name: Create banjax/dnet config dir
+  file:
+    path: "config/banjax/{{item.key}}"
+    state: directory
+    mode: '0755'
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+    - setup
+
 - name: Banjax configuration file
   template:
     src: banjax/banjax.conf.j2
