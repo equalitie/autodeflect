@@ -77,3 +77,30 @@
   tags:
     - banjax
     - banjaxd
+
+- name: create kafka key.pem
+  template:
+    src: banjax/key.pem.j2
+    dest: "{{ banjax_output }}{{ item.key }}/key.pem"
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+    - banjax_kafka_certs
+
+- name: create kafka certificate.pem
+  template:
+    src: banjax/certificate.pem.j2
+    dest: "{{ banjax_output }}{{ item.key }}/certificate.pem"
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+    - banjax_kafka_certs
+
+- name: create kafka caroot.pem
+  template:
+    src: banjax/caroot.pem.j2
+    dest: "{{ banjax_output }}{{ item.key }}/caroot.pem"
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+    - banjax_kafka_certs
