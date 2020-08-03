@@ -1,0 +1,4 @@
+---
+dynamic_banjax: false
+kafka_broker_ip: '127.0.0.1'
+banjax_ssl_key_password: ''

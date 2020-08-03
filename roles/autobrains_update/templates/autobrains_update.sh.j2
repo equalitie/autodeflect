@@ -419,6 +419,29 @@ function banjax_new_diff {
   fi
 }
 
+function banjax_kafka_certs_diff {
+  ATS_DIR="{{ autobrains_config.deflect_dir }}/edges/$DNET{{ autobrains_config.trafficserver_dir }}"
+  for i in {{ banjax_output }}$DNET/*.pem; do
+    ls $i >> config/logs/current.log 2>&1
+    RT=$?
+    if [ "$RT" -gt 0 ]; then
+      continue
+    fi
+    DIFF_FILES="$ATS_DIR/conf/banjax/$(basename $i) $i"
+    diff -Ntu $DIFF_FILES
+    RT=$?
+    if [ $RT -eq 2 ]
+    then
+      echo "ERROR: There was something wrong with the diff command"
+    elif [ $RT -eq 1 ]
+    then
+      yorn "Do you want to install this file" "install_file $i $ATS_DIR/conf/banjax/$(basename $i)"
+      [ "$yn" = 'n' ] || [ "$yn" = 'N' ] && SKIPPED_INSTALL[$DNET]=0 || REMAP_TOUCHED[$DNET]=0
+      echo -e $ECHO_SEPARATOR
+    fi
+  done
+}
+
 # ATS 7+
 function logging_diff {
   ATS_DIR="{{autobrains_config.deflect_dir}}/edges/$DNET{{autobrains_config.trafficserver_dir}}"
@@ -563,6 +586,7 @@ function all_diff {
 for DNET in $DNETS; do
   banjax_new_diff
   banjax_diff_loop
+  banjax_kafka_certs_diff
   logging_diff
   ssl_multicert_diff
   remap_diff
