@@ -16,6 +16,9 @@ include:
   - banjax.d/general.bconf
   - banjax.d/whitelist.bconf
   - banjax.d/sites.bconf
+{% if dynamic_banjax %}
+  - banjax.d/dynamic.bconf
+{% endif %}
 
 challenger:
   key: {{challenger_key}}

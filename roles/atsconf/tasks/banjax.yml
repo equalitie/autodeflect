@@ -28,6 +28,25 @@
     - banjax
     - setup
 
+- name: Create banjax config dir
+  file:
+    path: "config/banjax"
+    state: directory
+    mode: '0755'
+  tags:
+    - banjax
+    - setup
+
+- name: Create banjax/dnet config dir
+  file:
+    path: "config/banjax/{{item.key}}"
+    state: directory
+    mode: '0755'
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+    - setup
+
 - name: Banjax configuration file
   template:
     src: banjax/banjax.conf.j2
@@ -55,6 +74,7 @@
   with_dict: "{{ dnets }}"
   tags:
     - banjax
+    - banjaxd
 
 - name: Whitelists template
   template:
@@ -64,4 +84,42 @@
   with_dict: "{{ dnets }}"
   tags:
     - banjax
+    - banjaxd
     - banjax_whitelist
+
+- name: banjax.d/dynamic.bconf configuration file
+  template:
+    src: banjax/dynamic.bconf.j2
+    dest: "{{ banjax_output }}{{ item.key }}/banjax.d/dynamic.bconf"
+    validate: 'python scripts/validate_yaml.py %s'
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+    - banjaxd
+
+- name: create kafka key.pem
+  template:
+    src: banjax/key.pem.j2
+    dest: "{{ banjax_output }}{{ item.key }}/key.pem"
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+    - banjax_kafka_certs
+
+- name: create kafka certificate.pem
+  template:
+    src: banjax/certificate.pem.j2
+    dest: "{{ banjax_output }}{{ item.key }}/certificate.pem"
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+    - banjax_kafka_certs
+
+- name: create kafka caroot.pem
+  template:
+    src: banjax/caroot.pem.j2
+    dest: "{{ banjax_output }}{{ item.key }}/caroot.pem"
+  with_dict: "{{ dnets }}"
+  tags:
+    - banjax
+    - banjax_kafka_certs
