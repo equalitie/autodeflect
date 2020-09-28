@@ -12,7 +12,7 @@ challenger:
     white_listed_ips:         # XXX i needed this for some reason
       - '0.0.0.0'
     no_of_fails_to_ban: 10    # XXX think about what this should be...
-  dynamic_expiry_seconds: 60  # remove dynamic challenges after this long
+  dynamic_expiry_seconds: {{ banjax_dynamic_expiry_seconds }}  # remove dynamic challenges after this long
 
 kafka:
   metadata.broker.list: "{{ kafka_broker_ip }}"
