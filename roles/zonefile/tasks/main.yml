@@ -28,7 +28,7 @@
   with_dict: "{{ remap }}"
   when:
     - ('dns_records' in remap[item.key] and 'network' in remap[item.key])
-    - ('next_migration' in remap[item.key] and remap[item.key][next_migration] == False)
+    - ('next_migration' in remap[item.key] and remap[item.key]['next_migration'] == False)
   tags:
     - dns
     - test123
