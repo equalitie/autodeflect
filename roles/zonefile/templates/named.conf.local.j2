@@ -14,6 +14,7 @@ zone "{{dnets[dnet]}}" {
 {% for site, attributes in remap | dictsort %}
 {% if "dns_records" in attributes -%} 
 # in {{attributes.network}} dnet
+{% if "next_migration" in attributes and attributes.next_migration == False %}
 zone "{{site}}" {
       type master;
       file "edgemanage/{{site}}.zone";
@@ -21,5 +22,8 @@ zone "{{site}}" {
       allow-query { 127.0.0.1; {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
       allow-transfer { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
 };
+{% else %}
+# {{site}} skipped because on migrated or next_migration was not set
+{% endif %}
 {% endif %}
 {% endfor %}
