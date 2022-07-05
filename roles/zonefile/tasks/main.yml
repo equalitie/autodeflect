@@ -31,7 +31,6 @@
     - ('next_migration' in remap[item.key] and remap[item.key]['next_migration'] == False)
   tags:
     - dns
-    - test123
 
 - name: Bind common conf to enable templated zones
   template:
@@ -39,7 +38,6 @@
     dest: "{{bind_output}}bind/named.conf.local.edgemanage"
   tags:
     - dns
-    - test123
 
 - name: Central DNS zone files
   template:
