@@ -75,7 +75,7 @@
   tags:
     - tls
     - letsencrypt
-    - test123
+    - test1234
 
 - name: Execute remote LE renewals
   command: /opt/autodeflect/bin/LE_renew_by_name.sh
