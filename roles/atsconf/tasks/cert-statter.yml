@@ -52,7 +52,7 @@
 
 - name: enumerate Letsencrypt chain files
   stat:
-    path: "{{letsencrypt_output}}{{item.key}}.le.chain.crt"
+    path: "{{ letsencrypt_output }}{{ item.key }}.le.chain.crt"
   when:
     - item.value.letsencrypt is defined and item.value.letsencrypt == True
     - item.value.next_migration is defined and item.value.next_migration == False
@@ -60,16 +60,12 @@
   register: stat_results
   tags:
     - tls
-    - test123
 
 - name: Use stat results to modify remap. Set le_chain_exists
   set_fact:
     leremap: "{{ leremap|default({}) | combine( {item.item.key: item.item.value | combine( {'le_chain_exists': item.stat.exists} )} ) }}"
   when:
-    - item.item.value.letsencrypt is defined and item.item.value.letsencrypt == True
     - item.stat.exists is defined
-    - item.value.next_migration is defined and item.value.next_migration == False
   loop: "{{ stat_results.results }}"
   tags:
     - tls
-    - test123
