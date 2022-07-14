@@ -66,7 +66,6 @@
   tags: 
     - ats
     - ats_hosts
-    - test123
 
 - name: create usable letsencrypt ipaddress if no lookup
   set_fact:
@@ -76,7 +75,6 @@
   tags: 
     - ats
     - ats_hosts
-    - test123
 
 - name: create usable letsencrypt ipaddress if no lookup
   set_fact:
@@ -86,7 +84,6 @@
   tags: 
     - ats
     - ats_hosts
-    - test123
 
 - name: hosts.origin
   template:
@@ -128,7 +125,6 @@
   tags:
     - ats
     - tls
-    - test123
 
 - name: ssl_multicert.config
   template:
@@ -138,7 +134,6 @@
   tags:
     - ats
     - tls
-    - test123
 
 - include_tasks: banjax.yml
   tags:
