@@ -55,7 +55,7 @@
     path: "{{ letsencrypt_output }}{{ item.key }}.le.chain.crt"
   when:
     - item.value.letsencrypt is defined and item.value.letsencrypt == True
-    - item.value.next_migration is defined and item.value.next_migration == False
+    - item.value.next_migration | default(False) == False
   with_dict: "{{ remap }}"
   register: stat_results
   tags:

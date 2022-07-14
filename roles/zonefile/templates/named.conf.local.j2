@@ -13,8 +13,8 @@ zone "{{dnets[dnet]}}" {
 {% endfor %}
 {% for site, attributes in remap | dictsort %}
 {% if "dns_records" in attributes -%} 
-# in {{attributes.network}} dnet
-{% if "next_migration" in attributes and attributes.next_migration == False %}
+# dnet: {{attributes.network}}
+{% if attributes.next_migration | default(False) == False %}
 zone "{{site}}" {
       type master;
       file "edgemanage/{{site}}.zone";

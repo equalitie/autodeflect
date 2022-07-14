@@ -24,7 +24,7 @@ ssl_cert_name={{site}}.le.cert.crt ssl_key_name={{site}}.le.key ssl_ca_name={{si
 {% else %}
 
 # no letsencrypt chain found
-{% if remap[site]["next_migration"] is defined and remap[site]["next_migration"] == True %}
+{% if remap[site]["next_migration"] | default(False) == True %}
 # {{ site }} has been migrated to Deflect Next
 {% endif %}
 {% endif %}
