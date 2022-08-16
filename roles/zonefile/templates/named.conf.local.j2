@@ -13,8 +13,8 @@ zone "{{dnets[dnet]}}" {
 {% endfor %}
 {% for site, attributes in remap | dictsort %}
 {% if "dns_records" in attributes -%} 
-# in {{attributes.network}} dnet
-{% if "next_migration" in attributes and attributes.next_migration == False %}
+# dnet: {{attributes.network}}
+{% if attributes.next_migration | default(False) == False %}
 zone "{{site}}" {
       type master;
       file "edgemanage/{{site}}.zone";
@@ -23,7 +23,7 @@ zone "{{site}}" {
       allow-transfer { {% for notify in dns_notify_servers %}{{notify}}; {% endfor %}};
 };
 {% else %}
-# {{site}} skipped because on migrated or next_migration was not set
+# {{site}} has been migrated to Defelct Next
 {% endif %}
 {% endif %}
 {% endfor %}
